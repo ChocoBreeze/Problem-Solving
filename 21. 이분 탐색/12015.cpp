@@ -1,3 +1,4 @@
+// 최적화 문제 --> 판정 문제
 // 접근 참고
 // https://jason9319.tistory.com/113?category=670441
 #include<iostream>
