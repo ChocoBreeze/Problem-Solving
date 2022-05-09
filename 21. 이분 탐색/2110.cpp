@@ -1,4 +1,6 @@
 // 최적화 문제를 판정 문제로 바꾸기!
+// https://www.acmicpc.net/board/view/8301
+// parametric search
 #include<iostream>
 #include<vector>
 #include<algorithm>
