@@ -45,7 +45,7 @@ int main() {
 	result_map[0][0][0] = 1;
 	while (!Q.empty()) {
 		Data now = Q.front();
-		if (now.x == N - 1 and now.y == M - 1) break;
+		if (now.x == N - 1 && now.y == M - 1) break;
 		Q.pop();
 		for (int i = 0; i < 4; ++i) { // up down left right 순서
 			if (now.x + m1[i] >= 0 && now.x + m1[i] < N && now.y + m2[i] >= 0 && now.y + m2[i] < M) {
