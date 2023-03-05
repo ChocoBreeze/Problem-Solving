@@ -1,34 +1,29 @@
-// 최적화 문제를 판정 문제로 바꾸기!
-// https://www.acmicpc.net/board/view/8301
-// parametric search
-#include<iostream>
-#include<vector>
-#include<algorithm>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
 int main() {
-	long long int N, C, max = 2; // N(2~200000), C(2~N)
-	std::cin.tie(NULL);
-	std::ios::sync_with_stdio(false);
-	std::cin >> N >> C;
-	std::vector<int> wifi(N, 0);
-	for (int i = 0; i < N; ++i) {
-		std::cin >> wifi[i];
-		if (max < wifi[i]) max = wifi[i];
-	}
-	std::sort(wifi.begin(), wifi.end());
-	long long int start = 1, end = max, mid = 0;
-	// mid으로 만들 수 있는 wifi 구성이 가능한가?
+	cin.tie(NULL)->sync_with_stdio(false);
+	int N, C;
+	cin >> N >> C;
+	vector<int> wifi(N, 0);
+	for (auto& w : wifi) cin >> w;
+	sort(begin(wifi), end(wifi));
+	int start = 1, end = wifi.back() - wifi.front() + 1; // end 범위를 잘 확인하자! (75% 통과 못한 이유)
 	while (start < end) {
-		mid = start + (end - start) / 2;
-		long long int cnt = 0, last_choice = wifi[0];
+		int mid = start + (end - start) / 2; // 만들 수 있는 간격
+		int cnt = 0, last_choice = wifi[0];
 		for (int i = 1; i < N; ++i) {
 			if (wifi[i] - last_choice >= mid) {
 				last_choice = wifi[i];
-				cnt++;
+				++cnt;
 			}
 		}
 		if (cnt < C - 1) end = mid;
 		else start = mid + 1;
 	}
-	std::cout << start - 1;
+	cout << start - 1;
 	return 0;
 }

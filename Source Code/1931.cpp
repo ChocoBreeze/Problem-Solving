@@ -1,33 +1,34 @@
-// 왜 그리디로 풀어도 되는지
-#include<iostream>
-#include<vector> 
-#include<algorithm>
-int main() 
-{
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+using pii = pair<int, int>;
+
+int main() {
+	cin.tie(NULL)->sync_with_stdio(false);
 	int N;
-	std::cin.tie(NULL);
-	std::ios::sync_with_stdio(false);
-	std::cin >> N;
-	std::vector<std::pair<int, int>> time(N,std::pair<int,int>(0,0));
-	for (int i = 0; i < N; ++i) {
-		std::cin >> time[i].first >> time[i].second;
+	cin >> N;
+	vector<pii> vec(N, make_pair(0, 0));
+	for (auto& n : vec) {
+		cin >> n.first >> n.second;
 	}
-	auto comparable = [](std::pair<int, int>& a, std::pair<int, int>& b) {
-		if (a.second < b.second) return true;
-		else if (a.second == b.second) {
-			return a.first < b.first;
-		}
-		else return false;
+	auto compare = [](const pii& a, const pii& b) {
+		if (a.second == b.second) return a.first < b.first;
+		return a.second < b.second;
 	};
-	std::sort(time.begin(), time.end(), comparable);
-	int count = 1;
-	std::pair<int, int> on_going = time[0];
-	for (int i = 1; i < N; ++i) {
-		if(on_going.second > time[i].first)
-			continue;
-		on_going = time[i];
-		count++;
+	sort(begin(vec), end(vec), compare);
+
+	int last_time = 0, answer = 0;
+	for (auto& v : vec) {
+		if (last_time <= v.first) {
+			last_time = v.second;
+			answer++;
+		}
 	}
-	std::cout << count;
+	cout << answer << '\n';
+
+
 	return 0;
 }
