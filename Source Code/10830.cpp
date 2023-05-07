@@ -1,54 +1,69 @@
-#include<iostream>
-#include<vector>
-#include<map>
-using std::vector;
+// Divide And Conquer
+#include <iostream>
+#include <vector>
+#include <utility>
+
+using namespace std;
+using ll = long long;
+int N; // 크기
 
 vector<vector<int>> result_temp;
 vector<vector<int>> result;
 
-void matrix_mul(vector<vector<int>>& A, vector<vector<int>>& B) { // AB
-	int N = A.size();
-	vector<vector<int>> result_initial(N, vector<int>(N, 0));
-	result_temp = std::move(result_initial);
-	for (int j = 0; j < N; ++j) {
-		for (int k = 0; k < N; ++k) {
-			for (int l = 0; l < N; ++l) { // 연산 횟수
-				result_temp[j][k] += (A[j][l] * B[l][k]) % 1000;
+void matrix_mul(vector<vector<int>> &A, vector<vector<int>> &B)
+{ // AB
+	vector<vector<int>> resultInitial(N, vector<int>(N, 0));
+	for (int j = 0; j < N; ++j)
+	{
+		for (int k = 0; k < N; ++k)
+		{
+			for (int l = 0; l < N; ++l)
+			{ // 연산 횟수
+				resultInitial[j][k] += (A[j][l] * B[l][k]) % 1000;
 			}
-			result_temp[j][k] %= 1000;
+			resultInitial[j][k] %= 1000;
 		}
 	}
+	result_temp = move(resultInitial);
 }
 
-vector<vector<int>>& matrix_multiply(vector<vector<int>>& A, long long int B) {
-	if (B == 1) return A;
-	vector<vector<int>> result_half = matrix_multiply(A, B / 2);
+vector<vector<int>> &matrix_multiply(vector<vector<int>> &A, long long int B)
+{
+	if (B == 1)
+		return A;
+	vector<vector<int>> result_half = matrix_multiply(A, B / 2); // Divide And Conquer
 	matrix_mul(result_half, result_half);
-	result = std::move(result_temp);
-	if (B % 2 == 1) {
+	result = move(result_temp);
+	if (B % 2 == 1)
+	{ // A 한 번 더 곱하기
 		matrix_mul(result, A);
-		result = std::move(result_temp);
+		result = move(result_temp);
 	}
 	return result;
 }
 
-int main() {
-	int N;
-	long long int B;
-	std::cin >> N >> B;
+int main()
+{
+	long long int B; // 몇 번 제곱해야 하는지
+	cin >> N >> B;
 	vector<vector<int>> A(N, vector<int>(N, 0));
-	for (int i = 0; i < N; ++i) {
-		for (int j = 0; j < N; ++j) {
-			std::cin >> A[i][j];
-			A[i][j] %= 1000;
+	for (auto &row : A)
+	{
+		for (int &v : row)
+		{
+			cin >> v;
+			v %= 1000;
 		}
 	}
+
 	vector<vector<int>> result = matrix_multiply(A, B);
-	for (int i = 0; i < N; ++i) {
-		for (int j = 0; j < N; ++j) {
-			std::cout << result[i][j] << " ";
+	for (auto &row : result)
+	{
+		for (int &v : row)
+		{
+			cout << v << ' ';
 		}
-		std::cout << "\n";
+		cout << '\n';
 	}
 	return 0;
 }

@@ -1,31 +1,38 @@
-// lazy segment tree
-// https://yabmoons.tistory.com/442 참고
+// 기존 코드 업데이트
+// https://yabmoons.tistory.com/442 - 아이디어
+// Structured Binding 사용 + tuple 제거
 
 #include <iostream>
 #include <vector>
 #include <queue>
-#include <tuple>
 
 using namespace std;
 using ll = long long;
 
-struct Data_lazy {
-	int s; // 시작 
-	int e; // 끝
-	long long lazy;
-	Data_lazy(int s, int e, int l) : s(s), e(e), lazy(l) {}
+struct Data_lazy
+{
+	int s, e;
+	ll lazy;
+	Data_lazy(int s, int e, ll l) : s(s), e(e), lazy(l) {}
+};
+
+struct QData
+{
+	int index, s, e;
+	QData(int index, int s, int e) : index(index), s(s), e(e) {}
 };
 
 vector<ll> tree;
 vector<Data_lazy> lazy;
-int leaf_count = 1;
+int leaf_count{1};
 
-void update_lazy(int index) {
-	if (lazy[index].lazy!= 0) {
-		// 구간만큼 값 갱신
-		tree[index] += static_cast<ll>(lazy[index].e - lazy[index].s + 1) * lazy[index].lazy; 
-		if (lazy[index].e != lazy[index].s) { 
-			// 구간인 경우 자식에게 lazy value 상속
+void update_lazy(int index)
+{
+	if (lazy[index].lazy != 0)
+	{
+		tree[index] += static_cast<ll>(lazy[index].e - lazy[index].s + 1) * lazy[index].lazy; // 구간만큼 값 갱신
+		if (lazy[index].e != lazy[index].s)
+		{ // 구간인 경우 자식에게 lazy value 상속
 			lazy[index * 2].lazy += lazy[index].lazy;
 			lazy[index * 2 + 1].lazy += lazy[index].lazy;
 		}
@@ -33,105 +40,127 @@ void update_lazy(int index) {
 	}
 }
 
-void update_range(int s, int e, ll value) {
-	s = leaf_count + s - 1;
-	e = leaf_count + e - 1;
-	queue<tuple<int, int, int>> Q; // index, s, e
-	Q.push(make_tuple(1, s, e));
-	while (!Q.empty()) {
-		auto now = Q.front();
+void update_range(int s, int e, ll value)
+{
+	s += leaf_count - 1;
+	e += leaf_count - 1;
+	queue<QData> Q; // index, s, e
+	Q.push(QData(1, s, e));
+	while (!Q.empty())
+	{
+		auto [now_index, now_s, now_e] = Q.front();
 		Q.pop();
-		int now_index = get<0>(now);
-		update_lazy(now_index);
-		if (lazy[now_index].s == get<1>(now) && lazy[now_index].e == get<2>(now)) {
+		update_lazy(now_index); // 기존 lazy 값 갱신
+		if (lazy[now_index].s == now_s && lazy[now_index].e == now_e)
+		{
 			// 더 이상 진행 x
 			tree[now_index] += static_cast<ll>(lazy[now_index].e - lazy[now_index].s + 1) * value; // 구간만큼 값 갱신
-			if (lazy[now_index].e != lazy[now_index].s) {
+			if (lazy[now_index].e != lazy[now_index].s)
+			{
 				// 구간인 경우 자식에게 lazy value 상속
 				lazy[now_index * 2].lazy += value;
 				lazy[now_index * 2 + 1].lazy += value;
 			}
 		}
-		else {
-			if (lazy[now_index * 2].e >= get<1>(now)) { // 왼쪽
-				Q.push(make_tuple(now_index * 2, get<1>(now), min(lazy[now_index * 2].e, get<2>(now))));
-				int interval = min(lazy[now_index * 2].e, get<2>(now)) - get<1>(now) + 1;
+		else
+		{ // 구간인 경우
+			if (lazy[now_index * 2].e >= now_s)
+			{ // 왼쪽
+				Q.push(QData(now_index * 2, now_s, min(lazy[now_index * 2].e, now_e)));
+				int interval = min(lazy[now_index * 2].e, now_e) - now_s + 1;
 				tree[now_index] += static_cast<ll>(interval) * value; // 현재 tree 갱신
 			}
-			if (lazy[now_index * 2 + 1].s <= get<2>(now)) { // 오른쪽
-				Q.push(make_tuple(now_index * 2 + 1, max(lazy[now_index * 2 + 1].s,get<1>(now)), get<2>(now)));
-				int interval = get<2>(now) - max(lazy[now_index * 2 + 1].s, get<1>(now)) + 1;
+			if (lazy[now_index * 2 + 1].s <= now_e)
+			{ // 오른쪽
+				Q.push(QData(now_index * 2 + 1, max(lazy[now_index * 2 + 1].s, now_s), now_e));
+				int interval = now_e - max(lazy[now_index * 2 + 1].s, now_s) + 1;
 				tree[now_index] += static_cast<ll>(interval) * value;
 			}
 		}
 	}
-
 }
 
-ll cal_sum(int s, int e) { // top-down
-	s = leaf_count + s - 1;
-	e = leaf_count + e - 1;
+ll cal_sum(int s, int e)
+{ // top-down
+	s += leaf_count - 1;
+	e += leaf_count - 1;
 	ll sum = 0;
-	queue<tuple<int, int, int>> Q; // index, s, e
-	Q.push(make_tuple(1, s, e));
-	while (!Q.empty()) {
-		auto now = Q.front();
+	queue<QData> Q; // index, s, e
+	Q.push(QData(1, s, e));
+	while (!Q.empty())
+	{
+		auto [now_index, now_s, now_e] = Q.front();
 		Q.pop();
-		int now_index = get<0>(now);
-		update_lazy(now_index);
-		if (lazy[now_index].s == get<1>(now) && lazy[now_index].e == get<2>(now)) {
-			sum += tree[now_index];
+		update_lazy(now_index); // 기존 lazy 갱신
+		if (lazy[now_index].s == now_s && lazy[now_index].e == now_e)
+		{
+			sum += tree[now_index]; // 같은 값인 경우 합 계산
 		}
-		else {
-			if (lazy[now_index * 2].e >= get<1>(now)) { // 왼쪽
-				Q.push(make_tuple(now_index * 2, get<1>(now), min(lazy[now_index * 2].e, get<2>(now))));
+		else
+		{ // 구간인 경우
+			if (lazy[now_index * 2].e >= now_s)
+			{ // 왼쪽
+				Q.push(QData(now_index * 2, now_s, min(lazy[now_index * 2].e, now_e)));
 			}
-			if (lazy[now_index * 2 + 1].s <= get<2>(now)) { // 오른쪽
-				Q.push(make_tuple(now_index * 2 + 1, max(lazy[now_index * 2 + 1].s, get<1>(now)), get<2>(now)));
+			if (lazy[now_index * 2 + 1].s <= now_e)
+			{ // 오른쪽
+				Q.push(QData(now_index * 2 + 1, max(lazy[now_index * 2 + 1].s, now_s), now_e));
 			}
 		}
 	}
-
 	return sum;
 }
 
-int main() {
+int main()
+{
 	cin.tie(NULL)->sync_with_stdio(false);
 	int N, M, K;
 	cin >> N >> M >> K;
 
-	while (leaf_count < N) {
+	while (leaf_count < N)
+	{
 		leaf_count <<= 1;
 	}
 
-	tree.assign(2 * leaf_count, 0);
-	lazy.assign(2 * leaf_count, Data_lazy(0, 0, 0));
-	for(int i=0;i<leaf_count;++i) {
-		if (i < N) {
-			cin >> tree[i + leaf_count];
+	leaf_count <<= 1;
+	tree.assign(leaf_count, 0);
+	lazy.assign(leaf_count, Data_lazy(0, 0, 0));
+	leaf_count >>= 1;
+
+	// make leaf node
+	for (int i = 0; i < leaf_count; ++i)
+	{
+		int idx = i + leaf_count;
+		if (i < N)
+		{
+			cin >> tree[idx];
 		}
-		lazy[i + leaf_count].s = lazy[i + leaf_count].e = i + leaf_count;
+		lazy[idx].s = lazy[idx].e = idx;
 	}
-	for (int i = leaf_count - 1; i >= 1; --i) {
-		tree[i] = tree[i * 2] + tree[i * 2 + 1];
-		lazy[i].s = lazy[i * 2].s;
-		lazy[i].e = lazy[i * 2 + 1].e == 0 ? lazy[i*2].e : lazy[i*2 + 1].e;
+
+	// make tree (not leaf node)
+	for (int i = leaf_count - 1; i >= 1; --i)
+	{
+		int leftChild{i * 2}, rightChild{i * 2 + 1};
+		tree[i] = tree[leftChild] + tree[rightChild];
+		lazy[i].s = lazy[leftChild].s;
+		lazy[i].e = lazy[rightChild].e == 0 ? lazy[leftChild].e : lazy[rightChild].e; // 굳이 했어야 했나?
 	}
 
 	int a, b, c;
 	ll d;
-	for (int i = 0; i < M + K; ++i) {
+	for (int i = 0; i < M + K; ++i)
+	{
 		cin >> a;
-		if (a == 1) { // b ~ c에 d를 더하기
+		if (a == 1)
+		{ // b ~ c에 d를 더하기
 			cin >> b >> c >> d;
-			// change_value(tree, b, c);
 			update_range(b, c, d);
 		}
-		else { // b ~ c까지의 합
+		else
+		{ // b ~ c까지의 합
 			cin >> b >> c;
-			ll sum = 0;
-			sum += cal_sum(b, c);
-			cout << sum << '\n';
+			cout << cal_sum(b, c) << '\n';
 		}
 	}
 
