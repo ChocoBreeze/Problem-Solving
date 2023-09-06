@@ -3,7 +3,7 @@
 ## 백준 Problem Solving. 
 - 문제 푼 소스 코드 기록
 - [백준](https://www.acmicpc.net/)
-- 최종 업데이트 날짜 : 23.05.07
+- 최종 업데이트 날짜 : 23.06.08
 
 ## PS
 [![Solved.ac프로필](http://mazassumnida.wtf/api/v2/generate_badge?boj=ds030337)](https://solved.ac/ds030337)

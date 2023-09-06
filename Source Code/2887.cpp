@@ -1,3 +1,4 @@
+// 22544KB, 192ms
 // Kruskal
 #include <iostream>
 #include <queue> // priority_queue
@@ -7,29 +8,31 @@
 using namespace std;
 
 struct Disjoint_Set {
-	vector<int> siz, par;
-	Disjoint_Set(int n) : siz(n, 1), par(n, -1) {}
+	vector<int> par;
+	Disjoint_Set(int n) : par(n, -1) {}
 
 	int root(int x) {
-		if (par[x] == -1) return x;
-		else return root(par[x]);
+		if (par[x] < 0) return x;
+		return par[x] = root(par[x]);
 	}
 	
 	bool is_same(int x, int y) {
-		x = root(x);
-		y = root(y);
+		x = root(x), y = root(y);
 		return x == y;
 	}
 
 	bool unite(int x, int y) {
-		x = root(x);
-		y = root(y);
+		x = root(x), y = root(y);
 		if (x == y) return false;
-		if (siz[x] < siz[y]) swap(x, y);
+        if(size(x) < size(y)) swap(x, y);
+        par[x] += par[y];
 		par[y] = x;
-		siz[x] += siz[y];
 		return true;
 	}
+    int size(int x) {
+        x = root(x);
+        return -par[x];
+    }
 };
 
 struct Coord {
