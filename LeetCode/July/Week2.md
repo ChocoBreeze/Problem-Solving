@@ -3,6 +3,9 @@
   - [24.07.10 - 1598. Crawler Log Folder](#240710---1598-crawler-log-folder)
     - [나](#나)
     - [gpt](#gpt)
+  - [24.07.11 - 1190. Reverse Substrings Between Each Pair of Parentheses](#240711---1190-reverse-substrings-between-each-pair-of-parentheses)
+    - [나](#나-1)
+    - [gpt](#gpt-1)
 
 # July Week 2
 
@@ -151,3 +154,87 @@ This approach avoids `substr` and unnecessary length checks while ensuring conci
 Understanding performance implications in C++ often requires a deep dive into compiler optimizations and hardware behaviors. For practical purposes, testing different approaches and profiling your code can provide the most reliable insights.
 
 </details>
+
+## 24.07.11 - 1190. Reverse Substrings Between Each Pair of Parentheses
+[문제 링크](https://leetcode.com/problems/reverse-substrings-between-each-pair-of-parentheses/description/?envType=daily-question&envId=2024-07-11)
+
+### 나
+```cpp
+// 0ms, 9.64MB
+class Solution {
+public:
+    int i{};
+
+    string reverseParentheses(string s) {
+        string answer;
+        for(int e = static_cast<int>(s.length());i<e;++i) {
+            if(s[i] == '(') {
+                ++i;
+                answer += reverseParentheses(s);
+            }
+            else if(s[i] == ')') {
+                break;
+            }
+            else answer.push_back(s[i]);
+        }
+        if(i != static_cast<int>(s.length()))
+            reverse(begin(answer), end(answer));
+        return answer;
+    }
+};
+```
+
+### gpt
+Got it! Let's dive into how we can solve this problem. We'll use a stack to handle the parentheses and reverse the substrings.
+
+Here's a step-by-step breakdown of the solution:
+
+1. **Use a stack** to help us reverse substrings within parentheses.
+2. Iterate through each character in the string:
+   - If the character is '(', push the current string onto the stack and start a new substring.
+   - If the character is ')', reverse the current substring and append it to the string popped from the stack.
+   - Otherwise, append the character to the current substring.
+3. At the end, the current substring will contain the final result.
+
+Here's a sample implementation in C++:
+
+```cpp
+class Solution {
+public:
+    int i{};
+
+    string reverseParentheses(string s) {
+        std::stack<std::string> st;
+        std::string current;
+    
+        for (char& ch : s) {
+            if (ch == '(') {
+                st.push(current); // 괄호 이전에 쌓은 애들 stack에 누적
+                current.clear();
+            } else if (ch == ')') {
+                std::reverse(current.begin(), current.end()); // 쌓은애들 거꾸로 뒤집기
+                current = st.top() + current;
+                st.pop();
+            } else {
+                current += ch;
+            }
+        }
+        
+        return current;
+    }
+};
+```
+> 비재귀로도 가능~ 훨씬 더 좋은 듯!
+
+<h3> Explanation: </h3>
+
+1. **Stack usage**: The stack `st` keeps track of the string parts before encountering a '('.
+2. **Current substring**: `current` holds the ongoing substring that we are processing.
+3. **Character check**:
+   - On '(': Push the current substring onto the stack and clear it.
+   - On ')': Reverse the current substring, pop from the stack, and append the reversed substring to the popped string.
+   - Otherwise, just append the character to the current substring.
+4. **Final result**: After the loop, `current` holds the final result without any parentheses.
+
+This solution efficiently handles the problem constraints and provides the correct output. If you have any questions or need further explanations, feel free to ask!
+
