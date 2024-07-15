@@ -7,3 +7,4 @@
 
 ## ToC
 - [July.Week2](./July/Week2.md)
+- [July.Week3](./July/Week3.md)
