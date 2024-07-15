@@ -6,6 +6,9 @@
   - [24.07.11 - 1190. Reverse Substrings Between Each Pair of Parentheses](#240711---1190-reverse-substrings-between-each-pair-of-parentheses)
     - [나](#나-1)
     - [gpt](#gpt-1)
+  - [24.07.12 - 1717. Maximum Score From Removing Substrings](#240712---1717-maximum-score-from-removing-substrings)
+    - [나](#나-2)
+    - [gpt](#gpt-2)
 
 # July Week 2
 
@@ -238,3 +241,234 @@ public:
 
 This solution efficiently handles the problem constraints and provides the correct output. If you have any questions or need further explanations, feel free to ask!
 
+## 24.07.12 - 1717. Maximum Score From Removing Substrings
+[문제 링크](https://leetcode.com/problems/maximum-score-from-removing-substrings/description/?envType=daily-question&envId=2024-07-12)
+
+### 나
+```cpp
+class Solution {
+public:
+    int maximumGain(string s, int x, int y) {
+        int answer{};
+        // x가 더 크면 ab먼저, y가 더 크면 ba 먼저? (같을 때는 상관 없음)
+        string temp, temp2;
+        if(x >= y) {
+            // ab
+            for(char c : s) {
+                if(!temp.empty() && temp.back() == 'a' && c == 'b') {
+                    temp.pop_back();
+                    answer += x;
+                }
+                else temp.push_back(c);
+            }
+
+            // ba
+            for(char c : temp) {
+                if(!temp2.empty() && temp2.back() == 'b' && c == 'a') {
+                    temp2.pop_back();
+                    answer += y;
+                }
+                else temp2.push_back(c);
+            }
+        }
+        else {
+            // ba
+            for(char c : s) {
+                if(!temp.empty() && temp.back() == 'b' && c == 'a') {
+                    temp.pop_back();
+                    answer += y;
+                }
+                else temp.push_back(c);
+            }
+
+            // ab
+            for(char c : temp) {
+                if(!temp2.empty() && temp2.back() == 'a' && c == 'b') {
+                    temp2.pop_back();
+                    answer += x;
+                }
+                else temp2.push_back(c);
+            }
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+To solve LeetCode problem 1717, "Maximum Score From Removing Substrings," we need to remove specified substrings from a given string in such a way that the score is maximized. Here’s a step-by-step approach to solve this problem:
+
+<h3> Problem Description </h3>
+
+You are given a string `s` and two integers `x` and `y`. You need to maximize the score by performing the following operations any number of times:
+1. Remove the substring `"ab"` and gain `x` points.
+2. Remove the substring `"ba"` and gain `y` points.
+
+<h3> Approach </h3>
+
+1. **Determine the Order of Operations**: 
+   - If `x > y`, prioritize removing `"ab"` first, because it gives more points.
+   - If `y > x`, prioritize removing `"ba"` first.
+   - If `x == y`, it doesn't matter which substring is removed first as the points are the same.
+
+2. **Stack-based Solution**:
+   - Use a stack to help efficiently remove the substrings in the desired order.
+   - Traverse through the string and push characters to the stack while checking for the target substrings.
+
+<h3> Detailed Steps </h3>
+
+1. **Stack Simulation**:
+   - Create a stack to process the string.
+   - Traverse the string, pushing characters onto the stack.
+   - Whenever the target substring is formed (either `"ab"` or `"ba"` depending on priority), pop characters from the stack and add the corresponding points to the score.
+
+<h3> Example Code </h3>
+
+Here's a complete implementation in C++:
+
+```cpp
+#include <iostream>
+#include <string>
+#include <stack>
+using namespace std;
+
+int maximumGain(string s, int x, int y) {
+    int score = 0;
+    stack<char> st;
+    
+    auto removeSubstring = [&](char a, char b, int points) {
+        stack<char> tempStack;
+        for (char c : s) {
+            if (!st.empty() && st.top() == a && c == b) {
+                st.pop();
+                score += points;
+            } else {
+                st.push(c);
+            }
+        }
+        
+        // Store the intermediate result back to `s` for the next pass
+        s = "";
+        while (!st.empty()) {
+            tempStack.push(st.top());
+            st.pop();
+        }
+        while (!tempStack.empty()) {
+            s += tempStack.top();
+            tempStack.pop();
+        }
+    };
+    
+    // Determine the order based on the given points
+    if (x > y) {
+        removeSubstring('a', 'b', x);
+        removeSubstring('b', 'a', y);
+    } else {
+        removeSubstring('b', 'a', y);
+        removeSubstring('a', 'b', x);
+    }
+    
+    return score;
+}
+
+int main() {
+    string s = "cdbcbbaaabab";
+    int x = 4;
+    int y = 5;
+    cout << "Maximum score: " << maximumGain(s, x, y) << endl;
+    return 0;
+}
+```
+
+<h3> Explanation: </h3>
+
+- **removeSubstring** function: It removes a specific substring (`a` followed by `b`) from the string using a stack and updates the score.
+- **Order of Removal**: The substrings are removed in the order which gives the highest points first.
+- **Intermediate Storage**: The intermediate state of the string after each pass is stored back in `s` for the next removal operation.
+
+This approach ensures that the operations are performed efficiently and the score is maximized based on the given points for each type of substring removal.
+
+> [!TIP] Question
+> I have a question in your approach. Please make a proof for Why this is correct.
+> - If `x > y`, prioritize removing `"ab"` first, because it gives more points.
+> - If `y > x`, prioritize removing `"ba"` first.
+> - If `x == y`, it doesn't matter which substring is removed first as the points are the same.
+
+To understand why prioritizing the removal of substrings `"ab"` or `"ba"` based on their respective scores (`x` and `y`) is the correct approach, let's go through the reasoning step by step.
+
+<h3> Problem Restatement </h3>
+
+Given a string `s` and two scores `x` and `y`:
+1. Removing the substring `"ab"` gives `x` points.
+2. Removing the substring `"ba"` gives `y` points.
+
+The goal is to maximize the total score by removing these substrings in the optimal order.
+
+<h3> Key Insight </h3>
+
+To maximize the score, we should prioritize removing the substrings that provide the highest points first. The reason for this is based on the greedy algorithm principle: by making the locally optimal choice at each step, we aim to achieve the globally optimal solution.
+
+<h3> Proof by Greedy Strategy </h3>
+
+<h4> Case 1: <code>x > y</code> </h4>
+
+- When `x > y`, removing `"ab"` first is more beneficial because it provides more points. After removing as many `"ab"` as possible, we then remove `"ba"` substrings.
+- By prioritizing `"ab"`, we ensure that the high-scoring substrings are removed first, which maximizes the score. Any remaining characters after removing all possible `"ab"` substrings can then form `"ba"` substrings, which are removed next.
+
+<h4> Case 2: <code>y > x</code> </h4>
+
+- When `y > x`, the removal of `"ba"` gives more points. Hence, we should remove all possible `"ba"` substrings first. After that, we proceed to remove `"ab"` substrings.
+- This way, we capitalize on the higher score of `"ba"` removals, ensuring that we don't miss out on the higher points before addressing the lower-scoring `"ab"` removals.
+
+<h4> Case 3: <code>x == y</code> </h4>
+
+- When `x == y`, the order of removal doesn't matter since both operations give the same points. Removing any of the substrings first will lead to the same total score.
+
+<h3> Detailed Example for <code>x > y</code> </h3>
+
+Suppose `s = "ababbab"`, `x = 5`, and `y = 3`.
+
+1. **First Pass: Remove `"ab"` substrings**:
+   - String: `"ababbab"`
+   - After removing `"ab"`: `s = "abbbab"`
+   - Score: `+5` (1 removal of `"ab"`)
+
+2. **Second Pass: Remove `"ab"` again**:
+   - String: `"abbbab"`
+   - After removing `"ab"`: `s = "bbab"`
+   - Score: `+5` (1 removal of `"ab"`)
+
+3. **Third Pass: Remove `"ab"` again**:
+   - String: `"bbab"`
+   - After removing `"ab"`: `s = "bb"`
+   - Score: `+5` (1 removal of `"ab"`)
+
+4. **Final Pass: Remove `"ba"` substrings**:
+   - String: `"bb"`
+   - No more `"ba"` substrings can be removed.
+
+Total Score: `15` (from 3 removals of `"ab"`)
+
+<h3> Detailed Example for <code>y > x</code> </h3>
+
+Suppose `s = "babaab"`, `x = 2`, and `y = 4`.
+
+1. **First Pass: Remove `"ba"` substrings**:
+   - String: `"babaab"`
+   - After removing `"ba"`: `s = "baab"`
+   - Score: `+4` (1 removal of `"ba"`)
+
+2. **Second Pass: Remove `"ba"` again**:
+   - String: `"baab"`
+   - After removing `"ba"`: `s = "ab"`
+   - Score: `+4` (1 removal of `"ba"`)
+
+3. **Final Pass: Remove `"ab"` substrings**:
+   - String: `"ab"`
+   - After removing `"ab"`: `s = ""`
+   - Score: `+2` (1 removal of `"ab"`)
+
+Total Score: `10` (from 2 removals of `"ba"` and 1 removal of `"ab"`)
+
+<h3> Conclusion </h3>
+The greedy strategy works because it ensures that we always maximize the score at each step by removing the highest-scoring substrings first. This local optimization leads to the global maximum score. This approach is efficient and guarantees the best result by prioritizing the more valuable substrings based on their respective scores.
