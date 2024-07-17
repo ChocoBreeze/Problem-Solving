@@ -10,6 +10,9 @@
       - [Memory Limit Exceeded](#memory-limit-exceeded-1)
       - [Accepted](#accepted)
     - [gpt](#gpt-1)
+  - [24.07.17 - 1110. Delete Nodes And Return Forest](#240717---1110-delete-nodes-and-return-forest)
+    - [나](#나-2)
+    - [gpt](#gpt-2)
 
 # July Week 3
 
@@ -555,3 +558,133 @@ private:
 2. **Direction Construction**: In the `getDirections` function, the paths from the root to both the `startValue` and `destValue` are found. The common prefix of these paths is identified, which represents the path to the lowest common ancestor (LCA). The path from the `startValue` to the LCA is constructed using 'U' (up) moves, and then the remaining path to the `destValue` is appended.
 
 This approach ensures that the directions are accurately computed from `startValue` to `destValue`, navigating through the LCA as needed.
+
+## 24.07.17 - 1110. Delete Nodes And Return Forest
+### 나
+```cpp
+// 16ms, 27.2MB
+class Solution {
+public:
+    vector<TreeNode*> delNodes(TreeNode* root, vector<int>& to_delete) {
+        vector<TreeNode*> ret;
+
+        sort(begin(to_delete), end(to_delete));
+        if(!binary_search(begin(to_delete), end(to_delete), root->val)) {
+            ret.emplace_back(root);
+        }
+
+        queue<TreeNode*> q; q.emplace(root); 
+        while(!q.empty()) {
+            auto now = q.front(); q.pop(); 
+            auto result = binary_search(begin(to_delete), end(to_delete), now->val);
+            if(now->left!=nullptr) {
+                q.emplace(now->left);
+                if(result) { // now를 지워야하는 경우 다음 노드는 루트가 될 가능성이 있다.
+                    if(!binary_search(begin(to_delete), end(to_delete), now->left->val)) {
+                        ret.emplace_back(now->left);
+                    }
+                }
+                else { // now는 남아있지만, 다음 노드를 지워야 한다면
+                    if(binary_search(begin(to_delete), end(to_delete), now->left->val)) {
+                        now->left = nullptr; // 연결 끊기
+                    }
+                }
+            }
+            if(now->right!=nullptr) {
+                q.emplace(now->right);
+                if(result) { // now를 지워야하는 경우 다음 노드는 루트가 될 가능성이 있다.
+                    if(!binary_search(begin(to_delete), end(to_delete), now->right->val)) {
+                        ret.emplace_back(now->right);
+                    }
+                }
+                else { // now는 남아있지만, 다음 노드를 지워야 한다면
+                    if(binary_search(begin(to_delete), end(to_delete), now->right->val)) {
+                        now->right = nullptr; // 연결 끊기
+                    }
+                }
+            }
+        }
+
+        return ret;
+    }
+};
+```
+- 내가 제거되어야 할 정점이면 다음 정점은 루트 가능성이 있다.
+- 내가 제거되어야 할 정점이 아닐 때 다음 정점이 제거되어야 할 정점이면 연결을 끊어야 한다.
+
+### gpt
+Hello! The LeetCode problem "Delete Nodes And Return Forest" is an interesting problem that involves tree manipulation. Let’s walk through the problem and some potential strategies for solving it using C++.
+
+<h3> Problem Description </h3>
+
+You are given the root of a binary tree and a list of node values `to_delete`. You need to delete the nodes with the given values and return the forest (a collection of disjoint trees) that remains after deletion.
+
+<h3> Approach to Solution </h3>
+
+1. **Depth-First Search (DFS)**: We can traverse the tree using DFS. During the traversal, if we encounter a node that needs to be deleted, we detach it from its parent and recursively process its children.
+2. **Handling Deletion**: For each node to be deleted, its children (if any) become the roots of new trees in the forest.
+3. **Tracking the Roots of the New Forest**: Use a list to keep track of the new roots formed after deletions.
+
+<h3> Detailed Steps </h3>
+
+1. **Convert `to_delete` to a Set**: This allows for O(1) average-time complexity checks for whether a node should be deleted.
+2. **DFS Traversal**: Traverse the tree while handling deletions. For each node:
+   - If it needs to be deleted, its children are added to the forest.
+   - If it does not need to be deleted, it may become part of the resulting forest if its parent was deleted.
+3. **Edge Cases**: Handle the case where the root itself needs to be deleted.
+
+Here's a C++ implementation that follows the above approach:
+
+```cpp
+// 14ms, 27.34MB
+class Solution {
+public:
+    vector<TreeNode*> delNodes(TreeNode* root, vector<int>& to_delete) {
+        unordered_set<int> to_delete_set(to_delete.begin(), to_delete.end());
+        vector<TreeNode*> forest;
+        
+        root = dfs(root, to_delete_set, forest);
+        
+        // If root is not deleted, add it to the forest
+        if (root) {
+            forest.push_back(root);
+        }
+        
+        return forest;
+    }
+    
+private:
+    TreeNode* dfs(TreeNode* node, unordered_set<int>& to_delete_set, vector<TreeNode*>& forest) {
+        if (!node) return nullptr;
+        
+        node->left = dfs(node->left, to_delete_set, forest);
+        node->right = dfs(node->right, to_delete_set, forest);
+        
+        // If this node needs to be deleted
+        if (to_delete_set.count(node->val)) {
+            if (node->left) forest.push_back(node->left);
+            if (node->right) forest.push_back(node->right);
+            delete node; // Free the memory (if needed, depending on the environment)
+            return nullptr; // Return null to parent to disconnect
+        }
+        
+        return node;
+    }
+};
+```
+
+> 와 이게 leaf부터 계산해서, 내가 작성한 코드의 경우 상위에서 지우고 하위에서 지워지는 경우를 여러 번 계산했어야 했는데, 훨씬 더 간단하게 된다..!!
+
+<h3> Explanation </h3>
+
+- **TreeNode Structure**: Defines the tree node structure.
+- **Solution Class**: Implements the `delNodes` function which takes the root of the tree and a list of node values to delete.
+- **dfs Function**: Performs the DFS traversal. It returns the modified subtree root after deletions.
+- **Memory Management**: Deleting a node involves freeing its memory if needed, depending on the environment.
+
+<h3> Key Points </h3>
+
+- **Efficiency**: The algorithm runs in O(n) time complexity, where n is the number of nodes in the tree, since each node is visited once.
+- **Usage of Unordered Set**: Ensures fast look-up times for deletions.
+- **Handling Null Nodes**: Properly handles leaf nodes and subtrees.
+
