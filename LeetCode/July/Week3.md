@@ -13,6 +13,11 @@
   - [24.07.17 - 1110. Delete Nodes And Return Forest](#240717---1110-delete-nodes-and-return-forest)
     - [나](#나-2)
     - [gpt](#gpt-2)
+  - [24.07.18 - 1530. Number of Good Leaf Nodes Pairs](#240718---1530-number-of-good-leaf-nodes-pairs)
+    - [나](#나-3)
+      - [첫 코드](#첫-코드)
+      - [개선](#개선)
+    - [gpt](#gpt-3)
 
 # July Week 3
 
@@ -138,6 +143,7 @@ public:
 This solution efficiently constructs the binary tree and identifies the root in a clear and straightforward manner.
 
 ## 24.07.16 - 2096. Step-By-Step Directions From a Binary Tree Node to Another
+[문제 링크](https://leetcode.com/problems/step-by-step-directions-from-a-binary-tree-node-to-another/description/?envType=daily-question&envId=2024-07-16)
 ### 나
 #### heap-use-after-free ~
 ```cpp
@@ -560,6 +566,7 @@ private:
 This approach ensures that the directions are accurately computed from `startValue` to `destValue`, navigating through the LCA as needed.
 
 ## 24.07.17 - 1110. Delete Nodes And Return Forest
+[문제 링크](https://leetcode.com/problems/delete-nodes-and-return-forest/description/?envType=daily-question&envId=2024-07-17)
 ### 나
 ```cpp
 // 16ms, 27.2MB
@@ -688,3 +695,187 @@ private:
 - **Usage of Unordered Set**: Ensures fast look-up times for deletions.
 - **Handling Null Nodes**: Properly handles leaf nodes and subtrees.
 
+## 24.07.18 - 1530. Number of Good Leaf Nodes Pairs
+[문제 링크](https://leetcode.com/problems/number-of-good-leaf-nodes-pairs/description/)
+### 나
+처음에 DFS 방문 순서로 하면 안 될까? 했는데, 당연히도 할 수 없다..!!
+
+#### 첫 코드
+```cpp
+class Solution {
+public:
+    // 정점 번호 같은 게 있네요?
+    struct Info{
+        TreeNode* ptr;
+        int id; // node 번호 
+        Info(TreeNode* ptr, int id) : ptr{ptr}, id{id} {}
+    };
+
+    int countPairs(TreeNode* root, int distance) {
+        int answer{};
+        const int SIZE = (1 << 10) + 2;
+        vector<int> arriveTime(SIZE, 0), visited(SIZE, 0); // 도착 순서 (2^11)
+
+        queue<int> q; // 들어간 순서대로 val 저장 (leaf node만)
+        stack<Info> st; st.emplace(root, 1); 
+        arriveTime[1] = 0;
+
+        for(int i{1};!st.empty();++i) {
+            auto [ptr, id] = st.top(); 
+            if(ptr->left == nullptr && ptr->right == nullptr) {
+                while(!q.empty()) {
+                    int nowVal = q.front();
+                    if(i - arriveTime[nowVal] <= distance) {
+                        break;
+                    }
+                    else {
+                        q.pop();
+                    }
+                }
+                answer += q.size();
+                arriveTime[id] = i;
+                q.push(id);
+            }
+            else {
+                if(ptr->right && !visited[(id << 1) + 1]) {
+                    st.emplace(ptr->right, (id << 1) + 1);
+                    continue;
+                }
+                if(ptr->left && !visited[(id << 1)]) {
+                    st.emplace(ptr->left, (id << 1));
+                    continue;
+                }
+            }
+            st.pop();
+            visited[id] = 1;
+        }
+        return answer;
+    }
+};
+```
+
+#### 개선
+예전에 노드 노드 간 거리 때 사용했던 아이디어를 이용하자! (최소 공통 조상)
+
+```cpp
+// 62ms, 30.66MB
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<string> leafStrs;
+
+    void getPath(TreeNode* now, string& path) {
+        if(now->left == nullptr && now->right == nullptr) { // leaf
+            leafStrs.emplace_back(path);
+            return;
+        }
+        if(now -> left) {
+            path.push_back('L');
+            getPath(now->left, path);
+            path.pop_back();
+        }
+        if(now -> right) {
+            path.push_back('R');
+            getPath(now->right, path);
+            path.pop_back();
+        }
+    }
+
+    int countPairs(TreeNode* root, int distance) {
+        int answer{};
+        string path;
+        getPath(root, path);
+        
+        int l = static_cast<int>(leafStrs.size());
+        for(int i{};i<l;++i) {
+            for(int j{i+1};j<l;++j) {
+                int k{}, minLen = min(leafStrs[i].length(), leafStrs[j].length());
+                TreeNode* commonAncestor = root; // 공통 조상
+                for(;k<minLen;++k) {
+                    if(leafStrs[i][k] != leafStrs[j][k]) {
+                        break;
+                    }
+                    if(leafStrs[i][k] == 'L') commonAncestor = commonAncestor->left;
+                    else commonAncestor = commonAncestor->right;
+                }
+                if(leafStrs[i].length() + leafStrs[j].length() - 2 * k <= distance ) {
+                    ++answer;
+                }
+            }
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+Certainly! The problem "Number of Good Leaf Nodes Pairs" on LeetCode involves finding the number of pairs of leaf nodes in a binary tree such that the distance between the two leaves in each pair is less than or equal to a given value. Let's solve it step-by-step.
+
+Here's a solution in C++:
+
+```cpp
+// 50ms, 33.07MB
+class Solution {
+public:
+    int countPairs(TreeNode* root, int distance) {
+        int result = 0;
+        helper(root, distance, result);
+        return result;
+    }
+    
+private:
+    vector<int> helper(TreeNode* node, int distance, int& result) {
+        if (!node) return {};
+        if (!node->left && !node->right) return {1};
+        
+        vector<int> leftDistances = helper(node->left, distance, result);
+        vector<int> rightDistances = helper(node->right, distance, result);
+        
+        for (int lDist : leftDistances) {
+            for (int rDist : rightDistances) {
+                if (lDist + rDist <= distance) {
+                    result++;
+                }
+            }
+        }
+        
+        vector<int> currentDistances;
+        for (int lDist : leftDistances) {
+            if (lDist + 1 < distance) {
+                currentDistances.push_back(lDist + 1);
+            }
+        }
+        
+        for (int rDist : rightDistances) {
+            if (rDist + 1 < distance) {
+                currentDistances.push_back(rDist + 1);
+            }
+        }
+        
+        return currentDistances;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **TreeNode Structure**: The definition of the binary tree node is provided.
+2. **countPairs Function**: This is the main function that initializes the result and calls the helper function.
+3. **helper Function**: This recursive function calculates the distance of leaf nodes from the current node. 
+   - If the node is `null`, return an empty list.
+   - If the node is a leaf, return a list with a single element `1`.
+   - Otherwise, combine the results from the left and right subtrees.
+   - Count pairs by checking all combinations of distances from the left and right subtrees.
+   - Return the list of distances incremented by 1 (for the current node).
+
+This approach ensures that we efficiently calculate the number of good leaf node pairs by leveraging recursive depth-first traversal and combining results from subtrees.
