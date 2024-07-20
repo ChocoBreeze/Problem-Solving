@@ -18,6 +18,9 @@
       - [첫 코드](#첫-코드)
       - [개선](#개선)
     - [gpt](#gpt-3)
+  - [24.07.19 - 1380. Lucky Numbers in a Matrix](#240719---1380-lucky-numbers-in-a-matrix)
+    - [나](#나-4)
+    - [gpt](#gpt-4)
 
 # July Week 3
 
@@ -879,3 +882,124 @@ private:
    - Return the list of distances incremented by 1 (for the current node).
 
 This approach ensures that we efficiently calculate the number of good leaf node pairs by leveraging recursive depth-first traversal and combining results from subtrees.
+
+## 24.07.19 - 1380. Lucky Numbers in a Matrix
+[문제 링크](https://leetcode.com/problems/lucky-numbers-in-a-matrix/)
+
+### 나
+```cpp
+//15 ms, 14.2MB
+class Solution {
+public:
+    vector<int> luckyNumbers (vector<vector<int>>& matrix) {
+        vector<int> answer;
+        for(int s{}, e{(int)matrix.size()};s<e;++s) {
+            // minimum element in its row
+            int minValue = 1 << 30, minIndex{};
+            for(int ss{}, ee{(int(matrix[s].size()))};ss<ee;++ss) {
+                if(minValue > matrix[s][ss]) { // all elements in the matrix are distinct.
+                    minValue = matrix[s][ss];
+                    minIndex = ss;
+                }
+            }
+
+            // maximum element in its column.
+            int maxValue = -1;
+            for(int ss{}, ee{(int)matrix.size()};ss<ee;++ss) {
+                if(maxValue < matrix[ss][minIndex]) {
+                    maxValue = matrix[ss][minIndex];
+                }
+            }
+            
+            if(minValue == maxValue) {
+                answer.push_back(minValue);
+            }
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+Sure, I'd be happy to help you with that LeetCode problem! The problem is titled "Lucky Numbers in a Matrix." Let's go through it step by step.
+
+<h3> Problem Statement </h3>
+
+Given a `m x n` matrix of distinct numbers, return all lucky numbers in the matrix in any order.
+
+A **lucky number** is an element of the matrix such that it is the minimum element in its row and the maximum in its column.
+
+<h3> Approach </h3>
+
+To solve this problem, we need to:
+1. Identify the minimum element in each row.
+2. Check if that element is also the maximum in its column.
+
+Here’s a step-by-step plan:
+
+1. **Find all the minimum elements in each row.**
+2. **For each of these minimum elements, check if it is the maximum element in its column.**
+
+<h3> Implementation </h3>
+
+Let's write the code to implement this approach in C++:
+
+```cpp
+// 11ms, 14.27MB
+class Solution {
+public:
+    vector<int> luckyNumbers (vector<vector<int>>& matrix) {
+        std::vector<int> result;
+        int rows = matrix.size();
+        int cols = matrix[0].size();
+        
+        // Step 1: Find the minimum element in each row
+        std::vector<int> rowMins;
+        for (int i = 0; i < rows; ++i) {
+            int minElement = *std::min_element(matrix[i].begin(), matrix[i].end());
+            rowMins.push_back(minElement);
+        }
+        
+        // Step 2: Check if these minimum elements are the maximum in their columns
+        for (int i = 0; i < rows; ++i) {
+            int minElement = rowMins[i];
+            for (int j = 0; j < cols; ++j) {
+                if (matrix[i][j] == minElement) {
+                    bool isMaxInCol = true;
+                    for (int k = 0; k < rows; ++k) {
+                        if (matrix[k][j] > minElement) {
+                            isMaxInCol = false;
+                            break;
+                        }
+                    }
+                    if (isMaxInCol) {
+                        result.push_back(minElement);
+                    }
+                    break;
+                }
+            }
+        }
+        
+        return result;
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **Finding the Minimum Element in Each Row:**
+   - We iterate through each row of the matrix.
+   - Use `std::min_element` to find the minimum element in the current row.
+   - Store this minimum element in a vector `rowMins`.
+
+2. **Checking if the Minimum Element is the Maximum in its Column:**
+   - For each minimum element found, we iterate through the corresponding column.
+   - Check if this element is the maximum in that column by comparing it with every element in the column.
+   - If it is, add it to the result list.
+
+<h3> Complexity Analysis </h3>
+
+- **Time Complexity:** O(m * n), where `m` is the number of rows and `n` is the number of columns. Finding the minimum in each row takes O(n) time, and verifying if it is the maximum in its column also takes O(m) time.
+- **Space Complexity:** O(m) for storing the minimum elements of each row.
+
+This solution should be efficient for typical matrix sizes encountered in competitive programming and interviews.
