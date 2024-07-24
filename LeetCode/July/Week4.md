@@ -6,6 +6,9 @@
   - [24.07.23 - 1636. Sort Array by Increasing Frequency](#240723---1636-sort-array-by-increasing-frequency)
     - [나](#나-1)
     - [gpt](#gpt-1)
+  - [24.07.24 - 2191. Sort the Jumbled Numbers](#240724---2191-sort-the-jumbled-numbers)
+    - [나](#나-2)
+    - [gpt](#gpt-2)
 
 # July Week 4
 ## 24.07.22 - 2418. Sort the People
@@ -179,3 +182,112 @@ public:
    - A helper function `printVector` is used to print the sorted vector for verification.
 
 This solution efficiently solves the problem while adhering to the specified constraints and requirements. Let me know if you need further explanations or have additional questions!
+
+## 24.07.24 - 2191. Sort the Jumbled Numbers
+### 나
+```cpp
+// 201ms, 90.9MB
+class Solution {
+public:
+    struct Data {
+        int after{}, before{};
+        Data() = default;
+        Data(int after, int before) : after{after}, before{before} {}
+    };
+
+    vector<int> sortJumbled(vector<int>& mapping, vector<int>& nums) {
+        vector<Data> datas;
+        for(int& num : nums) {
+            string temp = to_string(num), mappingNumStr;
+            for(char& c : temp) {
+                mappingNumStr.push_back(mapping[c - '0'] + '0');
+            }
+            int mappingNum = stoi(mappingNumStr);
+            datas.emplace_back(mappingNum, num);
+        }
+        stable_sort(begin(datas), end(datas), [](const Data& d1, const Data& d2) {
+            return d1.after < d2.after;
+        });
+
+        vector<int> ret;
+        for(auto [after, before] : datas) {
+            ret.push_back(before);
+        }
+        return ret;
+    }
+};
+```
+
+### gpt
+Sure! Let's walk through the problem "Sort the Jumbled Numbers" from LeetCode.
+
+**Problem Description:**
+You are given a permutation of the digits from `0` to `9` (as an array `mapping` where `mapping[i]` is the mapped value of digit `i`). You are also given an array of integers `nums` that you need to sort based on their mapped values.
+
+To clarify, for each number in `nums`, replace each digit by its mapped value using the `mapping` array, and then sort the numbers based on these new values.
+
+**Steps to solve the problem:**
+
+1. **Understand the Mapping:**
+   Each digit of a number in `nums` should be transformed using the given `mapping` array. For instance, if `mapping[2] = 5`, then digit `2` in any number should be considered as `5` during the comparison.
+
+2. **Transform the Numbers:**
+   For each number in `nums`, convert it to its mapped value. For example, if a number is `123` and the mapping is `[1, 2, 3, 4, 5, 6, 7, 8, 9, 0]`, the transformed value would be `234` because `1 -> 2`, `2 -> 3`, and `3 -> 4`.
+
+3. **Sort Based on Transformed Values:**
+   After transforming all numbers, sort them based on these transformed values.
+
+4. **Output the Sorted Numbers:**
+   Return the sorted list of original numbers based on the transformed values.
+
+Let's write the code to achieve this:
+
+```cpp
+// 415ms, 98.00MB
+class Solution {
+public:
+    vector<int> sortJumbled(std::vector<int>& mapping, std::vector<int>& nums) {
+        // Helper function to transform a number based on the given mapping
+        auto transform = [&mapping](int num) {
+            std::string numStr = std::to_string(num);
+            std::string transformedStr;
+            for (char ch : numStr) {
+                transformedStr += std::to_string(mapping[ch - '0']);
+            }
+            return std::stol(transformedStr); // Return as long to handle large numbers
+        };
+
+        // Create a vector of pairs to hold the original number and its transformed value
+        std::vector<std::pair<int, long>> transformedNums;
+        for (int num : nums) {
+            transformedNums.emplace_back(num, transform(num));
+        }
+
+        // Sort the vector of pairs based on the transformed values
+        std::sort(transformedNums.begin(), transformedNums.end(), [](const auto& a, const auto& b) {
+            return a.second < b.second;
+        });
+
+        // Extract the sorted original numbers
+        std::vector<int> result;
+        for (const auto& p : transformedNums) {
+            result.push_back(p.first);
+        }
+
+        return result;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Transform Function:**
+   - The `transform` function takes an integer and transforms it into its mapped value using the `mapping` array.
+   - It converts the integer to a string, replaces each digit with its mapped value, and then converts it back to a long integer (to handle possible large values).
+
+2. **Pairing and Sorting:**
+   - The original numbers are paired with their transformed values.
+   - The pairs are sorted based on the transformed values.
+   - Finally, the sorted original numbers are extracted from the sorted pairs.
+
+This solution ensures that we correctly sort the `nums` array based on the provided `mapping`.
