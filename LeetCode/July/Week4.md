@@ -9,6 +9,11 @@
   - [24.07.24 - 2191. Sort the Jumbled Numbers](#240724---2191-sort-the-jumbled-numbers)
     - [나](#나-2)
     - [gpt](#gpt-2)
+  - [24.07.25 - 912. Sort an Array](#240725---912-sort-an-array)
+    - [merge sort](#merge-sort)
+    - [heap sort](#heap-sort)
+    - [intro sort](#intro-sort)
+    - [quick sort](#quick-sort)
 
 # July Week 4
 ## 24.07.22 - 2418. Sort the People
@@ -291,3 +296,331 @@ public:
    - Finally, the sorted original numbers are extracted from the sorted pairs.
 
 This solution ensures that we correctly sort the `nums` array based on the provided `mapping`.
+
+## 24.07.25 - 912. Sort an Array
+정렬을 구현하는 문제입니다.
+- 시간복잡도 $O(nlog(n))$이 필요합니다.
+
+구현하는 대신에 gpt한테 3가지 구현을 물어봤습니다.
+
+### merge sort
+Certainly! The problem you referenced is "Sort an Array" on LeetCode. The task is to implement a sorting algorithm to sort an array of integers in ascending order.
+
+Here is a solution using C++ with the Merge Sort algorithm. Merge Sort is a classic sorting algorithm with a time complexity of $O(n \log n)$, which is efficient for large arrays.
+
+Here's how you can implement it in C++:
+
+```cpp
+// 372ms, 178.10MB
+class Solution {
+public:
+    vector<int> sortArray(vector<int>& nums) {
+        mergeSort(nums, 0, nums.size() - 1);
+        return nums;
+    }
+
+    void mergeSort(std::vector<int>& nums, int left, int right) {
+        if (left < right) {
+            int mid = left + (right - left) / 2;
+            mergeSort(nums, left, mid);
+            mergeSort(nums, mid + 1, right);
+            merge(nums, left, mid, right);
+        }
+    }
+
+    void merge(std::vector<int>& nums, int left, int mid, int right) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+
+        std::vector<int> leftArr(n1);
+        std::vector<int> rightArr(n2);
+
+        for (int i = 0; i < n1; ++i)
+            leftArr[i] = nums[left + i];
+        for (int i = 0; i < n2; ++i)
+            rightArr[i] = nums[mid + 1 + i];
+
+        int i = 0, j = 0, k = left;
+        while (i < n1 && j < n2) {
+            if (leftArr[i] <= rightArr[j]) {
+                nums[k] = leftArr[i];
+                ++i;
+            } else {
+                nums[k] = rightArr[j];
+                ++j;
+            }
+            ++k;
+        }
+
+        while (i < n1) {
+            nums[k] = leftArr[i];
+            ++i;
+            ++k;
+        }
+
+        while (j < n2) {
+            nums[k] = rightArr[j];
+            ++j;
+            ++k;
+        }
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **mergeSort Function:**
+   - This function recursively divides the array into two halves until each subarray contains only one element.
+   - It then merges the subarrays in a sorted manner.
+
+2. **merge Function:**
+   - This function merges two sorted subarrays into a single sorted subarray.
+   - It uses two temporary arrays to store the elements of the left and right subarrays.
+   - It then merges them back into the original array in sorted order.
+
+<h3> How to Use </h3>
+
+- The `sortArray` method of the `Solution` class is the entry point. It takes a vector of integers `nums` and returns the sorted vector.
+- In the `main` function, an instance of `Solution` is created, and the `sortArray` method is called with a sample vector.
+- The sorted result is then printed to the console.
+
+You can modify the input array `nums` in the `main` function to test with different sets of integers. This implementation is efficient and follows the divide-and-conquer approach, making it suitable for sorting large arrays.
+
+### heap sort
+Sure! Heap Sort is another efficient sorting algorithm with a time complexity of $O(n \log n)$. It uses a binary heap data structure, typically implemented as an array, to sort elements. Here's how you can implement Heap Sort in C++ to solve the "Sort an Array" problem:
+
+```cpp
+// 115ms, 69.28MB
+// heap sort
+class Solution {
+public:
+    vector<int> sortArray(vector<int>& nums) {
+        heapSort(nums);
+        return nums;
+    }
+
+    void heapSort(std::vector<int>& nums) {
+        int n = static_cast<int>(nums.size());
+
+        // Build heap (rearrange array)
+        for (int i = n / 2 - 1; i >= 0; --i) {
+            heapify(nums, n, i);
+        }
+
+        // One by one extract elements from heap
+        for (int i = n - 1; i > 0; --i) {
+            // Move current root to end
+            std::swap(nums[0], nums[i]);
+
+            // Call max heapify on the reduced heap
+            heapify(nums, i, 0);
+        }
+    }
+
+    void heapify(std::vector<int>& nums, int n, int i) {
+        int largest = i; // Initialize largest as root
+        int left = 2 * i + 1; // left = 2*i + 1
+        int right = 2 * i + 2; // right = 2*i + 2
+
+        // If left child is larger than root
+        if (left < n && nums[left] > nums[largest])
+            largest = left;
+
+        // If right child is larger than largest so far
+        if (right < n && nums[right] > nums[largest])
+            largest = right;
+
+        // If largest is not root
+        if (largest != i) {
+            std::swap(nums[i], nums[largest]);
+
+            // Recursively heapify the affected sub-tree
+            heapify(nums, n, largest);
+        }
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **heapSort Function:**
+   - This function first builds a max heap from the input array.
+   - Then, it extracts elements one by one from the heap and places them at the end of the array, effectively sorting the array.
+
+2. **heapify Function:**
+   - This function ensures that the subtree rooted at index `i` is a max heap.
+   - It compares the root with its left and right children and swaps with the largest value to maintain the heap property.
+   - It is called recursively to heapify the affected sub-tree if any swapping occurs.
+
+<h3> How to Use </h3>
+
+- The `sortArray` method of the `Solution` class is the entry point. It takes a vector of integers `nums` and returns the sorted vector.
+- In the `main` function, an instance of `Solution` is created, and the `sortArray` method is called with a sample vector.
+- The sorted result is then printed to the console.
+
+You can test this implementation with different sets of integers by modifying the input array `nums` in the `main` function. This implementation efficiently sorts the array using the heap data structure.
+
+### intro sort
+Certainly! Introspective Sort (Introsort) is a hybrid sorting algorithm that combines Quicksort, Heapsort, and Insertion Sort. It begins with Quicksort and switches to Heapsort when the recursion depth exceeds a level based on the logarithm of the number of elements being sorted to avoid Quicksort's worst-case performance. When the array size is small, it switches to Insertion Sort for efficiency.
+
+Here's how you can implement Introsort in C++ to solve the "Sort an Array" problem:
+
+코드가 정답이 안 나와서 반례로 계속 수정..
+
+Thank you for your patience. Let's re-evaluate the implementation, ensuring we handle all cases correctly, particularly around the partitioning logic and the recursive calls.
+
+Here’s the revised implementation of Introsort with correct partition logic:
+
+```cpp
+// 93ms, 70.55MB
+// intro sort
+class Solution {
+public:
+    std::vector<int> sortArray(std::vector<int>& nums) {
+        if (nums.empty()) return nums;
+        int depthLimit = 2 * std::log(nums.size());
+        introSort(nums, 0, nums.size() - 1, depthLimit);
+        return nums;
+    }
+
+    void introSort(std::vector<int>& nums, int begin, int end, int depthLimit) {
+        if (begin >= end) {
+            return;
+        }
+
+        if (depthLimit == 0) {
+            heapSort(nums, begin, end);
+            return;
+        }
+
+        if (end - begin < 16) {
+            insertionSort(nums, begin, end);
+            return;
+        }
+
+        int pivot = partition(nums, begin, end);
+        introSort(nums, begin, pivot - 1, depthLimit - 1);
+        introSort(nums, pivot, end, depthLimit - 1);
+    }
+
+    int partition(std::vector<int>& nums, int low, int high) {
+        int pivot = nums[low + (high - low) / 2];
+        int left = low;
+        int right = high;
+
+        while (left <= right) {
+            while (nums[left] < pivot) {
+                ++left;
+            }
+            while (nums[right] > pivot) {
+                --right;
+            }
+
+            if (left <= right) {
+                std::swap(nums[left], nums[right]);
+                ++left;
+                --right;
+            }
+        }
+
+        return left;
+    }
+
+    void heapSort(std::vector<int>& nums, int begin, int end) {
+        std::make_heap(nums.begin() + begin, nums.begin() + end + 1);
+        std::sort_heap(nums.begin() + begin, nums.begin() + end + 1);
+    }
+
+    void insertionSort(std::vector<int>& nums, int begin, int end) {
+        for (int i = begin + 1; i <= end; ++i) {
+            int key = nums[i];
+            int j = i - 1;
+            while (j >= begin && nums[j] > key) {
+                nums[j + 1] = nums[j];
+                --j;
+            }
+            nums[j + 1] = key;
+        }
+    }
+};
+```
+
+<h3> Key Fixes: </h3>
+
+1. **Recursive Call Adjustment:**
+   - Change the second recursive call from `introSort(nums, pivot + 1, end, depthLimit - 1);` to `introSort(nums, pivot, end, depthLimit - 1);` to ensure the pivot index is correctly handled.
+
+2. **Partition Function:**
+   - Return the `left` index at the end of the `partition` function, ensuring that the pivot is correctly placed.
+
+3. **Edge Case Handling:**
+   - Additional checks and balances to ensure recursive depth limits and size checks are properly handled.
+
+<h3> How to Use: </h3>
+
+- The `sortArray` method of the `Solution` class is the entry point. It takes a vector of integers `nums` and returns the sorted vector.
+- In the `main` function, an instance of `Solution` is created, and the `sortArray` method is called with the provided vector.
+- The sorted result is printed to the console.
+
+This revised implementation should correctly sort the array, including handling the given counterexamples.
+
+### quick sort
+- random pivot
+
+Sure, using a random pivot can help avoid the worst-case scenario of Quick Sort, which can occur if the pivot selection is poor, especially on already sorted or nearly sorted data. Here's how you can modify the Quick Sort implementation to use a random pivot:
+
+```cpp
+// 1533ms, 69.38MB
+// quick sort
+class Solution {
+public:
+
+    std::vector<int> sortArray(std::vector<int>& nums) {
+        std::srand(std::time(0));  // Seed for random number generation
+        quickSort(nums, 0, nums.size() - 1);
+        return nums;
+    }
+
+    void quickSort(std::vector<int>& nums, int low, int high) {
+        if (low < high) {
+            int pivotIndex = partition(nums, low, high);
+            quickSort(nums, low, pivotIndex - 1);
+            quickSort(nums, pivotIndex + 1, high);
+        }
+    }
+
+    int partition(std::vector<int>& nums, int low, int high) {
+        int randomIndex = low + std::rand() % (high - low + 1);
+        std::swap(nums[randomIndex], nums[high]);  // Move pivot to end
+        int pivot = nums[high];
+        int i = low - 1;
+
+        for (int j = low; j < high; ++j) {
+            if (nums[j] < pivot) {
+                ++i;
+                std::swap(nums[i], nums[j]);
+            }
+        }
+
+        std::swap(nums[i + 1], nums[high]);
+        return i + 1;
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **Random Pivot Selection:**
+   - A random index is selected as the pivot.
+   - The pivot element is then swapped with the last element in the current subarray to simplify the partitioning logic.
+
+2. **Partition Function:**
+   - The partition logic remains the same, but now the pivot is selected randomly to help avoid worst-case performance.
+
+3. **Random Seed:**
+   - The `Solution` constructor seeds the random number generator using the current time to ensure different runs use different random seeds.
+
+4. **sortArray Method and main Function:**
+   - The entry point and main function remain the same.
+
+By using a random pivot, the implementation is more robust against cases where the input array might lead to poor performance with a fixed pivot selection strategy. This should help avoid the time limit exceeded error.
