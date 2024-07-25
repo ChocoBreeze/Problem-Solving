@@ -301,7 +301,7 @@ This solution ensures that we correctly sort the `nums` array based on the provi
 정렬을 구현하는 문제입니다.
 - 시간복잡도 $O(nlog(n))$이 필요합니다.
 
-구현하는 대신에 gpt한테 3가지 구현을 물어봤습니다.
+구현하는 대신에 gpt한테 4가지 구현을 물어봤습니다.
 
 ### merge sort
 Certainly! The problem you referenced is "Sort an Array" on LeetCode. The task is to implement a sorting algorithm to sort an array of integers in ascending order.
