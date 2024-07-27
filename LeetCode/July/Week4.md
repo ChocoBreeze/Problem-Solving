@@ -14,6 +14,9 @@
     - [heap sort](#heap-sort)
     - [intro sort](#intro-sort)
     - [quick sort](#quick-sort)
+  - [24.07.26 - 1334. Find the City With the Smallest Number of Neighbors at a Threshold Distance](#240726---1334-find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance)
+    - [나](#나-3)
+    - [gpt](#gpt-3)
 
 # July Week 4
 ## 24.07.22 - 2418. Sort the People
@@ -624,3 +627,136 @@ public:
    - The entry point and main function remain the same.
 
 By using a random pivot, the implementation is more robust against cases where the input array might lead to poor performance with a fixed pivot selection strategy. This should help avoid the time limit exceeded error.
+
+## 24.07.26 - 1334. Find the City With the Smallest Number of Neighbors at a Threshold Distance
+[문제 링크](https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/?envType=daily-question&envId=2024-07-26)
+
+### 나
+```cpp
+// 21ms, 15.48MB
+class Solution {
+public:
+    int findTheCity(int n, vector<vector<int>>& edges, int distanceThreshold) {
+        // Return the city with the smallest number of cities that are reachable through some path at most distanceThreshold
+        // multiple city => return the city with the greatest number.
+        const int INF = 1 << 29;
+        vector adjGraph(n, vector(n, INF));
+        for(auto & edge : edges) { // bidirectional
+            auto [from, to, weight] = make_tuple(edge[0], edge[1], edge[2]);
+            // all pairs (from, to) are distinct.
+            adjGraph[from][to] = weight;
+            adjGraph[to][from] = weight;
+        }
+
+        // floyd-warshall
+        for(int k{};k<n;++k) {
+            for(int i{};i<n;++i) {
+                for(int j{};j<n;++j) {
+                    if(adjGraph[i][j] > adjGraph[i][k] + adjGraph[k][j]) {
+                        adjGraph[i][j] = adjGraph[i][k] + adjGraph[k][j];
+                    }
+                }
+            }
+        }
+
+        int answer{}, minCnt = INF;
+        for(int i{};i<n;++i) {
+            int cnt{};
+            for(int j{};j<n;++j) {
+                if(i!=j && adjGraph[i][j] <= distanceThreshold) ++cnt;
+            }
+            if(cnt <= minCnt) {
+                if(cnt < minCnt) minCnt = cnt;
+                answer = i;
+            }
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+You're welcome! Let's solve the problem "Find the City With the Smallest Number of Neighbors at a Threshold Distance" from LeetCode.
+
+Here is the problem statement for clarity:
+
+> There are n cities numbered from 0 to n-1. You are given an array edges where edges[i] = [from_i, to_i, weight_i] represents a bidirectional and weighted edge between cities from_i and to_i, and a threshold distance distanceThreshold.
+>
+> Return the city with the smallest number of neighbors at a threshold distance distanceThreshold, if there are multiple such cities, return the city with the greatest number.
+
+Let's break down the problem and solve it step-by-step:
+
+1. **Represent the Graph**: Use an adjacency matrix to store the weights of the edges.
+2. **Floyd-Warshall Algorithm**: Use this algorithm to find the shortest paths between all pairs of cities.
+3. **Count Neighbors within Threshold**: For each city, count how many other cities are within the threshold distance.
+4. **Find the Desired City**: Identify the city with the smallest number of neighbors within the threshold distance, breaking ties by selecting the city with the greatest number.
+
+Here is the C++ code to solve the problem:
+
+```cpp
+// 30ms, 15.52MB
+class Solution {
+public:
+    int findTheCity(int n, std::vector<std::vector<int>>& edges, int distanceThreshold) {
+        // Initialize the distance matrix with INT_MAX
+        std::vector<std::vector<int>> dist(n, std::vector<int>(n, INT_MAX));
+
+        // Distance to self is zero
+        for (int i = 0; i < n; ++i)
+            dist[i][i] = 0;
+
+        // Populate the distance matrix with the given edges
+        for (const auto& edge : edges) {
+            int u = edge[0];
+            int v = edge[1];
+            int weight = edge[2];
+            dist[u][v] = weight;
+            dist[v][u] = weight;
+        }
+
+        // Floyd-Warshall Algorithm to find the shortest paths between all pairs of nodes
+        for (int k = 0; k < n; ++k) {
+            for (int i = 0; i < n; ++i) {
+                for (int j = 0; j < n; ++j) {
+                    if (dist[i][k] == INT_MAX || dist[k][j] == INT_MAX)
+                        continue;
+                    dist[i][j] = std::min(dist[i][j], dist[i][k] + dist[k][j]);
+                }
+            }
+        }
+
+        int minNeighborCount = INT_MAX;
+        int cityWithMinNeighbors = -1;
+
+        // Find the city with the minimum number of neighbors within the distance threshold
+        for (int i = 0; i < n; ++i) {
+            int neighborCount = 0;
+            for (int j = 0; j < n; ++j) {
+                if (i != j && dist[i][j] <= distanceThreshold) {
+                    ++neighborCount;
+                }
+            }
+
+            if (neighborCount < minNeighborCount) {
+                minNeighborCount = neighborCount;
+                cityWithMinNeighbors = i;
+            } else if (neighborCount == minNeighborCount) {
+                cityWithMinNeighbors = std::max(cityWithMinNeighbors, i);
+            }
+        }
+
+        return cityWithMinNeighbors;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Graph Initialization**: An adjacency matrix `dist` is initialized to store the distances between cities. Initially, all distances are set to `INT_MAX`, except the diagonal which is set to 0 since the distance from a city to itself is zero.
+2. **Input Edges**: The given edges are used to populate the adjacency matrix with the corresponding weights.
+3. **Floyd-Warshall Algorithm**: This algorithm computes the shortest paths between all pairs of cities. The core idea is to iteratively update the shortest paths by considering each city as an intermediate point.
+4. **Counting Neighbors**: For each city, count how many other cities are reachable within the `distanceThreshold`.
+5. **Determine Result**: Track the city with the smallest number of reachable neighbors, using the city with the greatest number in case of ties.
+
+This approach ensures that we efficiently find the city with the required properties using a time complexity of \(O(n^3)\), which is feasible for the given problem constraints.
+
