@@ -17,6 +17,16 @@
   - [24.07.26 - 1334. Find the City With the Smallest Number of Neighbors at a Threshold Distance](#240726---1334-find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance)
     - [나](#나-3)
     - [gpt](#gpt-3)
+      - [Floyd-Warshall](#floyd-warshall)
+      - [Dijkstra](#dijkstra)
+      - [Why Floyd-Warshall is fast??](#why-floyd-warshall-is-fast)
+  - [24.07.27 - 2976. Minimum Cost to Convert String I](#240727---2976-minimum-cost-to-convert-string-i)
+    - [나](#나-4)
+    - [gpt](#gpt-4)
+      - [TLE 개선](#tle-개선)
+      - [기본 testcase 맞추기.](#기본-testcase-맞추기)
+      - [TLE 개선](#tle-개선-1)
+      - [overflow 개선](#overflow-개선)
 
 # July Week 4
 ## 24.07.22 - 2418. Sort the People
@@ -676,6 +686,7 @@ public:
 ```
 
 ### gpt
+#### Floyd-Warshall
 You're welcome! Let's solve the problem "Find the City With the Smallest Number of Neighbors at a Threshold Distance" from LeetCode.
 
 Here is the problem statement for clarity:
@@ -758,5 +769,626 @@ public:
 4. **Counting Neighbors**: For each city, count how many other cities are reachable within the `distanceThreshold`.
 5. **Determine Result**: Track the city with the smallest number of reachable neighbors, using the city with the greatest number in case of ties.
 
-This approach ensures that we efficiently find the city with the required properties using a time complexity of \(O(n^3)\), which is feasible for the given problem constraints.
+This approach ensures that we efficiently find the city with the required properties using a time complexity of $O(n^3)$, which is feasible for the given problem constraints.
 
+#### Dijkstra
+You are right; using the Floyd-Warshall algorithm is not the most efficient approach for this problem because it has a time complexity of $O(n^3)$, which can be slow for large inputs. Instead, a more efficient approach is to use Dijkstra's algorithm to find the shortest paths from each city to all other cities. This approach will have a better performance of $O(n \cdot (m + n \log n))$, where $m$ is the number of edges.
+
+Let's update the solution to use Dijkstra's algorithm for each city:
+
+<h3> Updated Approach </h3>
+
+1. **Initialize a graph representation** using an adjacency list.
+2. **Run Dijkstra's algorithm** from each city to find the shortest paths to all other cities.
+3. **Count the neighbors** for each city within the threshold distance.
+4. **Determine the city** with the smallest number of neighbors, breaking ties by choosing the city with the greatest index.
+
+Here's the updated C++ code:
+
+```cpp
+// 30ms, 20.32MB
+class Solution {
+public:
+    int findTheCity(int n, vector<vector<int>>& edges, int distanceThreshold) {
+        // Step 1: Initialize graph representation using an adjacency list
+        vector<vector<pair<int, int>>> graph(n);
+        for (const auto& edge : edges) {
+            int u = edge[0], v = edge[1], w = edge[2];
+            graph[u].emplace_back(v, w);
+            graph[v].emplace_back(u, w);
+        }
+        
+        // Function to perform Dijkstra's algorithm
+        auto dijkstra = [&](int src) {
+            vector<int> dist(n, INT_MAX);
+            dist[src] = 0;
+            priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+            pq.emplace(0, src);
+            
+            while (!pq.empty()) {
+                auto [currentDist, u] = pq.top();
+                pq.pop();
+                
+                if (currentDist > dist[u]) continue;
+                
+                for (const auto& [v, weight] : graph[u]) {
+                    if (dist[u] + weight < dist[v]) {
+                        dist[v] = dist[u] + weight;
+                        pq.emplace(dist[v], v);
+                    }
+                }
+            }
+            return dist;
+        };
+        
+        // Step 3: Count the neighbors for each city within the threshold distance
+        int minNeighbors = INT_MAX;
+        int resultCity = -1;
+        
+        for (int i = 0; i < n; ++i) {
+            vector<int> distances = dijkstra(i);
+            int count = 0;
+            for (int j = 0; j < n; ++j) {
+                if (i != j && distances[j] <= distanceThreshold) {
+                    count++;
+                }
+            }
+            
+            // Step 4: Determine the city with the smallest number of neighbors
+            if (count < minNeighbors || (count == minNeighbors && i > resultCity)) {
+                minNeighbors = count;
+                resultCity = i;
+            }
+        }
+        
+        return resultCity;
+    }
+};
+
+int main() {
+    Solution solution;
+    int n = 4;
+    vector<vector<int>> edges = {{0, 1, 3}, {1, 2, 1}, {1, 3, 4}, {2, 3, 1}};
+    int distanceThreshold = 4;
+    int result = solution.findTheCity(n, edges, distanceThreshold);
+    cout << "The city with the smallest number of neighbors at a threshold distance is: " << result << endl;
+    return 0;
+}
+```
+
+<h3> Explanation </h3>
+
+1. **Graph Representation:** We use an adjacency list to represent the graph.
+2. **Dijkstra's Algorithm:** We implement Dijkstra's algorithm to find the shortest paths from a source city to all other cities.
+3. **Counting Neighbors:** For each city, we count how many other cities are within the threshold distance using the results from Dijkstra's algorithm.
+4. **Finding the Result:** We keep track of the city with the smallest number of neighbors, choosing the city with the greatest index in case of a tie.
+
+This approach is more efficient and better suited for large inputs compared to the Floyd-Warshall algorithm.
+
+#### Why Floyd-Warshall is fast??
+> But Actually Floyd-warshall has higher time complexity than dijkstra. but floyd-warshall is fast.. 
+Can you explain it??
+
+You are correct that Floyd-Warshall has a higher theoretical time complexity $O(n^3)$ compared to Dijkstra's algorithm $O(n \cdot (m + n \log n))$, where $n$ is the number of vertices and $m$ is the number of edges. However, in practice, the actual performance can vary depending on the problem size, graph density, and implementation details.
+
+<h3> Why Floyd-Warshall Can Be Faster in Practice </h3>
+
+1. **Constant Factors and Implementation Overhead:**
+   - **Simplicity of Floyd-Warshall:** The Floyd-Warshall algorithm is simpler to implement with fewer lines of code and fewer data structures (just a 2D array for distances). This can lead to lower constant factors in the runtime.
+   - **Dijkstra's Overhead:** Dijkstra's algorithm requires a priority queue (usually implemented as a binary heap), which involves more complex operations and additional overhead.
+
+2. **Graph Density:**
+   - **Sparse vs. Dense Graphs:** For very dense graphs (where $m$ is close to $n^2$, the complexity of Dijkstra's algorithm can approach $O(n^3)$). In such cases, Floyd-Warshall's performance may be comparable or even better.
+   - **Edge Cases:** For certain edge cases or specific types of graphs, Floyd-Warshall may outperform Dijkstra's due to lower overhead and better cache performance.
+
+3. **Cache Efficiency:**
+   - **Memory Access Patterns:** Floyd-Warshall's nested loops over a contiguous 2D array can be more cache-friendly compared to the more irregular memory access patterns in Dijkstra's algorithm, especially with a priority queue.
+
+4. **Uniform Workload Distribution:**
+   - **Uniform vs. Varying Costs:** Floyd-Warshall performs a uniform amount of work for each pair of nodes, while the work done by Dijkstra's algorithm can vary significantly depending on the graph's structure and the distribution of edge weights.
+
+<h3> When to Use Which Algorithm </h3>
+
+- **Floyd-Warshall:**
+  - **Best for Small to Medium-sized Graphs:** Typically used when the number of vertices ($n$) is small to medium.
+  - **Dense Graphs:** Suitable for dense graphs where most pairs of vertices are connected by edges.
+  - **All-Pairs Shortest Paths:** Useful when all-pairs shortest paths are required, as it computes them directly.
+
+- **Dijkstra:**
+  - **Best for Large Sparse Graphs:** Preferred for large graphs where the number of edges ($m$) is much less than ($n^2$).
+  - **Single-Source Shortest Path:** Ideal for scenarios where only the shortest paths from a single source to all other vertices are needed.
+
+<h3> Updated Approach Using Floyd-Warshall </h3>
+
+To address your concern and demonstrate the simplicity and efficiency of Floyd-Warshall in practice, let's use the same problem but solve it using Floyd-Warshall with a slightly optimized implementation:
+
+```cpp
+// 26ms, 15.57MB
+class Solution {
+public:
+    int findTheCity(int n, vector<vector<int>>& edges, int distanceThreshold) {
+        // Step 1: Initialize distance matrix
+        vector<vector<int>> dist(n, vector<int>(n, INT_MAX));
+        
+        for (int i = 0; i < n; ++i) {
+            dist[i][i] = 0;
+        }
+        
+        for (const auto& edge : edges) {
+            int u = edge[0], v = edge[1], w = edge[2];
+            dist[u][v] = w;
+            dist[v][u] = w;
+        }
+        
+        // Step 2: Apply Floyd-Warshall algorithm
+        for (int k = 0; k < n; ++k) {
+            for (int i = 0; i < n; ++i) {
+                for (int j = 0; j < n; ++j) {
+                    if (dist[i][k] != INT_MAX && dist[k][j] != INT_MAX) {
+                        dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+                    }
+                }
+            }
+        }
+        
+        // Step 3: Find the city with the smallest number of neighbors within the threshold
+        int minNeighbors = INT_MAX;
+        int resultCity = -1;
+        
+        for (int i = 0; i < n; ++i) {
+            int count = 0;
+            for (int j = 0; j < n; ++j) {
+                if (i != j && dist[i][j] <= distanceThreshold) {
+                    count++;
+                }
+            }
+            
+            if (count < minNeighbors || (count == minNeighbors && i > resultCity)) {
+                minNeighbors = count;
+                resultCity = i;
+            }
+        }
+        
+        return resultCity;
+    }
+};
+```
+
+<h3> Summary </h3>
+
+While Floyd-Warshall has a higher theoretical time complexity, its simplicity and consistent memory access patterns can make it more practical for certain graph sizes and densities. Dijkstra's algorithm is more suitable for larger and sparser graphs, particularly when we need single-source shortest paths.
+
+## 24.07.27 - 2976. Minimum Cost to Convert String I
+### 나
+```cpp
+// 171ms, 99MB
+class Solution {
+public:
+    long long minimumCost(string source, string target, vector<char>& original, vector<char>& changed, vector<int>& cost) {
+        const long long INF = 1 << 29;
+        const int SIZE = 26;
+        vector board(SIZE, vector(SIZE, INF));
+        for(int s{};s<SIZE;++s){
+            board[s][s] = 0; // same alphabet
+        }
+
+        for(int s{}, e = static_cast<int>(original.size()); s<e; ++s) {
+            // lowercase English letters.
+            int src = original[s] - 'a';
+            // 더 최적화 하려면 -> int src = (original[s] & 0x1F) - 1
+            int dst = changed[s] - 'a';
+            board[src][dst] = min(board[src][dst], static_cast<long long>(cost[s])); // Note that there may exist indices i, j such that original[j] == original[i] and changed[j] == changed[i].
+        }
+
+        // floyd-warshall
+        for(int k{};k<SIZE;++k) {
+            for(int i{};i<SIZE;++i) {
+                for(int j{};j<SIZE;++j) {
+                    board[i][j] = min(board[i][j], board[i][k] + board[k][j]);
+                }
+            }
+        }
+
+        long long answer{};
+        for(int s{}, e = static_cast<int>(source.length()); s<e; ++s) {
+            int src = source[s] - 'a';
+            int dst = target[s] - 'a';
+            if(board[src][dst] == INF) return -1; // impossible to convert source to target
+            answer += board[src][dst];
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+Thanks for the clarification. Here’s a detailed approach to solve the problem:
+
+<h3> Steps to Solve the Problem </h3>
+
+1. **Create a Graph Representation**:
+    - Use a graph to represent the transformations where each character is a node.
+    - An edge from node `original[i]` to node `changed[i]` with weight `cost[i]` represents the allowed transformations.
+
+2. **Find Minimum Transformation Costs**:
+    - Use the Floyd-Warshall algorithm to compute the shortest path between all pairs of characters. This will help in finding the minimum cost to transform one character to another.
+
+3. **Calculate the Total Transformation Cost**:
+    - For each character in the `source` string, find the minimum cost to transform it to the corresponding character in the `target` string using the precomputed shortest paths.
+    - If at any point a transformation is not possible (i.e., the cost is infinite), return -1.
+
+<h3> Implementation in C++ </h3>
+
+Here's how you can implement it:
+
+```cpp
+int minCostToConvertString(const std::string &source, const std::string &target, 
+                           const std::vector<char> &original, const std::vector<char> &changed, const std::vector<int> &cost) {
+    int n = source.size();
+    std::unordered_map<char, std::unordered_map<char, int>> graph;
+    
+    // Initialize the graph with INF distances
+    for (char c = 'a'; c <= 'z'; ++c) {
+        for (char d = 'a'; d <= 'z'; ++d) {
+            graph[c][d] = (c == d) ? 0 : INF;
+        }
+    }
+    
+    // Fill the graph with the given costs
+    for (size_t i = 0; i < original.size(); ++i) {
+        graph[original[i]][changed[i]] = std::min(graph[original[i]][changed[i]], cost[i]);
+    }
+    
+    // Floyd-Warshall Algorithm to find all pairs shortest path
+    for (char k = 'a'; k <= 'z'; ++k) {
+        for (char i = 'a'; k <= 'z'; ++i) {
+            for (char j = 'a'; j <= 'z'; ++j) {
+                if (graph[i][k] < INF && graph[k][j] < INF) {
+                    graph[i][j] = std::min(graph[i][j], graph[i][k] + graph[k][j]);
+                }
+            }
+        }
+    }
+    
+    // Calculate the minimum cost to convert source to target
+    int totalCost = 0;
+    for (int i = 0; i < n; ++i) {
+        char s = source[i];
+        char t = target[i];
+        if (graph[s][t] == INF) {
+            return -1; // Impossible to convert
+        }
+        totalCost += graph[s][t];
+    }
+    
+    return totalCost;
+}
+```
+
+<h3> Explanation </h3>
+
+1. **Graph Initialization**: Initialize a graph with distances between all pairs of characters set to infinity (`INF`), except for the distances from a character to itself, which are set to 0.
+2. **Graph Population**: Populate the graph with the given transformation costs.
+3. **Floyd-Warshall Algorithm**: Compute the shortest paths between all pairs of characters using the Floyd-Warshall algorithm.
+4. **Cost Calculation**: Compute the total transformation cost using the shortest paths found. If any transformation is impossible, return -1.
+
+This solution ensures that we find the minimum cost to transform the `source` string to the `target` string, considering all possible character transformations.
+
+> TLE..!! (기본 testcase)
+
+#### TLE 개선
+To optimize the code and avoid Time Limit Exceeded (TLE), we can use Dijkstra's algorithm for each character in `source` to compute the shortest path to the corresponding character in `target`. This approach is more efficient than Floyd-Warshall for this problem's constraints.
+
+Here is the optimized implementation in C++:
+
+```cpp
+const int INF = std::numeric_limits<int>::max();
+
+struct Edge {
+    char to;
+    int cost;
+};
+
+int dijkstra(char src, char dest, const std::unordered_map<char, std::vector<Edge>>& graph) {
+    std::unordered_map<char, int> dist;
+    for (char c = 'a'; c <= 'z'; ++c) {
+        dist[c] = INF;
+    }
+    dist[src] = 0;
+
+    std::priority_queue<std::pair<int, char>, std::vector<std::pair<int, char>>, std::greater<>> pq;
+    pq.emplace(0, src);
+
+    while (!pq.empty()) {
+        auto [current_cost, u] = pq.top();
+        pq.pop();
+
+        if (current_cost > dist[u]) continue;
+
+        for (const auto& edge : graph.at(u)) {
+            char v = edge.to;
+            int weight = edge.cost;
+
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                pq.emplace(dist[v], v);
+            }
+        }
+    }
+
+    return dist[dest];
+}
+
+int minCostToConvertString(const std::string &source, const std::string &target, 
+                           const std::vector<char> &original, const std::vector<char> &changed, const std::vector<int> &cost) {
+    int n = source.size();
+    std::unordered_map<char, std::vector<Edge>> graph;
+
+    // Build the graph
+    for (size_t i = 0; i < original.size(); ++i) {
+        graph[original[i]].push_back({changed[i], cost[i]});
+    }
+
+    int totalCost = 0;
+
+    // Calculate the cost to convert each character in source to the corresponding character in target
+    for (int i = 0; i < n; ++i) {
+        char s = source[i];
+        char t = target[i];
+        if (s == t) continue;
+
+        int cost = dijkstra(s, t, graph);
+        if (cost == INF) {
+            return -1; // Impossible to convert
+        }
+        totalCost += cost;
+    }
+
+    return totalCost;
+}
+
+int main() {
+    std::string source = "abcd";
+    std::string target = "acbe";
+    std::vector<char> original = {'a', 'b', 'c', 'c', 'e', 'd'};
+    std::vector<char> changed = {'b', 'c', 'b', 'e', 'b', 'e'};
+    std::vector<int> cost = {2, 5, 5, 1, 2, 20};
+
+    int result = minCostToConvertString(source, target, original, changed, cost);
+    std::cout << "Minimum cost: " << result << std::endl;
+
+    return 0;
+}
+```
+
+<h3> Explanation: </h3>
+
+1. **Graph Construction**: Build a graph where each character points to its possible transformations with associated costs.
+2. **Dijkstra's Algorithm**: For each character in `source`, use Dijkstra's algorithm to find the shortest path to the corresponding character in `target`.
+3. **Cost Calculation**: Sum the costs of transforming each character. If any transformation is not possible, return -1.
+
+This approach is more efficient and should help avoid TLE issues.
+
+> wrong answer.
+
+#### 기본 testcase 맞추기.
+To handle this problem correctly, you need to consider multiple-step transformations, as shown in your counterexample. Using a breadth-first search (BFS) approach with a priority queue (min-heap) for Dijkstra's algorithm should work efficiently. Here's the corrected implementation:
+
+```cpp
+class Solution {
+public:
+    const int INF = std::numeric_limits<int>::max();
+
+    struct Edge {
+        char to;
+        int cost;
+    };
+
+    int dijkstra(char src, char dest, const std::unordered_map<char, std::vector<Edge>>& graph) {
+        std::unordered_map<char, int> dist;
+        for (char c = 'a'; c <= 'z'; ++c) {
+            dist[c] = INF;
+        }
+        dist[src] = 0;
+
+        std::priority_queue<std::pair<int, char>, std::vector<std::pair<int, char>>, std::greater<>> pq;
+        pq.emplace(0, src);
+
+        while (!pq.empty()) {
+            auto [current_cost, u] = pq.top();
+            pq.pop();
+
+            if (u == dest) {
+                return current_cost;
+            }
+
+            if (current_cost > dist[u]) continue;
+
+            if (graph.find(u) != graph.end()) {
+                for (const auto& edge : graph.at(u)) {
+                    char v = edge.to;
+                    int weight = edge.cost;
+
+                    if (dist[u] + weight < dist[v]) {
+                        dist[v] = dist[u] + weight;
+                        pq.emplace(dist[v], v);
+                    }
+                }
+            }
+        }
+
+        return INF;
+    }
+    
+    long long minimumCost(string source, string target, vector<char>& original, vector<char>& changed, vector<int>& cost) {
+        int n = source.size();
+        std::unordered_map<char, std::vector<Edge>> graph;
+
+        // Build the graph
+        for (size_t i = 0; i < original.size(); ++i) {
+            graph[original[i]].push_back({changed[i], cost[i]});
+        }
+
+        int totalCost = 0;
+
+        // Calculate the cost to convert each character in source to the corresponding character in target
+        for (int i = 0; i < n; ++i) {
+            char s = source[i];
+            char t = target[i];
+            if (s == t) continue;
+
+            int cost = dijkstra(s, t, graph);
+            if (cost == INF) {
+                return -1; // Impossible to convert
+            }
+            totalCost += cost;
+        }
+
+        return totalCost;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Graph Initialization**: Construct the graph using the `original`, `changed`, and `cost` arrays.
+2. **Dijkstra's Algorithm**: Modified to handle multiple transformations using a priority queue.
+3. **Cost Calculation**: For each character in `source`, find the minimum cost to transform it to the corresponding character in `target`.
+
+This implementation ensures handling of multiple-step transformations correctly, avoiding infinite loops and checking all possible paths.
+
+> TLE (568 Test Case).
+
+#### TLE 개선
+To avoid TLE (Time Limit Exceeded), we need a more efficient approach. Instead of running Dijkstra's algorithm from scratch for each character transformation, we can precompute the shortest transformation costs for all pairs of characters. We can achieve this using the Floyd-Warshall algorithm to find the shortest paths between all pairs of characters efficiently. 
+
+Here's the optimized solution:
+
+```cpp
+class Solution {
+public:
+    const int INF = std::numeric_limits<int>::max();
+    long long minimumCost(string source, string target, vector<char>& original, vector<char>& changed, vector<int>& cost) {
+        int n = source.size();
+        int m = original.size();
+        
+        // Create the cost matrix and initialize it with INF
+        std::vector<std::vector<int>> costMatrix(26, std::vector<int>(26, INF));
+        for (int i = 0; i < 26; ++i) {
+            costMatrix[i][i] = 0;
+        }
+        
+        // Fill the cost matrix with the given costs
+        for (int i = 0; i < m; ++i) {
+            int u = original[i] - 'a';
+            int v = changed[i] - 'a';
+            costMatrix[u][v] = std::min(costMatrix[u][v], cost[i]);
+        }
+        
+        // Apply the Floyd-Warshall algorithm
+        for (int k = 0; k < 26; ++k) {
+            for (int i = 0; i < 26; ++i) {
+                for (int j = 0; j < 26; ++j) {
+                    if (costMatrix[i][k] < INF && costMatrix[k][j] < INF) {
+                        costMatrix[i][j] = std::min(costMatrix[i][j], costMatrix[i][k] + costMatrix[k][j]);
+                    }
+                }
+            }
+        }
+        
+        // Calculate the total transformation cost
+        int totalCost = 0;
+        for (int i = 0; i < n; ++i) {
+            char s = source[i];
+            char t = target[i];
+            if (s != t) {
+                int u = s - 'a';
+                int v = t - 'a';
+                if (costMatrix[u][v] == INF) {
+                    return -1; // Impossible to convert
+                }
+                totalCost += costMatrix[u][v];
+            }
+        }
+        
+        return totalCost;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Cost Matrix Initialization**: Initialize a 26x26 cost matrix with infinity (`INF`). Set the diagonal to zero because no cost is needed to transform a character into itself.
+2. **Graph Population**: Populate the cost matrix with given transformation costs.
+3. **Floyd-Warshall Algorithm**: Compute the shortest path between all pairs of characters.
+4. **Cost Calculation**: Calculate the total transformation cost using the precomputed shortest paths. If a transformation is impossible, return -1. 
+
+This solution ensures efficient computation of the minimum cost to convert `source` to `target` and should avoid TLE.
+
+> Line 43: Char 27: runtime error: signed integer overflow: 2147447147 + 62778 cannot be represented in type 'int' (solution.cpp)
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior solution.cpp:43:27
+
+#### overflow 개선
+To address the signed integer overflow, we need to use a larger data type that can handle the sum of costs. Switching from `int` to `long long` can solve this issue. Here's the updated implementation:
+
+```cpp
+// 168ms, 98.87MB
+class Solution {
+public:
+    const long long INF = std::numeric_limits<long long>::max();
+    long long minimumCost(string source, string target, vector<char>& original, vector<char>& changed, vector<int>& cost) {
+        int n = source.size();
+        int m = original.size();
+        
+        // Create the cost matrix and initialize it with INF
+        std::vector<std::vector<long long>> costMatrix(26, std::vector<long long>(26, INF));
+        for (int i = 0; i < 26; ++i) {
+            costMatrix[i][i] = 0;
+        }
+        
+        // Fill the cost matrix with the given costs
+        for (int i = 0; i < m; ++i) {
+            int u = original[i] - 'a';
+            int v = changed[i] - 'a';
+            costMatrix[u][v] = std::min(costMatrix[u][v], static_cast<long long>(cost[i]));
+        }
+        
+        // Apply the Floyd-Warshall algorithm
+        for (int k = 0; k < 26; ++k) {
+            for (int i = 0; i < 26; ++i) {
+                for (int j = 0; j < 26; ++j) {
+                    if (costMatrix[i][k] < INF && costMatrix[k][j] < INF) {
+                        costMatrix[i][j] = std::min(costMatrix[i][j], costMatrix[i][k] + costMatrix[k][j]);
+                    }
+                }
+            }
+        }
+        
+        // Calculate the total transformation cost
+        long long totalCost = 0;
+        for (int i = 0; i < n; ++i) {
+            char s = source[i];
+            char t = target[i];
+            if (s != t) {
+                int u = s - 'a';
+                int v = t - 'a';
+                if (costMatrix[u][v] == INF) {
+                    return -1; // Impossible to convert
+                }
+                totalCost += costMatrix[u][v];
+            }
+        }
+        
+        return totalCost > INF ? -1 : totalCost;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Data Type Change**: Use `long long` instead of `int` to handle large sums.
+2. **Graph Initialization**: Construct the graph and initialize the cost matrix with `INF` to represent unreachable paths.
+3. **Floyd-Warshall Algorithm**: Compute the shortest paths between all pairs of characters.
+4. **Cost Calculation**: Calculate the total transformation cost using the precomputed shortest paths. If a transformation is impossible, return -1.
+
+This solution efficiently handles large costs and avoids integer overflow, ensuring correct results within the problem constraints.
