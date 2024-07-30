@@ -205,3 +205,98 @@ public:
 
 This approach is more efficient than the brute-force solution, reducing the overall complexity to O(n^2). For further improvements, more advanced data structures like Fenwick Trees or Segment Trees could be used to reduce the complexity to O(n log n).
 
+## 24.07.30 - 1653. Minimum Deletions to Make String Balanced
+[문제 링크](https://leetcode.com/problems/minimum-deletions-to-make-string-balanced/description/)
+
+### 나
+```cpp
+// 82ms, 23.68MB
+class Solution {
+public:
+    int minimumDeletions(string s) {
+        int totA{};
+        for(auto c : s) {
+            if(c == 'a') ++totA;
+        }
+
+        int answer = totA;
+        int cntA{}, cntB{};
+        for(auto c : s) {
+            if(c == 'a') ++cntA;
+            else if(c == 'b') ++cntB;
+
+            answer = min(answer, cntB + totA - cntA);
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+To solve the problem of finding the minimum number of deletions required to make a string balanced, we need to ensure that all 'a's in the string appear before all 'b's. This problem can be approached using dynamic programming or a more optimized two-pass strategy with prefix sums.
+
+Here’s the detailed approach:
+
+<h3> Two-Pass Approach with Prefix Sums </h3>
+
+1. **Prefix Calculation**:
+   - Calculate the number of 'b's to the left of each position (prefix_b).
+   - Calculate the number of 'a's to the right of each position (suffix_a).
+
+2. **Compute Minimum Deletions**:
+   - For each position, compute the total deletions needed to make the string balanced if the split occurs at that position.
+   - Track the minimum deletions across all possible split positions.
+
+Here’s the implementation:
+
+```cpp
+// 87ms, 53.17MB
+class Solution {
+public:
+    int minimumDeletions(string s) {
+        int n = s.size();
+        std::vector<int> prefix_b(n + 1, 0); // number of 'b's to the left of i (exclusive)
+        std::vector<int> suffix_a(n + 1, 0); // number of 'a's to the right of i (exclusive)
+        
+        // Fill prefix_b array
+        for (int i = 1; i <= n; ++i) {
+            prefix_b[i] = prefix_b[i - 1] + (s[i - 1] == 'b' ? 1 : 0);
+        }
+        
+        // Fill suffix_a array
+        for (int i = n - 1; i >= 0; --i) {
+            suffix_a[i] = suffix_a[i + 1] + (s[i] == 'a' ? 1 : 0);
+        }
+        
+        // Compute minimum deletions
+        int min_deletions = n; // Initialize with maximum possible deletions (all characters)
+        for (int i = 0; i <= n; ++i) {
+            min_deletions = std::min(min_deletions, prefix_b[i] + suffix_a[i]);
+        }
+        
+        return min_deletions;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Prefix Array Calculation**:
+   - `prefix_b[i]` counts the number of 'b's in the substring `s[0...i-1]`.
+   - Iterate through the string and populate `prefix_b`.
+
+2. **Suffix Array Calculation**:
+   - `suffix_a[i]` counts the number of 'a's in the substring `s[i...n-1]`.
+   - Iterate through the string in reverse and populate `suffix_a`.
+
+3. **Finding the Minimum Deletions**:
+   - For each possible split point `i`, compute the sum of `prefix_b[i]` (deletions needed for 'b's before `i`) and `suffix_a[i]` (deletions needed for 'a's after `i`).
+   - Track the minimum of these sums.
+
+<h3> Complexity: </h3>
+
+- **Time Complexity**: O(n), where n is the length of the string. This is because we iterate through the string a constant number of times.
+- **Space Complexity**: O(n) for the prefix and suffix arrays.
+
+This approach ensures that the solution is efficient and optimal for the given problem constraints.
+
