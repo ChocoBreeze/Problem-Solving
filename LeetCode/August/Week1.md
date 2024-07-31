@@ -300,3 +300,79 @@ public:
 
 This approach ensures that the solution is efficient and optimal for the given problem constraints.
 
+## 24.07.31 - 1105. Filling Bookcase Shelves
+[문제 해결](https://leetcode.com/problems/filling-bookcase-shelves/description/)
+
+### 나
+해결 못 했습니다.. ㅠㅠ (아이디어가 안 떠 오름.)
+
+### gpt
+To solve the problem of "Filling Bookcase Shelves" from LeetCode, you need to approach it using dynamic programming (DP). The problem can be summarized as arranging a set of books on shelves such that the total height of the shelves is minimized. Each book has a width and a height, and each shelf has a maximum width limit.
+
+Here's a step-by-step solution:
+
+1. **Understand the Problem:**
+   - You have an array of books, where each book is represented by its width and height.
+   - You need to arrange these books on shelves with a given maximum width.
+   - The goal is to minimize the total height of the shelves.
+
+2. **Define the DP State:**
+   - Let `dp[i]` represent the minimum height needed to place the first `i` books.
+
+3. **DP Transition:**
+   - For each book `i`, you decide whether to place it on a new shelf or add it to the current shelf if it fits within the width constraint.
+   - You update the `dp` array by considering the height of the current shelf and the books that fit on it.
+
+4. **Base Case:**
+   - `dp[0] = 0`, which means no height is needed for zero books.
+
+Here is the complete code for solving the problem using dynamic programming:
+
+```cpp
+// 3ms, 11.11MB
+class Solution {
+public:
+    int minHeightShelves(vector<vector<int>>& books, int shelf_width) {
+        int n = books.size();
+        vector<int> dp(n + 1, INT_MAX);
+        dp[0] = 0;
+
+        for (int i = 1; i <= n; ++i) {
+            int width = 0, height = 0;
+            for (int j = i; j > 0; --j) {
+                width += books[j-1][0];
+                if (width > shelf_width) break;
+                height = max(height, books[j-1][1]);
+                dp[i] = min(dp[i], dp[j-1] + height);
+            }
+        }
+
+        return dp[n];
+    }
+};
+```
+
+<h3> Explanation of the Code: </h3>
+
+- **Initialization:**
+  - `dp` vector is initialized to `INT_MAX` except `dp[0]` which is `0` because no height is needed for zero books.
+- **Outer Loop:**
+  - Iterate over each book `i` from `1` to `n`.
+- **Inner Loop:**
+  - Check the books from the current book `i` backwards to see how many can fit on the current shelf without exceeding the `shelf_width`.
+  - Update the `width` and `height` of the current shelf.
+  - Update `dp[i]` to the minimum value between its current value and the height of the shelf plus the height from the previous books (`dp[j-1] + height`).
+- **Return the Result:**
+  - The final result will be in `dp[n]`, which represents the minimum height to arrange all `n` books.
+
+<h3> Tips: </h3>
+
+- Ensure you understand the dynamic programming state transition.
+- Carefully handle the conditions within the inner loop to avoid exceeding the shelf width.
+- The solution leverages the fact that placing a book on a new shelf vs. the current shelf is mutually exclusive and must be evaluated at each step.
+
+> [!NOTE]
+> 예제에서 첫 책을 쌓고, 두 번째 세 번째 책을 쌓을 때 점화식을 생각 못 했다.
+>
+> 두 번째 책까지만 쌓으면 최소 높이는 3이고 min 값을 거기서 갱신해버리면 이후 답이 제대로 나오지 않는다. 이럴 때는 거꾸로 볼 수 있다는 아이디어가 있다는 것을 깨달았다. (무조건 정방향으로 볼 필요는 없다.)
+
