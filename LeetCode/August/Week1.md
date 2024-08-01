@@ -376,3 +376,146 @@ public:
 >
 > 두 번째 책까지만 쌓으면 최소 높이는 3이고 min 값을 거기서 갱신해버리면 이후 답이 제대로 나오지 않는다. 이럴 때는 거꾸로 볼 수 있다는 아이디어가 있다는 것을 깨달았다. (무조건 정방향으로 볼 필요는 없다.)
 
+## 24.08.01 - 2678. Number of Senior Citizens
+[문제 링크](https://leetcode.com/problems/number-of-senior-citizens/description/)
+
+### 나
+```cpp
+// 10ms, 17.6MB
+class Solution {
+public:
+    int countSeniors(vector<string>& details) {
+        // 10 characters => phone number
+        // gender(M, F)
+        // 2 characters => age
+        // 2 characters => seat
+
+        // # of passengers who are strictly more than 60 years old.
+
+        int answer{};
+        for(string& detail : details) {
+            if(stoi(detail.substr(11, 2)) > 60) ++answer;
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+Certainly! The problem on LeetCode you are referring to is about counting the number of senior citizens in a given list of personal details. Here's a step-by-step solution in C++ to solve this problem.
+
+The problem description states:
+
+> You are given a 0-indexed array of strings details. Each element of details is a string, where:
+> - The first 2 characters represent the country code.
+> - The next 8 characters represent the phone number.
+> - The next 2 characters represent the age.
+> - The last 1 character represents the gender.
+
+> Return the number of strings in details that represent senior citizens.
+
+Here's how we can approach solving this problem in C++:
+
+1. Parse each string to extract the age.
+2. Convert the extracted age to an integer.
+3. Check if the age is greater than or equal to 60.
+4. Count how many such strings exist in the array.
+
+Here's the C++ code to implement this logic:
+
+```cpp
+class Solution {
+public:
+    int countSeniors(std::vector<std::string>& details) {
+        int count = 0;
+        for (const std::string& detail : details) {
+            // The age is located at indices 10 and 11 in the string
+            int age = std::stoi(detail.substr(10, 2));
+            if (age >= 60) {
+                count++;
+            }
+        }
+        return count;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Loop through each string in the `details` vector**: We use a range-based for loop to iterate through each string.
+2. **Extract the age**: `detail.substr(10, 2)` extracts the substring starting at index 10 with a length of 2, which corresponds to the age in the given format.
+3. **Convert the substring to an integer**: `std::stoi` converts the extracted substring to an integer.
+4. **Check if the age is 60 or more**: If the age is greater than or equal to 60, increment the count.
+5. **Return the count**: After checking all strings, return the final count of senior citizens.
+
+This code correctly solves the problem as described. You can test it with various inputs to ensure it works for all edge cases as well.
+
+> I think age starts with index 11, isn't it?
+
+You're right! The age starts at index 11. Here is the corrected code with the proper index for extracting the age:
+
+```cpp
+class Solution {
+public:
+    int countSeniors(std::vector<std::string>& details) {
+        int count = 0;
+        for (const std::string& detail : details) {
+            // The age is located at indices 11 and 12 in the string
+            int age = std::stoi(detail.substr(11, 2));
+            if (age >= 60) {
+                count++;
+            }
+        }
+        return count;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Loop through each string in the `details` vector**: We use a range-based for loop to iterate through each string.
+2. **Extract the age**: `detail.substr(11, 2)` extracts the substring starting at index 11 with a length of 2, which corresponds to the age in the given format.
+3. **Convert the substring to an integer**: `std::stoi` converts the extracted substring to an integer.
+4. **Check if the age is 60 or more**: If the age is greater than or equal to 60, increment the count.
+5. **Return the count**: After checking all strings, return the final count of senior citizens.
+
+This corrected code ensures that we are extracting the age from the correct indices in the string.
+
+> `strictly more than 60 years old.`
+> 
+> it doesn't contains 60..!
+
+Thank you for the clarification. If the requirement is to count only those who are strictly more than 60 years old (i.e., age > 60), we need to adjust the condition in our check. Here is the corrected code:
+
+```cpp
+// 13ms, 17.56MB
+class Solution {
+public:
+    int countSeniors(const std::vector<std::string>& details) {
+        int count = 0;
+        for (const std::string& detail : details) {
+            // The age is located at indices 11 and 12 in the string
+            int age = std::stoi(detail.substr(11, 2));
+            if (age > 60) {
+                count++;
+            }
+        }
+        return count;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+- **Extract the age**: The age is extracted using `detail.substr(11, 2)` which gets the substring starting at index 11 with a length of 2 characters.
+- **Convert the substring to an integer**: The extracted age substring is converted to an integer using `std::stoi`.
+- **Check if the age is strictly more than 60**: The condition `if (age > 60)` is used to count only those ages that are strictly greater than 60.
+- **Return the count**: After iterating through all strings, the final count of senior citizens is returned.
+
+This code correctly solves the problem with the updated condition that only counts those who are strictly older than 60.
+
+> 약간의 오류 $\rightarrow$ 수정..
+>
+> 중간에 11번째가 아니라 13번째 아니야? 라고 물었는데 속지 않음.
+
+
