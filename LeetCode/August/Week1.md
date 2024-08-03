@@ -18,6 +18,9 @@
   - [24.08.02 - 2134. Minimum Swaps to Group All 1's Together II](#240802---2134-minimum-swaps-to-group-all-1s-together-ii)
     - [나](#나-4)
     - [gpt](#gpt-4)
+  - [24.08.03 - 1460. Make Two Arrays Equal by Reversing Subarrays](#240803---1460-make-two-arrays-equal-by-reversing-subarrays)
+    - [나](#나-5)
+    - [gpt](#gpt-5)
 
 # August Week 1
 ## 24.07.29 - 1395. Count Number of Teams
@@ -655,4 +658,95 @@ public:
    - Track the maximum number of 1s found in any window of size `totalOnes`.
 4. **Calculating Minimum Swaps**: The minimum number of swaps required is `totalOnes - maxOnesInWindow`.
 
-This solution ensures an efficient and effective way to determine the minimum swaps needed, with a time complexity of \(O(n)\) due to the linear traversal of the array.
+This solution ensures an efficient and effective way to determine the minimum swaps needed, with a time complexity of $O(n)$ due to the linear traversal of the array.
+
+## 24.08.03 - 1460. Make Two Arrays Equal by Reversing Subarrays
+[문제 링크](https://leetcode.com/problems/make-two-arrays-equal-by-reversing-subarrays/description/)
+
+### 나
+```cpp
+// 6ms, 17.8MB
+class Solution {
+public:
+    bool canBeEqual(vector<int>& target, vector<int>& arr) {
+        // 1 <= target[i], arr[i] <= 1000
+        vector dat(1001, 0);
+        for(int& t : target) dat[t]++;
+        for(int& a : arr) {
+            if(dat[a] > 0) {
+                dat[a]--;
+            }
+            else {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+```
+
+### gpt
+Sure! Let's go through the problem "Make Two Arrays Equal by Reversing Subarrays" on LeetCode.
+
+<h3> Problem Description </h3>
+
+You are given two integer arrays of equal length `target` and `arr`. In one step, you can select any non-empty subarray of `arr` and reverse it. You need to determine if it's possible to make `arr` equal to `target` by performing any number of such reversals.
+
+<h3> Solution Approach </h3>
+
+To determine if we can make `arr` equal to `target` by reversing subarrays, let's consider the following:
+
+1. **Permutation Check**: Any subarray reversal does not change the elements of the array but only their order. Therefore, for `arr` to be transformed into `target`, both arrays must contain the same elements with the same frequencies. In other words, `arr` must be a permutation of `target`.
+
+If `arr` is a permutation of `target`, then it's always possible to sort `arr` to match `target` using a series of reversals. This is because any sequence of reversals can rearrange the elements to match any permutation.
+
+<h3> Implementation </h3>
+
+We can solve this problem efficiently by using sorting or a hashmap to check if `arr` is a permutation of `target`.
+
+Here is a Python implementation using sorting:
+
+```cpp
+// 4ms, 17.58MB
+class Solution {
+public:
+    bool canBeEqual(vector<int>& target, vector<int>& arr) {
+        sort(target.begin(), target.end());
+        sort(arr.begin(), arr.end());
+        return target == arr;
+    }
+};
+```
+> 이게 되네?..
+
+Alternatively, here is the implementation using hash maps to count the frequency of each element:
+
+```cpp
+// 10ms, 19.52MB
+class Solution {
+public:
+    bool canBeEqual(vector<int>& target, vector<int>& arr) {
+        unordered_map<int, int> countMap;
+        for (int num : target) {
+            countMap[num]++;
+        }
+        for (int num : arr) {
+            if (countMap.find(num) == countMap.end() || countMap[num] == 0) {
+                return false;
+            }
+            countMap[num]--;
+        }
+        return true;
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+- **Sorting Method**: We sort both `target` and `arr` arrays. If they are identical after sorting, then `arr` can be transformed into `target`.
+- **Hashmap Method**: We use a hashmap to count the frequencies of elements in `target`. We then decrement the count for each element in `arr`. If any element in `arr` either doesn't exist in the hashmap or its count goes below zero, then `arr` cannot be transformed into `target`.
+
+Both approaches have a time complexity of $O(nlogn)$ due to the sorting or $O(n)$ if we use the hashmap approach where $n$ is the length of the arrays.
+
+If you have any further questions or need additional clarifications, feel free to ask!
+
