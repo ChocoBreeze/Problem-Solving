@@ -1,4 +1,23 @@
 ## ToC
+- [August Week 1](#august-week-1)
+  - [24.07.29 - 1395. Count Number of Teams](#240729---1395-count-number-of-teams)
+    - [나](#나)
+    - [gpt](#gpt)
+      - [Brute Force](#brute-force)
+      - [Dynamic Programming](#dynamic-programming)
+      - [prefix/suffix arrays](#prefixsuffix-arrays)
+  - [24.07.30 - 1653. Minimum Deletions to Make String Balanced](#240730---1653-minimum-deletions-to-make-string-balanced)
+    - [나](#나-1)
+    - [gpt](#gpt-1)
+  - [24.07.31 - 1105. Filling Bookcase Shelves](#240731---1105-filling-bookcase-shelves)
+    - [나](#나-2)
+    - [gpt](#gpt-2)
+  - [24.08.01 - 2678. Number of Senior Citizens](#240801---2678-number-of-senior-citizens)
+    - [나](#나-3)
+    - [gpt](#gpt-3)
+  - [24.08.02 - 2134. Minimum Swaps to Group All 1's Together II](#240802---2134-minimum-swaps-to-group-all-1s-together-ii)
+    - [나](#나-4)
+    - [gpt](#gpt-4)
 
 # August Week 1
 ## 24.07.29 - 1395. Count Number of Teams
@@ -518,4 +537,122 @@ This code correctly solves the problem with the updated condition that only coun
 >
 > 중간에 11번째가 아니라 13번째 아니야? 라고 물었는데 속지 않음.
 
+## 24.08.02 - 2134. Minimum Swaps to Group All 1's Together II
+[문제 링크](https://leetcode.com/problems/minimum-swaps-to-group-all-1s-together-ii/description/?envType=daily-question&envId=2024-08-02)
 
+### 나
+아이디어가 떠오르지 않아 힌트 참고 했음..
+
+- Notice that the number of 1’s to be grouped together is fixed. It is the number of 1's the whole array has.
+- Call this number total. We should then check for every subarray of size total (possibly wrapped around), how many swaps are required to have the subarray be all 1’s.
+- The number of swaps required is the number of 0’s in the subarray.
+- To eliminate the circular property of the array, we can append the original array to itself. Then, we check each subarray of length total.
+- How do we avoid recounting the number of 0’s in the subarray each time? The Sliding Window technique can help.
+
+```cpp
+// 71ms, 83.06MB
+class Solution {
+public:
+    int minSwaps(std::vector<int>& nums) {
+        const int SIZE = static_cast<int>(nums.size());
+        
+        // 총 1의 개수 카운팅
+        int oneTot{};
+        for(int& num : nums) {
+            if(num == 1) ++oneTot;
+        }
+        
+        int oneCntInWindow{}, maxOneCntInWindow{};
+
+        // 초기 window 구성
+        for (int i = 0; i < oneTot; ++i) {
+            if (nums[i] == 1) {
+                oneCntInWindow++;
+            }
+        }
+        maxOneCntInWindow = oneCntInWindow;
+        
+        for (int i = oneTot; i < SIZE + oneTot; ++i) {
+            if (nums[i % SIZE] == 1) {
+               oneCntInWindow++;
+            }
+            if (nums[(i - oneTot) % SIZE] == 1) {
+                oneCntInWindow--;
+            }
+            maxOneCntInWindow = std::max(maxOneCntInWindow, oneCntInWindow);
+        }
+        
+        return oneTot - maxOneCntInWindow;
+    }
+};
+```
+
+### gpt
+Certainly! Let's solve the problem of finding the minimum number of swaps to group all 1s together in a circular array, as described in the LeetCode problem Minimum Swaps to Group All 1s Together II.
+
+<h3> Problem Summary </h3>
+
+Given a circular binary array, you need to find the minimum number of swaps required to group all the 1s together. The array can be rotated, making the circular nature a crucial aspect of the problem.
+
+<h3> Approach </h3>
+
+1. **Count the total number of 1s (`totalOnes`) in the array**: This helps determine the window size that we need to use to group the 1s together.
+2. **Create a double-length version of the array**: This accounts for the circular nature by allowing the window to wrap around seamlessly.
+3. **Use a sliding window technique**: Count the number of 1s in the current window of size `totalOnes`. The goal is to maximize the number of 1s in any such window.
+4. **Calculate the minimum swaps**: The minimum number of swaps needed to bring all 1s together in the best window is determined by the difference between `totalOnes` and the maximum number of 1s found in any window.
+
+Here's the detailed implementation:
+
+```cpp
+// 76ms, 93.54MB
+class Solution {
+public:
+    int minSwaps(std::vector<int>& nums) {
+        int n = nums.size();
+        
+        // Count total number of 1s in the array
+        int totalOnes = std::count(nums.begin(), nums.end(), 1);
+        
+        // Create a double-length array to handle circular nature
+        std::vector<int> doubleNums(nums.begin(), nums.end());
+        doubleNums.insert(doubleNums.end(), nums.begin(), nums.end());
+        
+        // Use sliding window to find maximum number of 1s in any window of size `totalOnes`
+        int maxOnesInWindow = 0;
+        int currentOnesInWindow = 0;
+        
+        for (int i = 0; i < totalOnes; ++i) {
+            if (doubleNums[i] == 1) {
+                currentOnesInWindow++;
+            }
+        }
+        
+        maxOnesInWindow = currentOnesInWindow;
+        
+        for (int i = totalOnes; i < doubleNums.size(); ++i) {
+            if (doubleNums[i] == 1) {
+                currentOnesInWindow++;
+            }
+            if (doubleNums[i - totalOnes] == 1) {
+                currentOnesInWindow--;
+            }
+            maxOnesInWindow = std::max(maxOnesInWindow, currentOnesInWindow);
+        }
+        
+        // The minimum number of swaps needed
+        return totalOnes - maxOnesInWindow;
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **Counting 1s**: We first count the total number of 1s in the array (`totalOnes`). This will be the size of the window we need to consider for grouping the 1s together.
+2. **Handling Circular Nature**: By duplicating the array (`doubleNums`), we can handle the circular nature. This way, sliding windows can naturally wrap around the end of the array.
+3. **Sliding Window Technique**:
+   - Initialize a window of size `totalOnes` and count the number of 1s in this window.
+   - Slide the window one position at a time, updating the count of 1s by adding the new element and removing the old element that is no longer in the window.
+   - Track the maximum number of 1s found in any window of size `totalOnes`.
+4. **Calculating Minimum Swaps**: The minimum number of swaps required is `totalOnes - maxOnesInWindow`.
+
+This solution ensures an efficient and effective way to determine the minimum swaps needed, with a time complexity of \(O(n)\) due to the linear traversal of the array.
