@@ -21,6 +21,9 @@
   - [24.08.03 - 1460. Make Two Arrays Equal by Reversing Subarrays](#240803---1460-make-two-arrays-equal-by-reversing-subarrays)
     - [나](#나-5)
     - [gpt](#gpt-5)
+  - [24.08.04 - 1508. Range Sum of Sorted Subarray Sums](#240804---1508-range-sum-of-sorted-subarray-sums)
+    - [나](#나-6)
+    - [gpt](#gpt-6)
 
 # August Week 1
 ## 24.07.29 - 1395. Count Number of Teams
@@ -750,3 +753,247 @@ Both approaches have a time complexity of $O(nlogn)$ due to the sorting or $O(n)
 
 If you have any further questions or need additional clarifications, feel free to ask!
 
+## 24.08.04 - 1508. Range Sum of Sorted Subarray Sums
+[문제 링크](https://leetcode.com/problems/range-sum-of-sorted-subarray-sums/description/)
+
+### 나
+```cpp
+// 92ms, 27.2MB
+
+class Solution {
+public:
+    const int MOD = 1'000'000'007;
+    int rangeSum(vector<int>& nums, int n, int left, int right) {
+        vector<int> sums;
+        // 합을 다 안 구하고 하는 방법이 있나?
+        // the sum of all non-empty continuous subarrays
+        for(int i{};i<n;++i) {
+            int sum{};
+            for(int j{i};j<n;++j) {
+                sum += nums[j];
+                sums.push_back(sum);
+            }
+        }
+
+        sort(begin(sums), end(sums));
+
+        // Since the answer can be a huge number return it modulo 109 + 7. (이런 게 있더라..)
+        int answer{};
+        // 합쳐주는 함수가 생각이 안 난다
+        for(int i{left-1};i<right;++i) {
+            answer += sums[i];
+            answer %= MOD;
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+The problem "Range Sum of Sorted Subarray Sums" can be broken down into several steps. Here is a detailed explanation of how to approach it:
+
+<h3> Problem Overview </h3>
+
+Given an integer array `nums` and two integers `n` and `left` and `right`, your task is to find the sum of the subarray sums that lie between the `left`-th and `right`-th smallest sums of all possible subarrays. The answer should be returned modulo \(10^9 + 7\).
+
+<h3> Steps to Solve the Problem </h3>
+
+1. **Generate All Subarray Sums**:
+    - First, generate all possible subarrays of the given array.
+    - Compute the sum of each subarray.
+  
+2. **Sort the Sums**:
+    - Sort the array of subarray sums.
+  
+3. **Calculate the Required Sum**:
+    - Find the sum of elements between the indices `left-1` and `right-1` in the sorted array of subarray sums.
+    - Return this sum modulo \(10^9 + 7\).
+
+<h3> Implementation </h3>
+
+Let's implement this step-by-step in C++:
+
+```cpp
+// 90ms, 27.2MB
+class Solution {
+public:
+    int rangeSum(std::vector<int>& nums, int n, int left, int right) {
+        constexpr int MOD = 1e9 + 7;
+        std::vector<int> subarraySums;
+
+        // Generate all subarray sums
+        for (int i = 0; i < n; ++i) {
+            int sum = 0;
+            for (int j = i; j < n; ++j) {
+                sum += nums[j];
+                subarraySums.push_back(sum);
+            }
+        }
+
+        // Sort the subarray sums
+        std::sort(subarraySums.begin(), subarraySums.end());
+
+        // Calculate the sum from left-1 to right-1
+        long long result = 0;
+        for (int i = left - 1; i < right; ++i) {
+            result = (result + subarraySums[i]) % MOD;
+        }
+
+        return static_cast<int>(result);
+    }
+};
+```
+
+<h3> Explanation of the Code </h3>
+
+1. **Generate All Subarray Sums**:
+    - We use two nested loops to generate the sum of all subarrays.
+    - For each starting point `i`, we calculate the sum of subarrays ending at each point `j` (`i <= j < n`).
+    - These sums are stored in the `subarraySums` vector.
+
+2. **Sort the Sums**:
+    - We use the `sort` function to sort the vector `subarraySums`.
+
+3. **Calculate the Sum for the Given Range**:
+    - We iterate over the `subarraySums` vector from index `left-1` to `right-1` and compute the sum modulo \(10^9 + 7\).
+
+<h3> Complexity Analysis </h3>
+
+- **Time Complexity**: Generating all subarray sums takes $O(n^2)$. Sorting the sums takes $O((n^2) \log (n^2))$. Thus, the overall time complexity is $O(n^2 \log n)$.
+- **Space Complexity**: We store all subarray sums, which requires $O(n^2)$ space.
+
+This approach ensures that we efficiently compute the required range sum of sorted subarray sums.
+
+---
+python으로 된 완전 최적화한 코드가 있던데... C++로 바꿔달라고 요청
+
+Certainly! Here's the given Python code converted to C++:
+
+```cpp
+// 0ms, 10MB
+class Solution {
+public:
+    int rangeSum(std::vector<int>& nums, int n, int left, int right) {
+        constexpr int MOD = 1e9 + 7;
+
+        auto count_and_sum = [&](const std::vector<int>& nums, int target) {
+            int count = 0;
+            long long current_sum = 0, total_sum = 0, window_sum = 0;
+            int i = 0;
+            for (int j = 0; j < n; ++j) {
+                current_sum += nums[j];
+                window_sum += static_cast<long long>(nums[j]) * (j - i + 1);
+                while (current_sum > target) {
+                    window_sum -= current_sum;
+                    current_sum -= nums[i];
+                    ++i;
+                }
+                count += j - i + 1;
+                total_sum += window_sum;
+            }
+            return std::make_pair(count, total_sum);
+        };
+
+        auto sum_of_first_k = [&](const std::vector<int>& nums, int k) {
+            int min_sum = *std::min_element(nums.begin(), nums.end());
+            int max_sum = std::accumulate(nums.begin(), nums.end(), 0);
+            int left = min_sum, right = max_sum;
+
+            while (left <= right) {
+                int mid = left + (right - left) / 2;
+                if (count_and_sum(nums, mid).first >= k) {
+                    right = mid - 1;
+                } else {
+                    left = mid + 1;
+                }
+            }
+            auto [count, total_sum] = count_and_sum(nums, left);
+            // There can be more subarrays with the same sum of left.
+            return total_sum - static_cast<long long>(left) * (count - k);
+        };
+
+        long long result = (sum_of_first_k(nums, right) - sum_of_first_k(nums, left - 1)) % MOD;
+        // Ensure non-negative result
+        return (result + MOD) % MOD;
+    }
+};
+```
+
+<h3> Explanation of the Code </h3>
+
+1. **Helper Function `count_and_sum`**:
+    - This function calculates the number of subarrays whose sum is less than or equal to a given target and the total sum of such subarrays.
+    - It uses a sliding window technique to maintain the sum of subarrays.
+
+2. **Helper Function `sum_of_first_k`**:
+    - This function uses binary search to find the smallest subarray sum that has at least `k` subarrays.
+    - It calls `count_and_sum` to determine the number of subarrays and their sum for a given target sum.
+    - Adjusts the result to handle potential duplicates and ensure we get the sum of exactly the first `k` smallest subarray sums.
+
+3. **Main Function `rangeSum`**:
+    - This function calls `sum_of_first_k` to get the sum of subarrays for the specified range (`left` to `right`).
+    - Ensures the result is non-negative by taking it modulo \(10^9 + 7\).
+
+<h3> Key Points </h3>
+
+- The use of lambda functions in C++ (`[&]` captures variables by reference) allows for defining helper functions within the main function scope, similar to Python's nested functions.
+- The `auto` keyword is used for type inference, simplifying the code when the exact type is complex or verbose.
+- `std::make_pair` and structured bindings (`auto [count, total_sum]`) are used for returning and unpacking multiple values from the helper functions.
+
+---
+내 스타일대로 변경~
+```cpp
+class Solution {
+public:
+	int rangeSum(std::vector<int>& nums, int n, int left, int right) {
+		using ll = long long;
+		constexpr int MOD = 1e9 + 7;
+
+		// cnt -> The number of subarrays whose sum is less than or equal to a given target.
+		// totalSum -> The total sum of these subarrays.
+		auto countAndSum = [&](const std::vector<int>& nums, int target) {
+			int cnt{}, i{};
+			ll currSum{}, totalSum{}, windowSum{};
+			// currSum: The sum of the current sliding window.
+			// windowSum: The sum of all subarrays ending at j that start from i to j.
+			for (int j{}; j < n; ++j) {
+				currSum += nums[j];
+				windowSum += static_cast<ll>(nums[j]) * (j - i + 1);
+				while (currSum > target) {
+					// eliminate first element
+					windowSum -= currSum;
+					currSum -= nums[i];
+					++i;
+				}
+				cnt += j - i + 1;
+				totalSum += windowSum;
+			}
+			return std::make_pair(cnt, totalSum);
+		};
+
+		auto sumOfFirstK = [&](const std::vector<int>& nums, int k) {
+			int min_sum = *std::min_element(begin(nums), end(nums));
+			int max_sum = std::accumulate(begin(nums), end(nums), 0);
+			int left = min_sum, right = max_sum;
+
+			while (left <= right) {
+				int mid = left + (right - left) / 2;
+				if (countAndSum(nums, mid).first >= k) { // more than k
+					right = mid - 1;
+				}
+				else {
+					left = mid + 1;
+				}
+			}
+			auto[cnt, totalSum] = countAndSum(nums, left);
+			// There can be more subarrays with the same sum of left.
+			return totalSum - static_cast<ll>(left) * (cnt - k);
+		};
+
+		ll result = (sumOfFirstK(nums, right) - sumOfFirstK(nums, left - 1)) % MOD;
+
+		// Ensure non-negative result
+		return (result + MOD) % MOD;
+	}
+};
+```
