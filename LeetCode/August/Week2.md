@@ -3,6 +3,9 @@
   - [24.08.05 - 2053. Kth Distinct String in an Array](#240805---2053-kth-distinct-string-in-an-array)
     - [나](#나)
     - [gpt](#gpt)
+  - [24.08.06 - 3016. Minimum Number of Pushes to Type Word II](#240806---3016-minimum-number-of-pushes-to-type-word-ii)
+    - [나](#나-1)
+    - [gpt](#gpt-1)
 
 # August Week 2
 ## 24.08.05 - 2053. Kth Distinct String in an Array
@@ -101,4 +104,158 @@ public:
 <h3> Conclusion </h3>
 
 This solution efficiently finds the k-th distinct string in the array by using a hash map to count occurrences and then collecting the distinct strings. The time complexity is $O(n)$ where n is the number of strings in the array, making it suitable for large inputs.
+
+## 24.08.06 - 3016. Minimum Number of Pushes to Type Word II
+[문제 링크](https://leetcode.com/problems/minimum-number-of-pushes-to-type-word-ii/description/)
+
+### 나
+```cpp
+// 77ms, 24.94MB
+class Solution {
+public:
+    int minimumPushes(string word) {
+        // a string word containing lowercase English letters.
+        const int SIZE = 26;
+        vector dat(SIZE, 0);
+
+        for(char c : word) {
+            dat[c - 'a']++;
+        }
+
+        sort(begin(dat), end(dat), greater<>());
+
+        int answer{};
+        for(int i{};i<SIZE;++i){
+            answer += dat[i] * (i / 8 + 1);
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+Thank you for the clarification. The problem is to remap the keys on a telephone keypad to minimize the number of pushes needed to type a given word. Each key can be assigned a distinct set of lowercase letters, and we need to determine the optimal assignment.
+
+<h3> Steps to Solve the Problem </h3>
+
+1. **Character Frequency Count**: First, count the frequency of each character in the given word. This helps in understanding which characters need to be accessed most frequently.
+2. **Sort Frequencies**: Sort the characters by their frequencies in descending order. The characters that appear more frequently should be assigned to the positions with fewer pushes.
+3. **Assign Characters to Keys**: Map the characters to the keys such that the most frequent characters require the fewest pushes.
+
+<h3> Solution </h3>
+
+Here is the C++ implementation of the solution:
+
+```cpp
+class Solution {
+public:
+    int minimumPushes(string word) {
+        // Step 1: Count frequency of each character in the word
+        unordered_map<char, int> freq;
+        for (char ch : word) {
+            freq[ch]++;
+        }
+
+        // Step 2: Sort characters by their frequency in descending order
+        vector<pair<int, char>> freqVec;
+        for (auto& entry : freq) {
+            freqVec.push_back({entry.second, entry.first});
+        }
+        sort(freqVec.rbegin(), freqVec.rend());
+
+        // Step 3: Calculate the minimum pushes
+        int totalPushes = 0;
+        int pushCount = 1;
+        int currentKeySize = 1;
+
+        for (auto& entry : freqVec) {
+            totalPushes += entry.first * pushCount;
+            if (currentKeySize < 3) {
+                currentKeySize++;
+            } else {
+                pushCount++;
+                currentKeySize = 1;
+            }
+        }
+
+        return totalPushes;
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **Frequency Count**: We first create a frequency map (`freq`) to count how often each character appears in the word.
+2. **Sorting**: We convert this frequency map into a vector of pairs (`freqVec`), where each pair consists of a frequency and a character. We then sort this vector in descending order based on frequency.
+3. **Assigning Characters**: We calculate the minimum pushes required to type the word. We start with a push count of 1 and increase it whenever the current key size reaches its limit (3 characters per key on average, although this can vary as per optimization).
+
+<h3> Complexity </h3>
+
+- **Time Complexity**: \(O(n + k \log k)\), where \(n\) is the length of the word, and \(k\) is the number of unique characters. Counting frequencies takes \(O(n)\), and sorting the unique characters takes \(O(k \log k)\).
+- **Space Complexity**: \(O(k)\), for storing the frequency map and the sorted vector.
+
+This solution efficiently finds the minimum number of key pushes needed by leveraging the frequency of characters and strategically assigning them to keys to minimize the push count.
+
+---
+It makes wrong answer..
+
+Thank you for the clarification. Considering that we can only use keys 2 to 9 (8 keys in total), let's adjust our approach accordingly:
+
+1. **Frequency Calculation**: Count the frequency of each character in the word.
+2. **Sort Frequencies**: Sort the characters by their frequencies in descending order.
+3. **Distribute Characters to Keys**: We have 8 keys, each key can have multiple characters. We will assign characters to the keys ensuring the total number of presses is minimized.
+
+Here’s how we can adjust our solution:
+
+```cpp
+// 114ms, 29.36MB
+class Solution {
+public:
+    int minimumPushes(string word) {
+        // Step 1: Count frequency of each character in the word
+        unordered_map<char, int> freq;
+        for (char ch : word) {
+            freq[ch]++;
+        }
+
+        // Step 2: Create a vector of frequencies
+        vector<int> frequencies;
+        for (auto& entry : freq) {
+            frequencies.push_back(entry.second);
+        }
+
+        // Step 3: Sort frequencies in descending order
+        sort(frequencies.rbegin(), frequencies.rend());
+
+        // Step 4: Calculate the minimum number of pushes
+        int totalPushes = 0;
+        int position = 0; // Tracks the current position within a key
+        int keyPresses = 1; // The number of presses needed for current position
+
+        for (int i = 0; i < frequencies.size(); ++i) {
+            totalPushes += frequencies[i] * keyPresses;
+            position++;
+            if (position == 8) { // Move to the next set of key presses after 8 positions
+                keyPresses++;
+                position = 0;
+            }
+        }
+
+        return totalPushes;
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **Frequency Calculation**: We count the frequency of each character in the word.
+2. **Sort Frequencies**: We sort the frequencies in descending order.
+3. **Allocate Characters to Keys**: We iterate through the sorted frequencies and calculate the total presses required. Each group of 8 characters increases the key presses by 1. This is because we have 8 keys, and we need to cycle through them.
+
+<h3> Complexity </h3>
+
+- **Time Complexity**: $O(n + k \log k)$, where $n$ is the length of the word, and $k$ is the number of unique characters. Counting frequencies takes $O(n)$, and sorting the frequencies takes $O(k \log k)$.
+- **Space Complexity**: $O(k)$, for storing the frequency map and the sorted frequencies.
+
+This approach ensures that the total number of key presses is minimized by optimally assigning the most frequent characters to positions requiring the fewest presses.
 
