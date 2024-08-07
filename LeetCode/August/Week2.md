@@ -6,6 +6,8 @@
   - [24.08.06 - 3016. Minimum Number of Pushes to Type Word II](#240806---3016-minimum-number-of-pushes-to-type-word-ii)
     - [나](#나-1)
     - [gpt](#gpt-1)
+  - [24.08.07 - 273. Integer to English Words](#240807---273-integer-to-english-words)
+    - [gpt](#gpt-2)
 
 # August Week 2
 ## 24.08.05 - 2053. Kth Distinct String in an Array
@@ -258,4 +260,172 @@ public:
 - **Space Complexity**: $O(k)$, for storing the frequency map and the sorted frequencies.
 
 This approach ensures that the total number of key presses is minimized by optimally assigning the most frequent characters to positions requiring the fewest presses.
+
+## 24.08.07 - 273. Integer to English Words
+[문제 링크](https://leetcode.com/problems/integer-to-english-words/description/)
+
+그냥 gpt한테 바로 풀어달라고 했다..
+
+### gpt
+Sure! Let's walk through the problem "Integer to English Words" on LeetCode. This problem requires converting a non-negative integer into its English words representation.
+
+<h3> Problem Description </h3>
+
+Given an integer `num`, convert it to its English words representation. For example:
+
+- Input: `123`
+- Output: `"One Hundred Twenty Three"`
+
+<h3> Steps to Solve the Problem </h3>
+
+1. **Define English Words for Numbers**:
+    - Define arrays or vectors for the English words of the numbers less than 20, tens multiples, and large numbers like "Thousand", "Million", etc.
+
+2. **Break Down the Problem**:
+    - Split the number into segments of three digits (e.g., thousands, millions).
+    - Convert each segment to words and then combine them appropriately.
+
+3. **Helper Functions**:
+    - Create helper functions to convert numbers less than 1000 to words.
+    - Use recursion or iteration to process each segment.
+
+Here's the detailed solution in C++:
+
+```cpp
+class Solution {
+public:
+    std::string numberToWords(int num) {
+        if (num == 0) return "Zero";
+        
+        // Define the English words for the numbers
+        std::vector<std::string> below_20 = {"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
+        std::vector<std::string> tens = {"", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
+        std::vector<std::string> thousands = {"", "Thousand", "Million", "Billion"};
+        
+        // Main function that processes each segment
+        std::string result;
+        int i = 0;
+        while (num > 0) {
+            if (num % 1000 != 0) {
+                result = helper(num % 1000) + thousands[i] + (result.empty() ? "" : " " + result);
+            }
+            num /= 1000;
+            i++;
+        }
+        
+        return result;
+    }
+    
+    // Helper function to process numbers less than 1000
+    std::string helper(int num) {
+        std::vector<std::string> below_20 = {"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
+        std::vector<std::string> tens = {"", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
+        
+        if (num == 0) return "";
+        else if (num < 20) return below_20[num] + " ";
+        else if (num < 100) return tens[num / 10] + " " + helper(num % 10);
+        else return below_20[num / 100] + " Hundred " + helper(num % 100);
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **Number Definitions**:
+    - `below_20` array stores English words for numbers from 0 to 19.
+    - `tens` array stores English words for multiples of ten from 20 to 90.
+    - `thousands` array stores English words for large numbers like "Thousand", "Million", and "Billion".
+
+2. **Main Function (`numberToWords`)**:
+    - Iterates through the number, processing it in segments of three digits.
+    - Converts each segment to words using the `helper` function.
+    - Combines these segments with appropriate thousand, million, billion labels.
+
+3. **Helper Function (`helper`)**:
+    - Converts numbers less than 1000 to words.
+    - Uses recursion to break down the number further into manageable parts.
+    - Handles numbers below 20, numbers between 20 and 99, and numbers 100 and above separately.
+
+This approach ensures that each part of the number is correctly converted to its English words representation and then combined to form the final result.
+
+맨 마지막 문자에 공백이 들어가서 해당 부분만 추가했다.
+
+```cpp
+// 7ms, 13.47MB
+class Solution {
+public:
+    std::string numberToWords(int num) {
+        if (num == 0) return "Zero";
+        
+        // Define the English words for the numbers
+        std::vector<std::string> below_20 = {"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
+        std::vector<std::string> tens = {"", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
+        std::vector<std::string> thousands = {"", "Thousand", "Million", "Billion"};
+        
+        // Main function that processes each segment
+        std::string result;
+        int i = 0;
+        while (num > 0) {
+            if (num % 1000 != 0) {
+                result = helper(num % 1000) + thousands[i] + (result.empty() ? "" : " " + result);
+            }
+            num /= 1000;
+            i++;
+        }
+        
+        if(result.back() == ' ') result.pop_back();
+        return result;
+    }
+    
+    // Helper function to process numbers less than 1000
+    std::string helper(int num) {
+        std::vector<std::string> below_20 = {"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
+        std::vector<std::string> tens = {"", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
+        
+        if (num == 0) return "";
+        else if (num < 20) return below_20[num] + " ";
+        else if (num < 100) return tens[num / 10] + " " + helper(num % 10);
+        else return below_20[num / 100] + " Hundred " + helper(num % 100);
+    }
+};
+```
+
+`vector`는 미리 만들어놓고 공유해서 사용할 수 있을 것 같아서 그렇게 하기로 했다.
+
+```cpp
+// 2ms, 12.11MB
+class Solution {
+public:
+    // Define the English words for the numbers
+    std::vector<std::string> below_20 = {"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
+    std::vector<std::string> tens = {"", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
+    std::vector<std::string> thousands = {"", "Thousand", "Million", "Billion"};
+
+    std::string numberToWords(int num) {
+        if (num == 0) return "Zero";
+
+        // Main function that processes each segment
+        std::string result;
+        int i = 0;
+        while (num > 0) {
+            if (num % 1000 != 0) {
+                result = helper(num % 1000) + thousands[i] + (result.empty() ? "" : " " + result);
+            }
+            num /= 1000;
+            i++;
+        }
+        
+        if(result.back() == ' ') result.pop_back();
+        return result;
+    }
+    
+    // Helper function to process numbers less than 1000
+    std::string helper(int num) {
+        if (num == 0) return "";
+        else if (num < 20) return below_20[num] + " ";
+        else if (num < 100) return tens[num / 10] + " " + helper(num % 10);
+        else return below_20[num / 100] + " Hundred " + helper(num % 100);
+    }
+};
+```
 
