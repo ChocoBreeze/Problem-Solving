@@ -8,6 +8,9 @@
     - [gpt](#gpt-1)
   - [24.08.07 - 273. Integer to English Words](#240807---273-integer-to-english-words)
     - [gpt](#gpt-2)
+  - [24.08.08 - 885. Spiral Matrix III](#240808---885-spiral-matrix-iii)
+    - [나](#나-2)
+    - [gpt](#gpt-3)
 
 # August Week 2
 ## 24.08.05 - 2053. Kth Distinct String in an Array
@@ -428,4 +431,114 @@ public:
     }
 };
 ```
+
+## 24.08.08 - 885. Spiral Matrix III
+[문제 링크](https://leetcode.com/problems/spiral-matrix-iii/description/)
+
+### 나
+```cpp
+// 9ms, 13.85MB
+class Solution {
+public:
+
+    vector<vector<int>> spiralMatrixIII(int rows, int cols, int rStart, int cStart) {
+        const int SIZE = rows * cols;
+        vector<vector<int>> answer;
+        int len = 1, dir = 0, i = 0; // 0(R), 1(D), 2(L), 3(U)
+        for(int cnt{};cnt < SIZE;) {
+            if(0 <= rStart && rStart < rows && 0 <= cStart && cStart < cols) {
+                answer.push_back(vector<int>({rStart, cStart}));
+                ++cnt;
+            }
+            // 이동
+            ++i;
+            if(dir == 0) {
+                ++cStart;                
+            }
+            else if(dir == 1) {
+                ++rStart;
+            }
+            else if(dir == 2) {
+                --cStart;
+            }
+            else {
+                --rStart;
+            }
+            if(i == len) {
+                dir = (dir+1)%4;
+                if(!(dir&1)) ++len;
+                i = 0;
+            }
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+Certainly! The problem "Spiral Matrix III" on LeetCode requires you to return the coordinates of the cells in a matrix in a spiral order starting from a given starting position. Here’s a step-by-step solution in C++:
+
+<h3> Problem Explanation </h3>
+
+Given a matrix of size `R` x `C` and a starting position `(r0, c0)`, you need to generate a list of coordinates representing the cells visited in a spiral order starting from `(r0, c0)`.
+
+<h3> Steps to Solve the Problem </h3>
+
+1. **Initialization**: Start at the given position `(r0, c0)`.
+2. **Define Movement Directions**: Use a direction array to manage the changes in coordinates while moving. Directions will be in the order: right, down, left, up.
+3. **Movement Logic**: Move in the current direction and update the direction after making required number of steps. After two movements (right-down or left-up), the number of steps to take in the current direction increases.
+4. **Boundary Check**: Check if the current position is within the matrix bounds. If it is, add it to the result.
+5. **Termination**: The process terminates once all the cells are visited.
+
+<h3> C++ Solution </h3>
+
+Here is the implementation of the above logic in C++:
+
+```cpp
+// 11ms, 13.98MB
+class Solution {
+public:
+    vector<vector<int>> spiralMatrixIII(int R, int C, int r0, int c0) {
+        vector<vector<int>> result;
+        // Directions: right, down, left, up
+        vector<vector<int>> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+        int totalCells = R * C;
+        int steps = 0;  // number of steps in the current direction
+        int directionIndex = 0;  // index of the current direction in directions array
+
+        // Start from the initial position
+        int row = r0, col = c0;
+
+        while (result.size() < totalCells) {
+            // Increase the step count every two directions (after completing a full cycle of right and down or left and up)
+            if (directionIndex == 0 || directionIndex == 2) {
+                ++steps;
+            }
+            
+            // Move steps times in the current direction
+            for (int i = 0; i < steps; ++i) {
+                if (row >= 0 && row < R && col >= 0 && col < C) {
+                    result.push_back({row, col});
+                }
+                row += directions[directionIndex][0];
+                col += directions[directionIndex][1];
+            }
+
+            // Change direction
+            directionIndex = (directionIndex + 1) % 4;
+        }
+        
+        return result;
+    }
+};
+```
+
+<h3> Explanation of the Code </h3>
+
+1. **Direction Handling**: We define four possible directions (right, down, left, up) and use `directionIndex` to track the current direction.
+2. **Step Adjustment**: The number of steps to take in a given direction increases after every two turns.
+3. **Boundary Checking**: We check if the current cell `(row, col)` is within bounds before adding it to the result.
+4. **Result Construction**: Continue moving in the spiral order until all cells are included in the result.
+
+This approach ensures that we efficiently visit all cells in a spiral order while starting from any given position in the matrix.
 
