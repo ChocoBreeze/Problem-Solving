@@ -15,6 +15,9 @@
     - [나](#나-3)
     - [gpt](#gpt-4)
     - [Complexity:](#complexity)
+  - [24.08.10 - 959. Regions Cut By Slashes](#240810---959-regions-cut-by-slashes)
+    - [나](#나-4)
+    - [gpt](#gpt-5)
 
 # August Week 2
 ## 24.08.05 - 2053. Kth Distinct String in an Array
@@ -723,3 +726,104 @@ private:
 
 This approach should efficiently solve the problem within the constraints provided by LeetCode.
 
+## 24.08.10 - 959. Regions Cut By Slashes
+[문제 링크](https://leetcode.com/problems/regions-cut-by-slashes/description/?envType=daily-question&envId=2024-08-10)
+
+### 나
+마땅한 아이디어가 떠오르지 않아 그냥 gpt한테 바로 물음..
+
+### gpt
+The problem "Regions Cut By Slashes" on LeetCode is an interesting challenge that requires understanding how slashes (`'/'` and `'\'`) in a grid can divide it into regions. Here's how you can approach solving it:
+
+<h3> Problem Overview </h3>
+
+Given a grid filled with `'/'`, `'\'`, and `' '`, each character represents a 1x1 cell. The grid is supposed to be divided into regions by these slashes, and you need to determine the number of distinct regions formed.
+
+<h3> Strategy </h3>
+
+To solve this problem, a useful approach is to break down each cell in the grid into smaller components. Specifically, you can think of each 1x1 cell as being divided into 4 triangles:
+
+- The top-left triangle.
+- The top-right triangle.
+- The bottom-left triangle.
+- The bottom-right triangle.
+
+This results in each cell being represented by 4 distinct triangles.
+
+**Step-by-Step Approach:**
+
+1. **Mapping the Grid to a Larger Grid:**
+   - Create a larger grid that represents these triangles. If the original grid is of size `n x n`, the larger grid will be of size `3n x 3n`. 
+   - For each cell in the original grid:
+     - If it contains `'/'`, mark the corresponding triangles as occupied in the larger grid (divide the top-left and bottom-right).
+     - If it contains `'\'`, mark the corresponding triangles as occupied in the larger grid (divide the top-right and bottom-left).
+   - If a cell is empty (`' '`), no extra marks are needed.
+
+2. **Finding Connected Components:**
+   - Use Depth-First Search (DFS) or Breadth-First Search (BFS) to count the number of connected components in the larger grid. Each connected component represents a distinct region.
+
+<h3> Implementation </h3>
+
+Below is the C++ implementation of the above approach:
+
+```cpp
+// 8ms, 13.72MB
+class Solution {
+public:
+    void dfs(vector<vector<int>>& grid, int i, int j, int n) {
+        if (i < 0 || i >= n || j < 0 || j >= n || grid[i][j] != 0)
+            return;
+        
+        grid[i][j] = 1; // mark this cell as visited
+        dfs(grid, i - 1, j, n); // up
+        dfs(grid, i + 1, j, n); // down
+        dfs(grid, i, j - 1, n); // left
+        dfs(grid, i, j + 1, n); // right
+    }
+    
+    int regionsBySlashes(vector<string>& grid) {
+        int n = grid.size();
+        int size = n * 3;
+        vector<vector<int>> expandedGrid(size, vector<int>(size, 0));
+        
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (grid[i][j] == '/') {
+                    expandedGrid[i * 3][j * 3 + 2] = 1;
+                    expandedGrid[i * 3 + 1][j * 3 + 1] = 1;
+                    expandedGrid[i * 3 + 2][j * 3] = 1;
+                } else if (grid[i][j] == '\\') {
+                    expandedGrid[i * 3][j * 3] = 1;
+                    expandedGrid[i * 3 + 1][j * 3 + 1] = 1;
+                    expandedGrid[i * 3 + 2][j * 3 + 2] = 1;
+                }
+            }
+        }
+        
+        int regions = 0;
+        for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < size; ++j) {
+                if (expandedGrid[i][j] == 0) { // found an unvisited region
+                    dfs(expandedGrid, i, j, size);
+                    regions++;
+                }
+            }
+        }
+        
+        return regions;
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+- **Grid Expansion:** The grid is expanded to a `3n x 3n` size, where each original cell corresponds to a 3x3 block.
+- **Marking Slashes:** The slashes are marked on the expanded grid, effectively "drawing" the boundaries of the regions.
+- **Counting Regions:** DFS is used to explore and count the regions in the expanded grid.
+
+<h3> Complexity </h3>
+
+- **Time Complexity:** \(O(N^2)\) for the grid expansion and the DFS traversal, where \(N\) is the size of the input grid.
+- **Space Complexity:** \(O(N^2)\) for the expanded grid.
+
+This solution effectively translates the problem into a connected components problem in a larger grid, allowing you to count the distinct regions defined by the slashes.
