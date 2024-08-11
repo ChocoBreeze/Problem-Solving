@@ -11,6 +11,10 @@
   - [24.08.08 - 885. Spiral Matrix III](#240808---885-spiral-matrix-iii)
     - [나](#나-2)
     - [gpt](#gpt-3)
+  - [24.08.09 - 840. Magic Squares In Grid](#240809---840-magic-squares-in-grid)
+    - [나](#나-3)
+    - [gpt](#gpt-4)
+    - [Complexity:](#complexity)
 
 # August Week 2
 ## 24.08.05 - 2053. Kth Distinct String in an Array
@@ -541,4 +545,181 @@ public:
 4. **Result Construction**: Continue moving in the spiral order until all cells are included in the result.
 
 This approach ensures that we efficiently visit all cells in a spiral order while starting from any given position in the matrix.
+
+## 24.08.09 - 840. Magic Squares In Grid
+[문제 링크](https://leetcode.com/problems/magic-squares-in-grid/description/?envType=daily-question&envId=2024-08-09)
+
+### 나
+```cpp
+// 0ms, 10.7MB
+class Solution {
+public:
+    int numMagicSquaresInside(vector<vector<int>>& grid) {
+        int answer{};
+        int row = static_cast<int>(grid.size());
+        int col = static_cast<int>(grid[0].size());
+        for(int r{};r<row - 2;++r) {
+            for(int c{};c<col - 2;++c) {
+                vector<int> cnt(10,0); //  1 ~ 9 counting
+                bool chk{};
+                for(int i{};i<3;++i) {
+                    for(int j{};j<3;++j) {
+                        int& val = grid[r + i][c + j];
+                        if(val > 9 || val == 0) {
+                            chk = true;
+                            break;
+                        }
+                        cnt[val]++;
+                        if(cnt[val] > 1) {
+                            chk = true;
+                            break;
+                        }
+                    }
+                }
+                if(chk) continue; // 1 ~ 9 확인
+
+                // 가로, 세로 합 확인
+                int standard{};
+                for(int i{};i<3;++i) {
+                    standard += grid[r][c+i];
+                }
+
+                auto ret = [&]() -> bool {
+                    for(int i{};i<3;++i) {
+                        // 가로
+                        int sum{};
+                        for(int j{};j<3;++j){
+                            sum += grid[r][c+j];
+                        }
+                        if(standard != sum) return false;
+
+                        // 세로
+                        sum = 0;
+                        for(int j{};j<3;++j){
+                            sum += grid[r+j][c];
+                        }
+                        if(standard != sum) return false;
+                    }
+
+                    // 대각선 2개
+                    int diagSum1{}, diagSum2{};
+                    for(int i{};i<3;++i) {
+                        diagSum1 += grid[r+i][c+i];
+                        diagSum2 += grid[r+i][c+2-i];
+                    }
+                    if(diagSum1 != standard) return false;
+                    if(diagSum2 != standard) return false;
+
+                    return true; // 다 통과
+                } ();
+                if(ret) ++answer;
+            }
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+The problem "Magic Squares In Grid" on LeetCode asks you to determine how many 3x3 "magic square" subgrids exist within a given grid. A 3x3 magic square is defined as a grid where the sum of the numbers in each row, each column, and both diagonals are all equal, and the grid contains all the distinct numbers from 1 to 9.
+
+<h3> Problem Breakdown: </h3>
+
+1. **Grid Definition**: The grid is an \(m \times n\) matrix where each element is an integer.
+2. **Magic Square Properties**:
+    - All rows, columns, and both diagonals must sum to the same value.
+    - The square must contain each of the numbers from 1 to 9 exactly once.
+
+<h3> Approach: </h3>
+
+1. **Iterate Through the Grid**:
+    - Since we're looking for 3x3 subgrids, iterate through the grid such that we can always pick a 3x3 subgrid within bounds.
+    
+2. **Check Each Subgrid**:
+    - For each 3x3 subgrid, check if it contains all numbers from 1 to 9.
+    - Check if all rows, columns, and diagonals sum to the same value.
+
+3. **Count Valid Magic Squares**:
+    - If a subgrid meets all the criteria, increment the count.
+
+Here is a C++ solution implementing this approach:
+
+```cpp
+// 5ms, 12.31MB
+class Solution {
+public:
+    int numMagicSquaresInside(std::vector<std::vector<int>>& grid) {
+        int m = grid.size();
+        int n = grid[0].size();
+        int count = 0;
+        
+        for (int i = 0; i <= m - 3; ++i) {
+            for (int j = 0; j <= n - 3; ++j) {
+                if (isMagic(grid, i, j)) {
+                    ++count;
+                }
+            }
+        }
+        
+        return count;
+    }
+    
+private:
+    bool isMagic(const std::vector<std::vector<int>>& grid, int row, int col) {
+        std::unordered_set<int> uniqueNumbers;
+        int sum = grid[row][col] + grid[row][col + 1] + grid[row][col + 2];
+        
+        // Check all numbers are unique and within the range [1, 9]
+        for (int i = row; i < row + 3; ++i) {
+            for (int j = col; j < col + 3; ++j) {
+                int val = grid[i][j];
+                if (val < 1 || val > 9 || !uniqueNumbers.insert(val).second) {
+                    return false;
+                }
+            }
+        }
+        
+        // Check rows
+        for (int i = row; i < row + 3; ++i) {
+            int rowSum = grid[i][col] + grid[i][col + 1] + grid[i][col + 2];
+            if (rowSum != sum) {
+                return false;
+            }
+        }
+        
+        // Check columns
+        for (int j = col; j < col + 3; ++j) {
+            int colSum = grid[row][j] + grid[row + 1][j] + grid[row + 2][j];
+            if (colSum != sum) {
+                return false;
+            }
+        }
+        
+        // Check diagonals
+        int diag1 = grid[row][col] + grid[row + 1][col + 1] + grid[row + 2][col + 2];
+        int diag2 = grid[row][col + 2] + grid[row + 1][col + 1] + grid[row + 2][col];
+        
+        if (diag1 != sum || diag2 != sum) {
+            return false;
+        }
+        
+        return true;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+- **isMagic Function**: This function checks whether the 3x3 subgrid starting at the given `(row, col)` is a magic square.
+    - It first ensures that all numbers from 1 to 9 are present.
+    - It then checks that all rows, columns, and diagonals have the same sum.
+
+- **numMagicSquaresInside Function**: This function iterates over all possible 3x3 subgrids in the input grid and uses `isMagic` to check each one, counting how many valid magic squares are found.
+
+### Complexity:
+
+- **Time Complexity**: \(O(m \times n)\) because we check each 3x3 subgrid in a \(m \times n\) grid.
+- **Space Complexity**: \(O(1)\) since we only use a fixed amount of extra space.
+
+This approach should efficiently solve the problem within the constraints provided by LeetCode.
 
