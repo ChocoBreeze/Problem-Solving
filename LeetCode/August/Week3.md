@@ -1,4 +1,14 @@
 ## ToC
+- [August Week 3](#august-week-3)
+  - [24.08.12 - 703. Kth Largest Element in a Stream](#240812---703-kth-largest-element-in-a-stream)
+    - [나](#나)
+    - [gpt](#gpt)
+  - [24.08.13 - 40. Combination Sum II](#240813---40-combination-sum-ii)
+    - [나](#나-1)
+    - [gpt](#gpt-1)
+  - [24.08.14 - 719. Find K-th Smallest Pair Distance](#240814---719-find-k-th-smallest-pair-distance)
+    - [나](#나-2)
+    - [gpt](#gpt-2)
 
 # August Week 3
 ## 24.08.12 - 703. Kth Largest Element in a Stream
@@ -340,4 +350,133 @@ However, due to the complexity of handling duplicate elements correctly in a DP-
 Given the constraints of this problem, the most effective and correct approach remains backtracking. The DP solution is theoretically possible but significantly more complex to implement correctly while ensuring no duplicates and considering the uniqueness of combinations. Thus, the backtracking approach that was provided earlier is more reliable and efficient for this particular problem.
 
 <h3> 그럼 처음부터 안 된다고 하지.. </h3>
+
+## 24.08.14 - 719. Find K-th Smallest Pair Distance
+[문제 링크](https://leetcode.com/problems/find-k-th-smallest-pair-distance/description/?envType=daily-question&envId=2024-08-14)
+
+### 나
+아이디어:
+- 정렬 $\rightarrow$ binary search
+  - `left = 0`, `right = nums.back() - nums.front()`
+  - mid 이하인 애들 개수 구해서 정확한 mid 찾기.
+
+**gpt 코드 참고**
+```cpp
+// 3ms, 12.91MB
+class Solution {
+public:
+    int countPairs(const std::vector<int>& nums, int mid) {
+        int cnt{}, j{};
+        
+        for(int i{}, e{static_cast<int>(nums.size())}; i < e; ++i) {
+            while(j < e && nums[j] - nums[i] <= mid) {
+                ++j;
+            }
+            cnt += j - i - 1; // i를 시작점으로 거리가 mid 이하인 것들의 개수
+        }
+        
+        return cnt;
+    }
+
+    int smallestDistancePair(std::vector<int>& nums, int k) {
+        sort(begin(nums), end(nums));
+        int left{}, right = nums.back() - nums.front();
+        
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            
+            if (countPairs(nums, mid) >= k) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+        
+        return left;
+    }
+};
+```
+
+**참고**
+```cpp
+while(s < e) // ~
+// s = mid + 1 && e = mid 방식 구현은 처음 지점을 찾는 것 → [ s, e )
+// s = mid && e = mid - 1 방식은 마지막 지점을 찾는 것 → ( s, e ]
+```
+
+### gpt
+To solve the problem of finding the k-th smallest pair distance on LeetCode, we'll use a binary search combined with a two-pointer technique. Here's a step-by-step explanation:
+
+<h3> Problem Summary </h3>
+
+Given an array `nums` and an integer `k`, the task is to find the k-th smallest distance among all pairs `(i, j)` where `0 <= i < j < len(nums)`.
+
+<h3> Solution Strategy </h3>
+
+1. **Sort the Array:**
+   Start by sorting the array `nums`. Sorting helps in simplifying the problem because the distance between any two elements is minimized when they are close to each other in the sorted order.
+
+2. **Binary Search on Distance:**
+   We perform a binary search on the possible range of distances. The minimum possible distance is `0` (if there are duplicate elements), and the maximum possible distance is `nums[n-1] - nums[0]` where `n` is the length of `nums`.
+
+3. **Counting Pairs with Distance <= mid:**
+   For each midpoint `mid` in the binary search, we count how many pairs have a distance less than or equal to `mid`. This can be efficiently done using a two-pointer technique. 
+
+4. **Adjust the Search Range:**
+   - If the count of pairs with distance less than or equal to `mid` is greater than or equal to `k`, it means the k-th smallest distance might be `mid` or smaller, so we move the upper bound.
+   - Otherwise, we move the lower bound up.
+
+5. **Convergence:**
+   The process continues until the lower and upper bounds converge, at which point we've found the k-th smallest distance.
+
+<h3> Implementation </h3>
+
+```cpp
+// 3ms, 12.88MB
+class Solution {
+public:
+    int countPairs(const std::vector<int>& nums, int mid) {
+        int count = 0;
+        int left = 0;
+        for (int right = 0; right < nums.size(); ++right) {
+            while (nums[right] - nums[left] > mid) {
+                ++left;
+            }
+            count += right - left;
+        }
+        return count;
+    }
+
+    int smallestDistancePair(std::vector<int>& nums, int k) {
+        std::sort(nums.begin(), nums.end());
+        int low = 0;
+        int high = nums.back() - nums.front();
+        
+        while (low < high) {
+            int mid = low + (high - low) / 2;
+            if (countPairs(nums, mid) >= k) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+        
+        return low;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+- **Sorting:** The `nums` array is sorted first.
+- **Binary Search:** The binary search is performed between the minimum and maximum possible distances.
+- **Counting pairs:** The `countPairs` function counts how many pairs have a distance less than or equal to `mid` using a two-pointer technique.
+- **Binary Search Adjustment:** Based on the count of pairs, the binary search range is adjusted until convergence.
+
+<h3> Complexity: </h3>
+
+- **Time Complexity:** `O(n log n + n log d)` where `n` is the number of elements in `nums` and `d` is the difference between the maximum and minimum elements.
+- **Space Complexity:** `O(1)` additional space apart from the input array.
+
+This solution efficiently finds the k-th smallest pair distance, even for large inputs.
 
