@@ -9,6 +9,9 @@
   - [24.08.14 - 719. Find K-th Smallest Pair Distance](#240814---719-find-k-th-smallest-pair-distance)
     - [나](#나-2)
     - [gpt](#gpt-2)
+  - [24.08.15 - 860. Lemonade Change](#240815---860-lemonade-change)
+    - [나](#나-3)
+    - [gpt](#gpt-3)
 
 # August Week 3
 ## 24.08.12 - 703. Kth Largest Element in a Stream
@@ -479,4 +482,125 @@ public:
 - **Space Complexity:** `O(1)` additional space apart from the input array.
 
 This solution efficiently finds the k-th smallest pair distance, even for large inputs.
+
+## 24.08.15 - 860. Lemonade Change
+[문제 링크](https://leetcode.com/problems/lemonade-change/description/?envType=daily-question&envId=2024-08-15)
+
+### 나
+문제 이해하는데 조금 힘들었음.
+- 달러 종류는 5, 10, 20 밖에 없음.
+
+```cpp
+// 74ms, 86.1MB
+class Solution {
+public:
+    bool lemonadeChange(vector<int>& bills) {
+        int canUse{};
+        int dollar5{}, dollar10{}, dollar20{};
+        for(int bill : bills) {
+            if(bill == 5) dollar5++;
+            else if(bill == 10) {
+                if(dollar5 >= 1) {
+                    dollar10++;
+                    dollar5--;
+                }
+                else return false;
+            }
+            else {
+                if(dollar10>=1 && dollar5>=1) {
+                    dollar10--;
+                    dollar5--;
+                }
+                else if(dollar5>=3) {
+                    dollar5-=3;
+                }
+                else return false;
+            }
+        }
+        return true;
+    }
+};
+```
+
+### gpt
+The "Lemonade Change" problem is a classic greedy algorithm problem where you need to determine if you can provide the correct change to every customer in a queue. Let's break down the problem and provide an efficient solution.
+
+<h3> Problem Summary </h3>
+
+You're running a lemonade stand, and every lemonade costs $5. Customers pay with a $5, $10, or $20 bill. You must give back the exact change using the bills you have received so far. The goal is to determine if you can provide change to every customer in the queue.
+
+<h3> Strategy </h3>
+
+To solve this problem, you can use a greedy algorithm approach:
+
+1. **Track the Available Bills:** 
+   Keep track of how many $5 and $10 bills you have, since these are the only bills you might need to give as change.
+
+2. **Process Each Customer:**
+   - If a customer pays with a $5 bill, simply accept it.
+   - If a customer pays with a $10 bill, you need to give back one $5 bill as change.
+   - If a customer pays with a $20 bill, you should ideally give back one $10 bill and one $5 bill (to minimize the number of $5 bills you spend). If that's not possible, you give back three $5 bills.
+
+3. **Check Feasibility:** 
+   At each step, check if you can provide the necessary change. If at any point you can't, return `false`.
+
+4. **Final Result:**
+   If you successfully provide change to every customer, return `true`.
+
+<h3> Implementation </h3>
+
+Here’s how you can implement this strategy in C++:
+
+```cpp
+// 81ms, 85.91MB
+class Solution {
+public:
+    bool lemonadeChange(std::vector<int>& bills) {
+        int five_dollars = 0, ten_dollars = 0;
+        
+        for (int bill : bills) {
+            if (bill == 5) {
+                // Just accept the $5 bill
+                five_dollars++;
+            } else if (bill == 10) {
+                // Give back one $5 bill as change
+                if (five_dollars > 0) {
+                    five_dollars--;
+                    ten_dollars++;
+                } else {
+                    return false; // Can't give change
+                }
+            } else if (bill == 20) {
+                // Prefer to give back one $10 bill and one $5 bill
+                if (ten_dollars > 0 && five_dollars > 0) {
+                    ten_dollars--;
+                    five_dollars--;
+                } else if (five_dollars >= 3) {
+                    // Otherwise, give back three $5 bills
+                    five_dollars -= 3;
+                } else {
+                    return false; // Can't give change
+                }
+            }
+        }
+        
+        return true;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+- **Counters for Bills:** We use two variables, `five_dollars` and `ten_dollars`, to track the number of $5 and $10 bills we have.
+- **Decision Making:**
+  - For a $10 bill, you give a $5 bill as change if available.
+  - For a $20 bill, you try to give one $10 and one $5 bill first. If that's not possible, you try to give three $5 bills.
+- **Greedy Choice:** The greedy choice is to minimize the depletion of $5 bills by preferring to give a $10 bill as change when possible.
+
+<h3> Complexity: </h3>
+
+- **Time Complexity:** `O(n)`, where `n` is the number of customers.
+- **Space Complexity:** `O(1)`, as we are only using a few extra variables.
+
+This solution efficiently checks if you can provide the correct change to every customer, returning `true` if you can and `false` otherwise.
 
