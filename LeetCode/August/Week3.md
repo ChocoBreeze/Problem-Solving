@@ -12,6 +12,9 @@
   - [24.08.15 - 860. Lemonade Change](#240815---860-lemonade-change)
     - [나](#나-3)
     - [gpt](#gpt-3)
+  - [24.08.16 - 624. Maximum Distance in Arrays](#240816---624-maximum-distance-in-arrays)
+    - [나](#나-4)
+    - [gpt](#gpt-4)
 
 # August Week 3
 ## 24.08.12 - 703. Kth Largest Element in a Stream
@@ -604,3 +607,122 @@ public:
 
 This solution efficiently checks if you can provide the correct change to every customer, returning `true` if you can and `false` otherwise.
 
+## 24.08.16 - 624. Maximum Distance in Arrays
+[문제 링크](https://leetcode.com/problems/maximum-distance-in-arrays/description/)
+
+### 나
+서로 다른 배열에서 최댓값, 최솟값 뽑기
+```cpp
+// 229ms, 107.68MB
+class Solution {
+public:
+    int maxDistance(vector<vector<int>>& arrays) {
+        const int MIN = -10001, MAX = 10001;
+        int totMin{MAX}, totMax{MIN};
+
+        int answer{-1};
+        for(vector<int>& array : arrays) {
+            int nowMin{MAX}, nowMax{MIN};
+            for(int num : array) {
+                nowMin = min(nowMin, num);
+                nowMax = max(nowMax, num);
+            }
+            answer = max({answer, nowMax - totMin, totMax - nowMin});
+            totMin = min(totMin, nowMin);
+            totMax = max(totMax, nowMax);
+        }
+        return answer;
+    }
+};
+```
+
+근데 배열 자체를 순회 안 해도 시간 차이 얼마 안 남..
+```cpp
+// 226ms, 107.96MB
+class Solution {
+public:
+    int maxDistance(vector<vector<int>>& arrays) {
+        const int MIN = -10001, MAX = 10001;
+        int totMin{MAX}, totMax{MIN};
+
+        int answer{-1};
+        for(vector<int>& array : arrays) {
+            int nowMin = array.front(), nowMax = array.back();
+            answer = max({answer, nowMax - totMin, totMax - nowMin});
+            
+            totMin = min(totMin, nowMin);
+            totMax = max(totMax, nowMax);
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+The "Maximum Distance in Arrays" problem on LeetCode requires finding the maximum distance between two elements, where one element comes from one array and the other element comes from a different array. The distance is defined as the absolute difference between these two elements.
+
+<h3> Problem Summary </h3>
+
+You are given a list of arrays, and you need to find the maximum distance between any two elements from different arrays. The distance between two elements `a` from array `i` and `b` from array `j` is calculated as `|a - b|` where `i != j`.
+
+<h3> Strategy </h3>
+
+1. **Track the Minimum and Maximum Values:**
+   - As you iterate through the list of arrays, maintain the global minimum and maximum values encountered so far, excluding the current array in consideration.
+  
+2. **Calculate Maximum Distance:**
+   - For each array, calculate the distance using the current array's minimum and maximum values combined with the previously tracked global minimum and maximum values from other arrays.
+   - Keep track of the maximum distance encountered.
+
+3. **Update the Global Minimum and Maximum:**
+   - After processing each array, update the global minimum and maximum values to include the current array’s minimum and maximum values.
+
+<h3> Implementation </h3>
+
+Here’s a C++ implementation:
+
+```cpp
+// 224ms, 107.94MB
+class Solution {
+public:
+    int maxDistance(std::vector<std::vector<int>>& arrays) {
+        int max_dist = 0;
+        int current_min = arrays[0].front();
+        int current_max = arrays[0].back();
+
+        for (int i = 1; i < arrays.size(); ++i) {
+            int array_min = arrays[i].front();
+            int array_max = arrays[i].back();
+
+            // Calculate the maximum distance with the current array
+            max_dist = std::max(max_dist, std::max(std::abs(array_max - current_min), std::abs(current_max - array_min)));
+
+            // Update the global minimum and maximum values
+            current_min = std::min(current_min, array_min);
+            current_max = std::max(current_max, array_max);
+        }
+
+        return max_dist;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Initialization:**
+   - Start by setting `current_min` and `current_max` to the first array’s minimum and maximum values. This is our baseline for comparison.
+  
+2. **Iterate through the Arrays:**
+   - For each subsequent array:
+     - Calculate the potential maximum distance using the current array's minimum and maximum values with the previously tracked `current_min` and `current_max`.
+     - Update `max_dist` to keep track of the maximum distance found so far.
+  
+3. **Update for Next Iteration:**
+   - After processing the current array, update `current_min` and `current_max` to include this array's values, ensuring they represent the global minimum and maximum across all processed arrays.
+
+<h3> Complexity: </h3>
+
+- **Time Complexity:** `O(n)`, where `n` is the number of arrays. Each array is processed once.
+- **Space Complexity:** `O(1)`, since only a few variables are used for tracking the minimum, maximum, and maximum distance.
+
+This approach efficiently calculates the maximum possible distance between elements from different arrays, ensuring it operates within optimal time and space constraints.
