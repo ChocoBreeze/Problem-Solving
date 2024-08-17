@@ -15,6 +15,9 @@
   - [24.08.16 - 624. Maximum Distance in Arrays](#240816---624-maximum-distance-in-arrays)
     - [나](#나-4)
     - [gpt](#gpt-4)
+  - [24.08.17 - 1937. Maximum Number of Points with Cost](#240817---1937-maximum-number-of-points-with-cost)
+    - [나](#나-5)
+    - [gpt](#gpt-5)
 
 # August Week 3
 ## 24.08.12 - 703. Kth Largest Element in a Stream
@@ -726,3 +729,130 @@ public:
 - **Space Complexity:** `O(1)`, since only a few variables are used for tracking the minimum, maximum, and maximum distance.
 
 This approach efficiently calculates the maximum possible distance between elements from different arrays, ensuring it operates within optimal time and space constraints.
+
+## 24.08.17 - 1937. Maximum Number of Points with Cost
+### 나
+DP일 거라곤 생각도 못 했다.  
+gpt 코드 봐도 이해가 안 된다..
+
+### gpt
+Here's a C++ solution using dynamic programming to solve the "Maximum Number of Points with Cost" problem:
+
+```cpp
+// 233ms, 129.12MB
+class Solution {
+public:
+    long long maxPoints(vector<vector<int>>& points) {
+        int m = points.size(), n = points[0].size();
+        vector<long long> prev(n, 0);
+
+        for (int j = 0; j < n; ++j)
+            prev[j] = points[0][j];
+
+        for (int i = 1; i < m; ++i) {
+            vector<long long> left(n, 0), right(n, 0), curr(n, 0);
+
+            left[0] = prev[0];
+            for (int j = 1; j < n; ++j)
+                left[j] = max(left[j-1], prev[j] + j);
+
+            right[n-1] = prev[n-1] - (n-1);
+            for (int j = n-2; j >= 0; --j)
+                right[j] = max(right[j+1], prev[j] - j);
+
+            for (int j = 0; j < n; ++j)
+                curr[j] = max(left[j] - j, right[j] + j) + points[i][j];
+
+            prev = curr;
+        }
+
+        return *max_element(prev.begin(), prev.end());
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Dynamic Programming (DP) Approach**:
+   - `prev` stores the maximum points possible for each element in the previous row.
+   - `left` and `right` arrays are used to track maximum points considering the left and right movements.
+   - For each row, calculate the maximum points for each element using `left` and `right` arrays.
+
+2. **Time Complexity**: $O(m \times n)$, where $m$ is the number of rows and $n$ is the number of columns.
+
+This solution efficiently computes the maximum possible points while accounting for the cost of moving horizontally between elements in successive rows.
+
+---
+> please explain recurrence relation(점화식)
+
+The recurrence relation for this problem is based on finding the maximum points for each element in the current row, considering the cost of moving from any element in the previous row.
+
+Let `dp[i][j]` represent the maximum points achievable at row `i` and column `j`.
+
+The recurrence relation is:
+
+$$\text{dp}[i][j] = \text{points}[i][j] + \max(\text{dp}[i-1][k] - |j-k|)$$
+
+Where:
+- `points[i][j]` is the value of the current element.
+- `|j-k|` is the cost of moving horizontally from column `k` in the previous row to column `j` in the current row.
+
+<h3> Explanation: </h3>
+
+- For each element in row `i`, you must consider all possible elements from the previous row `i-1` and take the maximum value, subtracting the cost of horizontal movement.
+- This ensures you account for both the points and the movement cost.
+
+<h3> Optimization: </h3>
+
+- To avoid recalculating the max for each element, you can precompute the maximums using the `left` and `right` arrays as demonstrated in the code. This reduces the time complexity by efficiently tracking the best transitions.
+
+---
+> Why in the code we should calculate left and right separately?
+
+In the code, the `left` and `right` arrays are calculated separately to efficiently compute the maximum points for each column `j` in the current row `i` while considering the costs of moving from any column `k` in the previous row `i-1`.
+
+<h3> Reasoning: </h3>
+
+- **Left Array**: Tracks the maximum value considering left-to-right transitions.
+- **Right Array**: Tracks the maximum value considering right-to-left transitions.
+
+By calculating these arrays, you can determine the maximum possible value at each column in constant time, instead of recalculating it for every possible transition. This reduces the complexity from $O(n^2)$ to $O(n)$ for each row.
+
+In the code, the expressions `prev[j] + j` and `prev[j] - j` are used to optimize the calculation of the maximum points when moving left-to-right or right-to-left, respectively. Here's why:
+
+<h4> Left Array (<code>left[j] = max(left[j-1], prev[j] + j)</code>): </h4>
+
+- **Purpose**: To keep track of the maximum possible value when moving from left to right.
+- **`prev[j] + j`**: The `+ j` compensates for the cost of moving to the right. If you're moving from `prev[k]` to `j`, the cost is `j - k`. Adding `j` allows you to track the maximum value by storing the best possible score considering all previous left-side elements up to `j`.
+
+<h4> Right Array (<code>right[j] = max(right[j+1], prev[j] - j)</code>): </h4>
+
+- **Purpose**: To track the maximum possible value when moving from right to left.
+- **`prev[j] - j`**: The `- j` compensates for the cost of moving to the left. If you're moving from `prev[k]` to `j`, the cost is `k - j`. Subtracting `j` allows you to track the maximum value considering all previous right-side elements up to `j`.
+
+<h3> Combined Use: </h3>
+
+By precomputing these values, you efficiently determine the maximum possible score for each element in the current row without having to re-evaluate all possible transitions from the previous row.
+
+---
+> Why we have to compensate with `j`?
+
+We need to compensate with `j` in `prev[j] + j` and `prev[j] - j` to efficiently incorporate the horizontal movement cost into the dynamic programming transition.
+
+<h3> Breakdown: </h3>
+
+1. **Transition Cost**:
+   - Moving from column `k` to column `j` incurs a cost of `|j - k|`.
+   - Instead of calculating `|j - k|` explicitly in each transition, we precompute adjusted values to handle this implicitly.
+
+2. **Left Array (`left[j]`)**:
+   - `left[j]` must track the best score considering movement from any previous column `k` to `j` with cost `j - k`.
+   - `prev[k] - k + j` is broken down into `prev[k] + k` (precomputed) and `j` (adjusted later).
+
+3. **Right Array (`right[j]`)**:
+   - `right[j]` must track the best score considering movement from any previous column `k` to `j` with cost `k - j`.
+   - `prev[k] + k - j` is similarly split into `prev[k] - k` (precomputed) and `-j` (adjusted later).
+
+These adjustments allow efficient calculation of the maximum possible score while moving across rows in linear time.
+
+> 잘 이해 안 가는데, 일단 넘어가자...
