@@ -18,6 +18,11 @@
   - [24.08.17 - 1937. Maximum Number of Points with Cost](#240817---1937-maximum-number-of-points-with-cost)
     - [나](#나-5)
     - [gpt](#gpt-5)
+  - [24.08.18 - 264. Ugly Number II](#240818---264-ugly-number-ii)
+    - [나](#나-6)
+    - [gpt](#gpt-6)
+      - [Min Heap](#min-heap)
+      - [DP](#dp)
 
 # August Week 3
 ## 24.08.12 - 703. Kth Largest Element in a Stream
@@ -731,6 +736,8 @@ public:
 This approach efficiently calculates the maximum possible distance between elements from different arrays, ensuring it operates within optimal time and space constraints.
 
 ## 24.08.17 - 1937. Maximum Number of Points with Cost
+[문제 링크](https://leetcode.com/problems/maximum-number-of-points-with-cost/description/)
+
 ### 나
 DP일 거라곤 생각도 못 했다.  
 gpt 코드 봐도 이해가 안 된다..
@@ -856,3 +863,155 @@ We need to compensate with `j` in `prev[j] + j` and `prev[j] - j` to efficiently
 These adjustments allow efficient calculation of the maximum possible score while moving across rows in linear time.
 
 > 잘 이해 안 가는데, 일단 넘어가자...
+
+참고: [Solution](https://leetcode.com/problems/maximum-number-of-points-with-cost/editorial)
+
+## 24.08.18 - 264. Ugly Number II
+[문제 링크](https://leetcode.com/problems/ugly-number-ii/description/)
+
+### 나
+```cpp
+// 96ms, 34.43MB
+class Solution {
+public:
+    using ll = long long;
+    int nthUglyNumber(int n) {
+        priority_queue<ll, std::vector<ll>, std::greater<ll>> pq;
+        unordered_set<ll> us;
+        pq.emplace(1LL);
+        us.insert(1LL);
+
+        ll cnt{}, answer{};
+        while(!pq.empty()) {
+            ll now = pq.top(); pq.pop(); ++cnt;
+            if(cnt == n) {
+                answer = now;
+                break;
+            }
+            if(us.count(now * 2) == 0) {
+                pq.push(now * 2);
+                us.insert(now * 2);
+            }
+            if(us.count(now * 3) == 0) {
+                pq.push(now * 3);
+                us.insert(now * 3);
+            }
+            if(us.count(now * 5) == 0) {
+                pq.push(now * 5);
+                us.insert(now * 5);
+            }
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+The problem "Ugly Number II" on LeetCode asks you to find the $n$th "ugly number." An ugly number is a positive integer whose prime factors are limited to 2, 3, and 5. You need to develop an efficient algorithm to generate and return the $n$th ugly number.
+
+Here’s how you can approach it:
+
+1. **Min-Heap Approach**: Use a min-heap to generate numbers by multiplying 2, 3, and 5.
+2. **Dynamic Programming Approach**: Use three pointers to track the multiples of 2, 3, and 5, and iteratively generate the next ugly number.
+
+Would you like a specific code implementation in C++?
+
+#### Min Heap
+To solve the "Ugly Number II" problem using the min-heap approach, follow these steps:
+
+1. **Initialize a Min-Heap**: Start with the smallest ugly number, which is 1. Insert it into the min-heap.
+
+2. **Use a Set for Duplicates**: Maintain a set to track numbers already in the heap to avoid duplicates.
+
+3. **Generate Ugly Numbers**:
+   - Pop the smallest number from the heap.
+   - Multiply it by 2, 3, and 5, and push the results back into the heap if they haven't been seen before.
+   - Repeat until you reach the $n$th ugly number.
+
+Here’s a C++ implementation of this approach:
+
+```cpp
+// 87ms, 34.15MB
+class Solution {
+public:
+    int nthUglyNumber(int n) {
+        priority_queue<long, vector<long>, greater<long>> minHeap;
+        unordered_set<long> seen;
+
+        minHeap.push(1);
+        seen.insert(1);
+
+        long ugly = 1;
+        vector<int> factors = {2, 3, 5};
+
+        for (int i = 1; i < n; ++i) {
+            ugly = minHeap.top();
+            minHeap.pop();
+
+            for (int factor : factors) {
+                long nextUgly = ugly * factor;
+                if (seen.find(nextUgly) == seen.end()) {
+                    minHeap.push(nextUgly);
+                    seen.insert(nextUgly);
+                }
+            }
+        }
+
+        return minHeap.top();
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+- **Min-Heap**: Keeps track of the smallest current ugly number.
+- **Set**: Ensures we do not insert duplicates.
+- **Factors**: Multiplying by 2, 3, and 5 generates new candidates.
+
+This approach ensures that you efficiently generate the $n$th ugly number in ascending order.
+
+#### DP
+To solve the "Ugly Number II" problem using the dynamic programming (DP) approach, you can follow these steps:
+
+1. **Initialize**: Create an array `dp` where `dp[i]` will store the $i$th ugly number. Initialize `dp[0]` as 1.
+
+2. **Three Pointers**: Maintain three pointers, `p2`, `p3`, and `p5`, for the multiples of 2, 3, and 5, respectively. Initialize all pointers to 0.
+
+3. **Generate Ugly Numbers**:
+   - Compute the next ugly number by taking the minimum of `dp[p2] * 2`, `dp[p3] * 3`, and `dp[p5] * 5`.
+   - Move the pointer(s) that matched the minimum forward.
+   - Continue this process until you fill the array `dp` with `n` ugly numbers.
+
+Here’s the C++ code implementing this approach:
+
+```cpp
+// 3ms, 9.65MB
+class Solution {
+public:
+    int nthUglyNumber(int n) {
+        vector<int> dp(n);
+        dp[0] = 1;
+
+        int p2 = 0, p3 = 0, p5 = 0;
+
+        for (int i = 1; i < n; ++i) {
+            int next_ugly = min({dp[p2] * 2, dp[p3] * 3, dp[p5] * 5});
+            dp[i] = next_ugly;
+
+            if (next_ugly == dp[p2] * 2) p2++;
+            if (next_ugly == dp[p3] * 3) p3++;
+            if (next_ugly == dp[p5] * 5) p5++;
+        }
+
+        return dp[n - 1];
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+- **dp Array**: Stores the ugly numbers sequentially.
+- **Pointers**: `p2`, `p3`, and `p5` track the smallest multiples of 2, 3, and 5, respectively, and ensure the sequence is built in order.
+- **Next Ugly Number**: Always computed as the minimum of the next possible multiples.
+
+This approach runs in $O(n)$ time and $O(n)$ space, which is efficient for finding the $n$th ugly number.
