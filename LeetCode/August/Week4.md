@@ -3,6 +3,9 @@
   - [24.08.19 - 650. 2 Keys Keyboard](#240819---650-2-keys-keyboard)
     - [나](#나)
     - [gpt](#gpt)
+  - [24.08.20 - 1140. Stone Game II](#240820---1140-stone-game-ii)
+    - [나](#나-1)
+    - [gpt](#gpt-1)
 
 # August Week 4
 ## 24.08.19 - 650. 2 Keys Keyboard
@@ -110,3 +113,87 @@ public:
 This approach is efficient and leverages the idea of reducing the problem by breaking down the operations into smaller subproblems.
 
 > 오호..
+
+## 24.08.20 - 1140. Stone Game II
+[문제 링크](https://leetcode.com/problems/stone-game-ii/description/)
+
+### 나
+해설을 보자.
+
+- [Dynamic Programming (Memoization)](https://leetcode.com/problems/stone-game-ii/editorial/#approach-1-dynamic-programming-memoization)
+
+```cpp
+// 4ms, 12.3MB
+class Solution {
+public:
+    int stoneGameII(vector<int>& piles) {
+        vector<vector<int>> memo(piles.size(), vector<int>(piles.size()));
+        vector<int> suffixSum = piles;
+        for (int i = suffixSum.size() - 2; i >= 0; --i)
+            suffixSum[i] += suffixSum[i + 1];
+        return maxStones(suffixSum, 1, 0, memo);
+    }
+
+    int maxStones(vector<int>& suffixSum, int maxTillNow, int currIndex, vector<vector<int>>& memo) {
+        if (currIndex + 2 * maxTillNow >= suffixSum.size())
+            return suffixSum[currIndex]; // all remaining stones can be picked.
+        if (memo[currIndex][maxTillNow] > 0) 
+            return memo[currIndex][maxTillNow]; // already calculated
+
+        int res = INT_MAX;
+        for (int i = 1; i <= 2 * maxTillNow; ++i) { // 선택할 수 있는 돌의 개수들
+            res = min(res, maxStones(suffixSum, max(i, maxTillNow), currIndex + i, memo));
+        }
+        
+        // 뒤에서 고를 수 있는 최소의 개수를 빼면 최대 개수
+        memo[currIndex][maxTillNow] = suffixSum[currIndex] - res; 
+        return memo[currIndex][maxTillNow];
+    }
+};
+```
+
+- [Dynamic Programming (Tabulation)](https://leetcode.com/problems/stone-game-ii/editorial/#approach-2-dynamic-programming-tabulation)
+
+```cpp
+// 58ms, 12.4MB
+// Solution Code
+class Solution {
+public:
+    int stoneGameII(vector<int>& piles) {
+        int length = piles.size();
+        vector<vector<int>> dp(length + 1, vector<int>(length + 1, 0));
+        // dp[i][j]
+        // i: the starting index of the piles
+        // j: the maximum number of piles Alice can pick on her turn
+
+        // Store suffix sum for all possible suffix
+        vector<int> suffixSum(length + 1, 0);
+        for (int i = length - 1; i >= 0; --i) {
+            suffixSum[i] = suffixSum[i + 1] + piles[i];
+        }
+
+        // Initialize the dp array.
+        for (int i = 0; i <= length; ++i) {
+            dp[i][length] = suffixSum[i];
+        }
+
+        // Start from the last index to store the future state first.
+        for (int index = length - 1; index >= 0; index--) { // 현재 index
+            for (int maxTillNow = length - 1; maxTillNow >= 1; maxTillNow--) { // 가능한 maxTillNow
+                for (int X = 1; X <= 2 * maxTillNow && index + X <= length; X++) { // 선택할 수 있는 돌의 개수들
+                    dp[index][maxTillNow] = max(
+                        dp[index][maxTillNow],
+                        suffixSum[index] - dp[index + X][max(maxTillNow, X)]);
+                }
+            }
+        }
+
+        // Recursion에 비해 불필요한 연산이 많아서 오래걸리는 듯.
+
+        return dp[0][1];
+    }
+};
+```
+
+### gpt
+생략
