@@ -12,6 +12,9 @@
   - [24.08.22 - 476. Number Complement](#240822---476-number-complement)
     - [나](#나-3)
     - [gpt](#gpt-2)
+  - [24.08.23 - 592. Fraction Addition and Subtraction](#240823---592-fraction-addition-and-subtraction)
+    - [나](#나-4)
+    - [gpt](#gpt-3)
 
 # August Week 4
 ## 24.08.19 - 650. 2 Keys Keyboard
@@ -428,3 +431,184 @@ public:
 
 This approach is efficient and leverages bitwise operations, which are typically fast.
 
+## 24.08.23 - 592. Fraction Addition and Subtraction
+[문제 링크](https://leetcode.com/problems/fraction-addition-and-subtraction/description/)
+
+### 나
+```cpp
+// 4ms, 9.2MB
+class Solution {
+public:
+    string fractionAddition(string expression) {
+        if (expression.front() != '-') {
+            expression = '+' + expression;
+        }
+
+        vector<int> placeToCut;
+        for (int s{ 1 }, e{ static_cast<int>(expression.length()) }; s < e; ++s) {
+            char c = expression[s];
+            if (c == '-' || c == '+')  placeToCut.push_back(s);
+        }
+        placeToCut.push_back(static_cast<int>(expression.length()));
+
+        int index{};
+        vector<string> fractions;
+        for (int pos : placeToCut) {
+            fractions.push_back(expression.substr(index, pos - index));
+            index = pos;
+        }
+
+        string answer = fractions.front();
+        for (int s{ 1 }, e{ static_cast<int>(fractions.size()) }; s < e; ++s) {
+            string& second = fractions[s];
+            auto [fn, fd] = StrToNum(answer);
+            auto [sn, sd] = StrToNum(second);
+
+            int gcd = GetGCD(fd, sd);
+            int denominator = fd * sd / gcd;
+
+            fn = fn * denominator / fd;
+            sn = sn * denominator / sd;
+
+            if (answer.front() == '-') fn *= -1;
+            if (second.front() == '-') sn *= -1;
+
+            int nominator = fn + sn;
+            if (nominator == 0) {
+                answer = "+0/1";
+            }
+            else {
+                if (nominator > 0) answer = "+";
+                else {
+                    answer = "-";
+                    nominator *= -1;
+                }
+
+                int rGCD = GetGCD(denominator, nominator);
+                answer += to_string(nominator / rGCD);
+                answer.push_back('/');
+                answer += to_string(denominator / rGCD);
+            }
+        }
+        if (answer.front() == '-') return answer;
+        return answer.substr(1); // 부호 제거
+    }
+private:
+    int GetGCD(int a, int b) {
+        if (b == 0) return a;
+        return GetGCD(b, a % b);
+    }
+
+    pair<int, int> StrToNum(string& str) {
+        int pos = str.find('/');
+        int numerator = stoi(str.substr(1, pos)); // 가장 앞에 부호
+        int denominator = stoi(str.substr(pos + 1));
+        return make_pair(numerator, denominator);
+    }
+};
+```
+
+### gpt
+Sure! Let's break down the problem and solve it step by step.
+
+<h3> Problem Statement </h3>
+
+You are given a string expression representing a fraction addition and subtraction operation. The fractions are always of the form `±a/b`, where `a` and `b` are integers. The goal is to return the result of the operation as a reduced fraction.
+
+<h3> Example </h3>
+
+- **Input:** `"1/3-1/2"`
+- **Output:** `"-1/6"`
+  
+- **Explanation:**
+  - Convert `"1/3"` and `"-1/2"` to a common denominator: `2/6` and `-3/6`.
+  - The result of `2/6 - 3/6` is `-1/6`.
+
+<h3> Approach </h3>
+
+1. **Parse the String:** 
+   - We need to parse the string to extract the fractions.
+   - Identify and handle both positive and negative fractions.
+
+2. **Compute the Least Common Denominator (LCD):**
+   - To add or subtract fractions, they must have a common denominator.
+   - The LCD of two denominators is found using the formula:  
+     \[
+     \text{LCD}(a, b) = \frac{|a \times b|}{\text{gcd}(a, b)}
+     \]
+   - This allows us to add or subtract fractions with different denominators.
+
+3. **Simplify the Result:**
+   - After the arithmetic operations, simplify the resulting fraction by dividing the numerator and denominator by their greatest common divisor (GCD).
+
+<h3> Implementation in C++ </h3>
+
+```cpp
+class Solution {
+public:
+    std::string fractionAddition(std::string expression) {
+        int numerator = 0, denominator = 1; // Start with a neutral fraction of 0/1
+        
+        for (size_t i = 0; i < expression.size();) {
+            // Extract the sign
+            int sign = 1;
+            if (expression[i] == '-' || expression[i] == '+') {
+                sign = (expression[i] == '-') ? -1 : 1;
+                ++i;
+            }
+            
+            // Extract the numerator
+            int num = 0;
+            while (std::isdigit(expression[i])) {
+                num = num * 10 + (expression[i++] - '0');
+            }
+            num *= sign; // Apply the sign to the numerator
+            
+            // Skip the '/'
+            ++i;
+            
+            // Extract the denominator
+            int denom = 0;
+            while (std::isdigit(expression[i])) {
+                denom = denom * 10 + (expression[i++] - '0');
+            }
+            
+            // Perform the fraction addition
+            numerator = numerator * denom + num * denominator;
+            denominator *= denom;
+            
+            // Simplify the fraction
+            int gcd = std::gcd(numerator, denominator);
+            numerator /= gcd;
+            denominator /= gcd;
+        }
+        
+        return std::to_string(numerator) + "/" + std::to_string(denominator);
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Parsing:** 
+   - The string is parsed to extract individual fractions. Each fraction is composed of a numerator and a denominator separated by a '/'.
+
+2. **Sign Handling:** 
+   - The sign before each fraction is taken into account. If the sign is `'-'`, the numerator becomes negative.
+
+3. **Fraction Addition/Subtraction:** 
+   - For each fraction, the current numerator and denominator are updated to the common denominator using the formula for adding fractions:
+     $$
+     \frac{a}{b} \pm \frac{c}{d} = \frac{a \times d \pm c \times b}{b \times d}
+     $$
+   - The resulting fraction is simplified using the GCD of the numerator and denominator.
+
+4. **Output:**
+   - The final fraction is returned as a string in the form `"numerator/denominator"`.
+
+<h3> Complexity Analysis: </h3>
+
+- **Time Complexity:** $O(n)$, where `n` is the length of the expression, since each character in the string is processed once.
+- **Space Complexity:** $O(1)$, since the space used is constant.
+
+This approach ensures that the fractions are correctly added or subtracted and returned in their simplest form.
