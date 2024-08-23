@@ -9,6 +9,9 @@
   - [24.08.21 - 664. Strange Printer](#240821---664-strange-printer)
     - [나](#나-2)
     - [해설](#해설)
+  - [24.08.22 - 476. Number Complement](#240822---476-number-complement)
+    - [나](#나-3)
+    - [gpt](#gpt-2)
 
 # August Week 4
 ## 24.08.19 - 650. 2 Keys Keyboard
@@ -334,3 +337,94 @@ private:
     }
 };
 ```
+
+## 24.08.22 - 476. Number Complement
+[문제 링크](https://leetcode.com/problems/number-complement/description/?envType=daily-question&envId=2024-08-22)
+
+### 나
+```cpp
+// 3ms, 7.64MB
+class Solution {
+public:
+    int findComplement(int num) {
+        string tmp;
+        while(num) {
+            if(num & 1) tmp.push_back('1');
+            else tmp.push_back('0'); 
+            num >>= 1;
+        }
+
+        int answer{}, d = 1 << (static_cast<int>(tmp.size()) - 1);
+        for(auto it = rbegin(tmp);it!=rend(tmp);++it) {
+            if(*it == '0') answer += d;
+            d >>= 1;
+        }
+        return answer;
+    }
+};
+```
+
+### gpt
+Certainly! Let's break down the problem and solve it step by step.
+
+<h3> Problem Statement </h3>
+
+Given a positive integer `num`, you need to find the complement of its binary representation. The complement of a binary number is obtained by flipping all its bits (changing `0` to `1` and `1` to `0`).
+
+<h3> Example </h3>
+
+- **Input:** `num = 5`
+- **Output:** `2`
+- **Explanation:**
+  - The binary representation of `5` is `101`.
+  - Flipping the bits gives `010`, which is `2` in decimal.
+
+<h3> Approach </h3>
+
+1. **Find the Binary Length:** 
+   Determine the number of bits in the binary representation of the given number. For instance, `5` has a binary length of `3` (i.e., `101`).
+
+2. **Create a Mask:**
+   Create a mask that has the same number of bits, all set to `1`. For example, for `num = 5`, the mask would be `111` (which is `7` in decimal).
+
+3. **Compute the Complement:**
+   The complement can be obtained by XOR-ing the number with the mask:
+   - `5 XOR 7` gives `2`.
+
+<h3> Implementation in C++ </h3>
+
+```cpp
+// 0ms, 7.51MB
+class Solution {
+public:
+    int findComplement(int num) {
+        // Calculate the number of bits required to represent num
+        int mask = 0;
+        int temp = num;
+        while (temp > 0) {
+            mask = (mask << 1) | 1;
+            temp >>= 1;
+        }
+        
+        // The complement is the XOR of num with the mask
+        return num ^ mask;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Mask Calculation:** 
+   - The mask is created by shifting `1` left for each bit in `num` and then OR-ing it with the current mask value.
+   - For `num = 5` (which is `101`), the mask will be `111` (or `7` in decimal).
+
+2. **XOR Operation:**
+   - XOR-ing `num` with `mask` flips the bits, giving the complement.
+
+<h3> Complexity Analysis: </h3>
+
+- **Time Complexity:** $O(1)$, since the number of bits in a positive integer is fixed (e.g., 32 bits).
+- **Space Complexity:** $O(1)$, as we use a constant amount of extra space.
+
+This approach is efficient and leverages bitwise operations, which are typically fast.
+
