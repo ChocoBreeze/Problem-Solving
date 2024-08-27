@@ -3,6 +3,9 @@
   - [24.08.26 - 590. N-ary Tree Postorder Traversal](#240826---590-n-ary-tree-postorder-traversal)
     - [나](#나)
     - [gpt](#gpt)
+  - [24.08.27 - 1514. Path with Maximum Probability](#240827---1514-path-with-maximum-probability)
+    - [나](#나-1)
+    - [해설](#해설)
 
 # August Week 5
 ## 24.08.26 - 590. N-ary Tree Postorder Traversal
@@ -185,4 +188,60 @@ Both approaches have a time complexity of $O(n)$, where `n` is the number of nod
 <h3> Final Note </h3>
 
 The recursive approach is generally simpler and easier to understand, while the iterative approach might be necessary for very large trees where recursion could lead to a stack overflow. Both solutions should work correctly for the problem provided on LeetCode.
+
+## 24.08.27 - 1514. Path with Maximum Probability
+[문제 링크](https://leetcode.com/problems/path-with-maximum-probability/description/?envType=daily-question&envId=2024-08-27)
+
+### 나
+```cpp
+// 271ms, 74.09MB
+using pid = pair<int, double>;
+class Solution {
+public:
+    double maxProbability(int n, vector<vector<int>>& edges, vector<double>& succProb, int start_node, int end_node) {
+        // undirected weighted graph
+        vector<vector<GraphData>> graph(n);
+
+        for(int s{}, e{static_cast<int>(edges.size())}; s<e; ++s) {
+            int from = edges[s][0], to = edges[s][1];
+            double prob = succProb[s];
+            graph[from].emplace_back(to, prob);
+            graph[to].emplace_back(from, prob);
+        }
+
+        // dijkstra
+        priority_queue<pid> pq; // {node, probability}
+        vector<double> dist(n, 0);
+        pq.emplace(start_node, 1); 
+        dist[start_node] = 1;
+
+        while(!pq.empty()) {
+            auto [now, nowProb] = pq.top(); pq.pop();
+            if(dist[now] != nowProb) continue;
+            for(auto [to, prob] : graph[now]) {
+                double nextProb = nowProb * prob;
+                if(nextProb > dist[to]) {
+                    dist[to] = nextProb;
+                    pq.emplace(to, nextProb);
+                }
+            }
+        }
+
+        return dist[end_node];
+    }
+private:
+    struct GraphData {
+        int to{};
+        double prob{};
+        GraphData() = default;
+        GraphData(int to, double prob) : to{to}, prob{prob} {}
+    };
+};
+```
+
+### 해설
+나중에 해설 읽고 정리하기. (gpt 질문하기.)
+- [Approach 1: Bellman-Ford Algorithm](https://leetcode.com/problems/path-with-maximum-probability/editorial/?envType=daily-question&envId=2024-08-27#approach-1-bellman-ford-algorithm)
+- [Approach 2: Shortest Path Faster Algorithm](https://leetcode.com/problems/path-with-maximum-probability/editorial/?envType=daily-question&envId=2024-08-27#approach-2-shortest-path-faster-algorithm)
+- [Approach 3: Dijkstra's Algorithm](https://leetcode.com/problems/path-with-maximum-probability/editorial/?envType=daily-question&envId=2024-08-27#approach-3-dijkstras-algorithm)
 
