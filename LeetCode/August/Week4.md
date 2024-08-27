@@ -15,6 +15,11 @@
   - [24.08.23 - 592. Fraction Addition and Subtraction](#240823---592-fraction-addition-and-subtraction)
     - [나](#나-4)
     - [gpt](#gpt-3)
+  - [24.08.24 - 564. Find the Closest Palindrome](#240824---564-find-the-closest-palindrome)
+    - [나](#나-5)
+  - [24.08.25 - 145. Binary Tree Postorder Traversal](#240825---145-binary-tree-postorder-traversal)
+    - [나](#나-6)
+    - [gpt](#gpt-4)
 
 # August Week 4
 ## 24.08.19 - 650. 2 Keys Keyboard
@@ -612,3 +617,280 @@ public:
 - **Space Complexity:** $O(1)$, since the space used is constant.
 
 This approach ensures that the fractions are correctly added or subtracted and returned in their simplest form.
+
+## 24.08.24 - 564. Find the Closest Palindrome
+[문제 링크](https://leetcode.com/problems/find-the-closest-palindrome/description/?envType=daily-question&envId=2024-08-24)
+
+### 나
+해설 참고
+
+- [Approach 1: Find Previous and Next Palindromes](https://leetcode.com/problems/find-the-closest-palindrome/editorial/?envType=daily-question&envId=2024-08-24#approach-1-find-previous-and-next-palindromes)
+
+```cpp
+// 0ms, 8.2MB
+// Solution - Find Previous and Next Palindromes
+class Solution {
+public:
+    string nearestPalindromic(string n) {
+        int len = n.size();
+        int i = len % 2 == 0 ? len / 2 - 1 : len / 2;
+        long firstHalf = stol(n.substr(0, i + 1));
+        /*
+        Generate possible palindromic candidates:
+        1. Create a palindrome by mirroring the first half.
+        2. Create a palindrome by mirroring the first half incremented by 1.
+        3. Create a palindrome by mirroring the first half decremented by 1.
+        4. Handle edge cases by considering palindromes of the form 999...
+           and 100...001 (smallest and largest n-digit palindromes).
+        */
+        vector<long> possibilities;
+        possibilities.push_back(halfToPalindrome(firstHalf, len % 2 == 0));
+        possibilities.push_back(halfToPalindrome(firstHalf + 1, len % 2 == 0));
+        possibilities.push_back(halfToPalindrome(firstHalf - 1, len % 2 == 0));
+        possibilities.push_back((long)pow(10, len - 1) - 1);
+        possibilities.push_back((long)pow(10, len) + 1);
+
+        long diff = LONG_MAX, res = 0, nl = stol(n);
+        for (auto cand : possibilities) {
+            if (cand == nl) continue;
+            if (abs(cand - nl) < diff) {
+                diff = abs(cand - nl);
+                res = cand;
+            } else if (abs(cand - nl) == diff) {
+                res = min(res, cand);
+            }
+        }
+
+        return to_string(res);
+    }
+
+private:
+    long halfToPalindrome(long left, bool even) {
+        long res = left;
+        if (!even) left = left / 10;
+        while (left > 0) {
+            res = res * 10 + left % 10;
+            left /= 10;
+        }
+        return res;
+    }
+};
+```
+
+- [Approach 2: Binary Search](https://leetcode.com/problems/find-the-closest-palindrome/editorial/?envType=daily-question&envId=2024-08-24#approach-2-binary-search)
+
+```cpp
+// 4ms, 11.4MB
+// Solution - Binary Search
+class Solution {
+public:
+    // Convert to palindrome keeping first half constant.
+    long long convert(long long& num) {
+        string s = to_string(num);
+        int n = s.length();
+        int l = (n - 1) / 2, r = n / 2;
+        while (l >= 0) s[r++] = s[l--];
+        return stoll(s);
+    }
+    // Find the previous palindrome, just smaller than n.
+    long long previousPalindrome(long long num) {
+        long long left = 0, right = num;
+        long long ans = INT_MIN;
+        while (left <= right) {
+            long long mid = (right - left) / 2 + left;
+            long long palin = convert(mid);
+            if (palin < num) {
+                ans = palin;
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return ans;
+    }
+    // Find the next palindrome, just greater than n.
+    long long nextPalindrome(long long num) {
+        long long left = num, right = 1e18;
+        long long ans = INT_MIN;
+        while (left <= right) {
+            long long mid = (right - left) / 2 + left;
+            long long palin = convert(mid);
+            if (palin > num) {
+                ans = palin;
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return ans;
+    }
+    string nearestPalindromic(string n) {
+        int len = n.size();
+        long long num = stoll(n);
+        long long a = previousPalindrome(num);
+        long long b = nextPalindrome(num);
+        if (abs(a - num) <= abs(b - num)) return to_string(a);
+        return to_string(b);
+    }
+};
+```
+
+## 24.08.25 - 145. Binary Tree Postorder Traversal
+[문제 링크](https://leetcode.com/problems/binary-tree-postorder-traversal/description/?envType=daily-question&envId=2024-08-25)
+
+### 나
+```cpp
+// 4ms, 10.3MB
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<int> postorderTraversal(TreeNode* root) {
+        if(root != nullptr) makePostOrder(root);
+        return answer;
+    }
+private:
+    vector<int> answer;
+    void makePostOrder(TreeNode* node) {
+        // postorder: left - right - root
+        if(node->left) makePostOrder(node->left);
+        if(node->right) makePostOrder(node->right);
+        answer.push_back(node->val);
+    }
+};
+```
+
+### gpt
+The problem you've shared is a LeetCode problem that involves performing a postorder traversal on a binary tree. Let's break down the solution.
+
+<h3> Problem Summary </h3>
+
+You need to perform a **postorder traversal** on a binary tree. In postorder traversal, you visit nodes in the following order:
+1. Traverse the left subtree.
+2. Traverse the right subtree.
+3. Visit the root node.
+
+Given the root of a binary tree, you need to return the postorder traversal of its nodes' values.
+
+<h3> Solution </h3>
+
+There are several ways to implement the postorder traversal of a binary tree: recursively, iteratively using two stacks, or iteratively using one stack and a visited node indicator.
+
+<h4> Recursive Approach </h4>
+
+The recursive approach is straightforward because it directly follows the postorder definition.
+
+```cpp
+// 0ms, 10.27MB
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+
+class Solution {
+public:
+    void postorder(TreeNode* node, vector<int>& result) {
+        if (node == nullptr) return;
+        postorder(node->left, result);   // Traverse left subtree
+        postorder(node->right, result);  // Traverse right subtree
+        result.push_back(node->val);     // Visit root node
+    }
+
+    vector<int> postorderTraversal(TreeNode* root) {
+        vector<int> result;
+        postorder(root, result);
+        return result;
+    }
+};
+```
+
+<h4> Iterative Approach (Using One Stack) </h4>
+
+An iterative approach using one stack and a visited node indicator can be a bit more complex but is more memory efficient.
+
+```cpp
+// 4ms, 10.15MB
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+
+class Solution {
+public:
+    vector<int> postorderTraversal(TreeNode* root) {
+        vector<int> result;
+        if (!root) return result;
+
+        stack<TreeNode*> stack;
+        TreeNode* lastVisited = nullptr;
+        TreeNode* current = root;
+
+        while (!stack.empty() || current != nullptr) {
+            if (current != nullptr) {
+                stack.push(current);
+                current = current->left;
+            } else {
+                TreeNode* node = stack.top();
+                if (node->right != nullptr && lastVisited != node->right) {
+                    current = node->right;
+                } else {
+                    result.push_back(node->val);
+                    lastVisited = node;
+                    stack.pop();
+                }
+            }
+        }
+
+        return result;
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **Recursive Approach**:
+   - The `postorder` function is called recursively on the left and right children, and then the current node's value is added to the result list.
+   - This is the simplest and most intuitive approach, but it can lead to stack overflow for very deep trees.
+
+2. **Iterative Approach**:
+   - This approach uses a stack to simulate the call stack used in the recursive approach.
+   - It keeps track of the last visited node to ensure that nodes are added to the result list only after their children have been fully processed.
+
+<h3> Time Complexity </h3>
+
+Both approaches have a time complexity of $O(n)$, where `n` is the number of nodes in the tree, since each node is visited exactly once.
+
+<h3> Space Complexity </h3>
+
+- **Recursive Approach**: $O(h)$, where `h` is the height of the tree, due to the recursive call stack.
+- **Iterative Approach**: $O(h)$, where `h` is the height of the tree, due to the stack used for the traversal.
+
+<h3> Final Note </h3>
+
+Choose the recursive approach for its simplicity unless you are working with very deep trees, in which case the iterative approach might be safer to avoid stack overflow.
+
+You can run either of the above solutions in your LeetCode environment, and they should work correctly for the problem provided.
+
