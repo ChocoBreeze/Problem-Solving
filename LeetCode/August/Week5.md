@@ -13,6 +13,13 @@
       - [Approach 2: Depth-First Search](#approach-2-depth-first-search)
       - [Approach 3: Union-Find](#approach-3-union-find)
     - [gpt](#gpt-1)
+  - [24.08.29 - 947. Most Stones Removed with Same Row or Column](#240829---947-most-stones-removed-with-same-row-or-column)
+    - [나](#나-3)
+    - [추후 해설 참고](#추후-해설-참고)
+      - [Approach 1: Depth First Search](#approach-1-depth-first-search)
+      - [Approach 2: Disjoint Set Union](#approach-2-disjoint-set-union)
+      - [Approach 3: Disjoint Set Union (Optimized)](#approach-3-disjoint-set-union-optimized)
+    - [gpt](#gpt-2)
 
 # August Week 5
 ## 24.08.26 - 590. N-ary Tree Postorder Traversal
@@ -427,4 +434,255 @@ public:
 
 3. **Time Complexity:**
    - The time complexity is $O(m * n)$, where `m` and `n` are the dimensions of the grid. Each cell is visited at most once.
+
+## 24.08.29 - 947. Most Stones Removed with Same Row or Column
+[문제 링크](https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/description/?envType=daily-question&envId=2024-08-29)
+
+### 나
+아이디어 생각을 못 함..
+```cpp
+// 58ms, 18.01MB
+// 와 이게 unionfind?.. 와
+// 겹치는 개수 구하고 (가장 적게 겹치는 애 지우고, 갱신 반복 아이디어) - 막막함.
+class Solution {
+    struct UnionFind {
+        vector<int> par;
+
+        UnionFind(int n) : par(n, -1) {}
+
+        int Find(int a) {
+            if(par[a] < 0) return a;
+            return Find(par[a]);
+        }
+
+        bool Union(int a, int b) {
+            a = Find(a), b = Find(b);
+            if(a==b) return false;
+            if(par[a] > par[b]) swap(a, b);
+            par[a] += par[b];
+            par[b] = a;
+            return true;
+        }
+    };
+public:
+    int removeStones(vector<vector<int>>& stones) {
+        int n = stones.size();
+        
+        UnionFind uf{n};
+        for(int i{};i<n;++i) {
+            for(int j{i + 1};j<n;++j) {
+                if(stones[i][0] == stones[j][0] || stones[i][1] == stones[j][1]) {
+                    uf.Union(i, j);
+                }
+            }
+        }
+
+        // Union 개수 카운팅
+        int answer{};
+        for(int i{};i<n;++i) {
+            if(uf.par[i] < 0) ++answer;
+        }
+        return n - answer;
+    }
+};
+```
+
+### 추후 해설 참고
+
+#### Approach 1: Depth First Search
+[링크](https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/editorial/?envType=daily-question&envId=2024-08-29#approach-1-depth-first-search)
+
+#### Approach 2: Disjoint Set Union
+[링크](https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/editorial/?envType=daily-question&envId=2024-08-29#approach-2-disjoint-set-union)
+
+#### Approach 3: Disjoint Set Union (Optimized)
+[링크](https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/editorial/?envType=daily-question&envId=2024-08-29#approach-3-disjoint-set-union-optimized)
+
+
+### gpt
+Certainly! The problem "Most Stones Removed with Same Row or Column" on LeetCode is an interesting problem that can be approached using graph theory, specifically using the Union-Find (also known as Disjoint Set Union) algorithm. 
+
+<h3> Problem Breakdown </h3>
+
+- **Objective:** You are given a 2D grid with stones placed at certain integer coordinates. A stone can be removed if there is another stone in the same row or column. The goal is to remove as many stones as possible such that at least one stone remains.
+- **Challenge:** Determine the maximum number of stones that can be removed.
+
+<h3> Approach </h3>
+
+1. **Model as a Graph:**
+   - Consider each stone as a node in a graph. If two stones share the same row or column, connect them with an edge.
+   - The problem now reduces to finding connected components in this graph. In each connected component, all but one stone can be removed (because we need to leave one stone to maintain the "connectedness" of the component).
+
+2. **Union-Find Algorithm:**
+   - Use Union-Find to group stones that are in the same row or column.
+   - Each connected component will then allow us to remove all stones except one.
+
+<h3> C++ Implementation </h3>
+
+```cpp
+class Solution {
+public:
+    // Find function with path compression
+    int find(int x, unordered_map<int, int>& parent) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x], parent); // Path compression
+        }
+        return parent[x];
+    }
+
+    // Union function to merge two components
+    void unionSets(int x, int y, unordered_map<int, int>& parent, unordered_map<int, int>& rank) {
+        int rootX = find(x, parent);
+        int rootY = find(y, parent);
+        
+        if (rootX != rootY) {
+            if (rank[rootX] > rank[rootY]) {
+                parent[rootY] = rootX;
+            } else if (rank[rootX] < rank[rootY]) {
+                parent[rootX] = rootY;
+            } else {
+                parent[rootY] = rootX;
+                rank[rootX]++;
+            }
+        }
+    }
+
+    int removeStones(vector<vector<int>>& stones) {
+        unordered_map<int, int> parent;
+        unordered_map<int, int> rank;
+
+        // Initialize the parent of each stone (using row and column as distinct identifiers)
+        for (const auto& stone : stones) {
+            int x = stone[0]; // Row
+            int y = stone[1] + 10000; // Column offset by 10000 to avoid collision with rows
+            if (parent.find(x) == parent.end()) parent[x] = x;
+            if (parent.find(y) == parent.end()) parent[y] = y;
+            unionSets(x, y, parent, rank);
+        }
+
+        // Find number of unique connected components
+        unordered_set<int> uniqueComponents;
+        for (const auto& stone : stones) {
+            int x = stone[0];
+            uniqueComponents.insert(find(x, parent));
+        }
+
+        // The number of stones that can be removed is total stones minus the number of unique components
+        return stones.size() - uniqueComponents.size();
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **Union-Find Data Structure:**
+   - **`parent`:** This map keeps track of the parent node for each stone (or rather, each row and column identifier).
+   - **`rank`:** This map helps optimize the union operation by always attaching the smaller tree under the root of the bigger tree.
+
+2. **Union Operation:**
+   - Each stone's row and column are treated as nodes. We union the row and the column for each stone, effectively saying that the stone at `(x, y)` is connected to both its row and column.
+
+3. **Counting Connected Components:**
+   - After processing all stones, we count the number of unique root nodes using the `find` function. Each unique root represents a connected component, meaning one stone should be left in this component.
+
+4. **Result Calculation:**
+   - The maximum number of stones we can remove is the total number of stones minus the number of connected components. This is because in each connected component, all but one stone can be removed.
+
+But It make wrong answer.
+- counterexample: `[[0,0],[2,2],[10000,2]]`
+- and answer is 1
+
+Thank you for pointing out the issue. The counterexample you provided highlights a flaw in the initial approach where rows and columns are treated as separate entities with the same union-find structure. 
+
+The problem is that in the initial solution, rows and columns that do not share a direct connection are being incorrectly considered part of the same connected component because of how the union-find was set up.
+
+To fix this, we need to treat each stone as a unique entity in the union-find structure and only merge stones that are directly connected by either the same row or the same column.
+
+<h3> Corrected Approach </h3>
+
+We'll create a union-find structure that directly associates stones with each other by treating each stone as a unique node. We will only union stones that are in the same row or column.
+
+<h3> Corrected C++ Implementation </h3>
+
+```cpp
+// 32ms, 23.60MB
+class Solution {
+public:
+    // Find function with path compression
+    int find(int x, unordered_map<int, int>& parent) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x], parent); // Path compression
+        }
+        return parent[x];
+    }
+
+    // Union function to merge two components
+    void unionSets(int x, int y, unordered_map<int, int>& parent, unordered_map<int, int>& rank) {
+        int rootX = find(x, parent);
+        int rootY = find(y, parent);
+        
+        if (rootX != rootY) {
+            if (rank[rootX] > rank[rootY]) {
+                parent[rootY] = rootX;
+            } else if (rank[rootX] < rank[rootY]) {
+                parent[rootX] = rootY;
+            } else {
+                parent[rootY] = rootX;
+                rank[rootX]++;
+            }
+        }
+    }
+
+    int removeStones(vector<vector<int>>& stones) {
+        unordered_map<int, int> parent;
+        unordered_map<int, int> rank;
+
+        // Initialize the parent for each stone
+        for (const auto& stone : stones) {
+            int x = stone[0] + 10000; // Offset to distinguish rows from columns
+            int y = stone[1];         // Keep columns distinct
+            
+            if (parent.find(x) == parent.end()) parent[x] = x;
+            if (parent.find(y) == parent.end()) parent[y] = y;
+            
+            // Union the row and column of the current stone
+            unionSets(x, y, parent, rank);
+        }
+
+        // Find the number of unique components
+        unordered_set<int> uniqueComponents;
+        for (const auto& stone : stones) {
+            int x = stone[0] + 10000;
+            uniqueComponents.insert(find(x, parent));
+        }
+
+        // The number of stones that can be removed is total stones minus the number of unique components
+        return stones.size() - uniqueComponents.size();
+    }
+};
+```
+
+<h3> Explanation of the Corrected Approach </h3>
+
+1. **Union-Find Data Structure:**
+   - We represent each stone's row and column uniquely by offsetting the row indices by a large number (e.g., `10000`) to avoid any overlap between row and column indices. This allows us to distinguish them in the union-find structure.
+
+2. **Union Operations:**
+   - For each stone, we union its row and column by treating them as nodes in the union-find structure. Stones that share the same row or column are connected via their corresponding row or column nodes.
+
+3. **Counting Components:**
+   - After processing all stones, we count the number of unique components by finding the root of each stone's row node. Each component represents a group of stones that are interconnected, allowing us to remove all but one stone.
+
+4. **Result Calculation:**
+   - The number of removable stones is the total number of stones minus the number of connected components. In each component, all but one stone can be removed.
+
+<h3> Counterexample Explanation </h3>
+
+For the input `[[0,0],[2,2],[10000,2]]`:
+
+- The row `0` and column `0` will be connected as one component.
+- The row `2` and column `2` will be connected as a separate component.
+- The row `10000` and column `2` will be another separate component.
+
+In this scenario, there are three unique components, so we can only remove `1` stone, which is correct for this particular counterexample.
 
