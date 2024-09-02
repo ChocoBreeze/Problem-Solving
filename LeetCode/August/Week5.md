@@ -6,6 +6,13 @@
   - [24.08.27 - 1514. Path with Maximum Probability](#240827---1514-path-with-maximum-probability)
     - [나](#나-1)
     - [해설](#해설)
+  - [24.08.28 - 1905. Count Sub Islands](#240828---1905-count-sub-islands)
+    - [나](#나-2)
+    - [추후 답지 정리.](#추후-답지-정리)
+      - [Approach 1: Breadth-First Search (BFS)](#approach-1-breadth-first-search-bfs)
+      - [Approach 2: Depth-First Search](#approach-2-depth-first-search)
+      - [Approach 3: Union-Find](#approach-3-union-find)
+    - [gpt](#gpt-1)
 
 # August Week 5
 ## 24.08.26 - 590. N-ary Tree Postorder Traversal
@@ -244,4 +251,180 @@ private:
 - [Approach 1: Bellman-Ford Algorithm](https://leetcode.com/problems/path-with-maximum-probability/editorial/?envType=daily-question&envId=2024-08-27#approach-1-bellman-ford-algorithm)
 - [Approach 2: Shortest Path Faster Algorithm](https://leetcode.com/problems/path-with-maximum-probability/editorial/?envType=daily-question&envId=2024-08-27#approach-2-shortest-path-faster-algorithm)
 - [Approach 3: Dijkstra's Algorithm](https://leetcode.com/problems/path-with-maximum-probability/editorial/?envType=daily-question&envId=2024-08-27#approach-3-dijkstras-algorithm)
+
+## 24.08.28 - 1905. Count Sub Islands
+[문제 링크](https://leetcode.com/problems/count-sub-islands/description/?envType=daily-question&envId=2024-08-28)
+
+### 나
+못 풀었다..
+```cpp
+// Memory Limit Exceeded
+using pii = pair<int,int>;
+class Solution {
+public:
+    int countSubIslands(vector<vector<int>>& grid1, vector<vector<int>>& grid2) {
+        // 0: water, 1: land
+        // island: a group of 1's connected 4-directionally (horizontal and vertical)
+        // outside of the grid: water cells
+        // An island in grid2 is considered a sub-island if there is an island in grid1 that contains all the cells that make up this island in grid2.
+
+        int n = grid1.size(), m = grid1[0].size();
+        vector island1(n, vector(m,0));
+        int cnt{1};
+        for(int i{};i<n;++i){
+            for(int j{};j<m;++j) {
+                if(grid1[i][j] && !island1[i][j]) {
+                    queue<pii> q;
+                    q.emplace(i,j);
+                    island1[i][j] = cnt;
+                    while(!q.empty()) {
+                        auto [x, y] = q.front(); q.pop();
+
+                        for(int d{};d<4;++d) {
+                            int nx = x + "0211"[d] - '1', ny = y + "1102"[d] - '1';
+                            if(nx < 0 || nx >= n || ny < 0 || ny >= m) continue;
+                            if(!grid1[nx][ny] || island1[nx][ny]) continue;
+                            q.emplace(nx, ny);
+                            island1[nx][ny] = cnt;
+                        }
+                    }
+                }
+                ++cnt;
+            }
+        }
+
+        int answer{};
+        vector island2(n, vector(m,0));
+        for(int i{};i<n;++i){
+            for(int j{};j<m;++j) {
+                if(grid2[i][j] && island1[i][j] && !island2[i][j]) { 
+                    auto ret = [&]() {
+                        vector visited(n, vector(m,0));
+                        queue<pii> q;
+                        q.emplace(i,j);
+                        int now = island1[i][j];
+                        island2[i][j] = 1;
+                        visited[i][j] = 1;
+                        while(!q.empty()) {
+                            auto [x, y] = q.front(); q.pop();
+
+                            for(int d{};d<4;++d) {
+                                int nx = x + "0211"[d] - '1', ny = y + "1102"[d] - '1';
+                                if(nx < 0 || nx >= n || ny < 0 || ny >= m) continue;
+                                if(!grid2[nx][ny] || visited[nx][ny]) continue;
+                                if(now != island1[nx][ny]) {
+                                    return false; // 다른 섬과 연결
+                                }
+                                q.emplace(nx, ny);
+                                visited[nx][ny] = 1;
+                                island2[nx][ny] = 1;
+                            }
+                        }
+                        return true;
+                    } ();
+                    if(ret) ++answer;
+                }
+            }
+        }
+
+        return answer;
+    }
+};
+```
+너무 한 번에 하려고 했던 것 같다. (2번 각각 돌리고 나중에 한 번 더 확인하면 될 듯,)
+
+### 추후 답지 정리.
+
+#### Approach 1: Breadth-First Search (BFS)
+[링크](https://leetcode.com/problems/count-sub-islands/editorial/?envType=daily-question&envId=2024-08-28#approach-1-breadth-first-search-bfs)
+
+#### Approach 2: Depth-First Search
+[링크](https://leetcode.com/problems/count-sub-islands/editorial/?envType=daily-question&envId=2024-08-28#approach-2-depth-first-search)
+
+#### Approach 3: Union-Find
+[링크](https://leetcode.com/problems/count-sub-islands/editorial/?envType=daily-question&envId=2024-08-28#approach-3-union-find)
+
+### gpt
+
+Certainly! The problem you're referring to is the "Count Sub Islands" problem on LeetCode. The challenge involves two grids, `grid1` and `grid2`, where we need to count the number of islands in `grid2` that are also "sub-islands" in `grid1`. A sub-island is an island in `grid2` that is completely surrounded by land (1s) in `grid1`.
+
+<h3> Problem Breakdown </h3>
+
+- **Grid1** and **Grid2** are binary matrices where `1` represents land and `0` represents water.
+- An island is a group of connected 1s (connected horizontally or vertically).
+- A sub-island in `grid2` means that all the land cells (1s) in this island are present in `grid1` as well.
+
+<h3> Approach </h3>
+
+1. **Mark Invalid Sub-Islands in Grid2:**
+   - First, we'll mark the islands in `grid2` that cannot be sub-islands by comparing them with `grid1`. If a land cell in `grid2` does not correspond to a land cell in `grid1`, we'll mark the entire island in `grid2` as invalid.
+
+2. **Count Remaining Valid Sub-Islands:**
+   - After marking, we'll count the remaining valid islands in `grid2`.
+
+<h3> Implementation </h3>
+
+We'll implement this using Depth-First Search (DFS) to traverse and mark islands. Below is the Python code for solving the problem:
+
+```cpp
+// 199ms, 95.73MB
+class Solution {
+public:
+    // DFS function to explore the island
+    bool dfs(vector<vector<int>>& grid1, vector<vector<int>>& grid2, int x, int y) {
+        // Check if we are out of bounds or on water in grid2
+        if (x < 0 || x >= grid1.size() || y < 0 || y >= grid1[0].size() || grid2[x][y] == 0) {
+            return true;
+        }
+        
+        // If this part of the island in grid2 is not part of grid1, it's not a sub-island
+        if (grid1[x][y] == 0) {
+            return false;
+        }
+
+        // Mark the current cell in grid2 as visited by setting it to 0
+        grid2[x][y] = 0;
+        
+        // Explore all four directions
+        bool top = dfs(grid1, grid2, x - 1, y);
+        bool bottom = dfs(grid1, grid2, x + 1, y);
+        bool left = dfs(grid1, grid2, x, y - 1);
+        bool right = dfs(grid1, grid2, x, y + 1);
+        
+        // The current island in grid2 is only a sub-island if all its parts are valid
+        return top && bottom && left && right;
+    }
+
+    int countSubIslands(vector<vector<int>>& grid1, vector<vector<int>>& grid2) {
+        int subIslands = 0;
+        
+        // Iterate over every cell in grid2
+        for (int i = 0; i < grid2.size(); ++i) {
+            for (int j = 0; j < grid2[0].size(); ++j) {
+                // If we find an unvisited land cell in grid2, perform DFS
+                if (grid2[i][j] == 1) {
+                    // If DFS confirms it's a sub-island, increment the count
+                    if (dfs(grid1, grid2, i, j)) {
+                        ++subIslands;
+                    }
+                }
+            }
+        }
+        
+        return subIslands;
+    }
+};
+```
+
+<h3> Explanation </h3>
+
+1. **DFS Implementation:**
+   - The `dfs` function explores an island starting from a cell `(x, y)` and checks if all its parts are valid by comparing with `grid1`.
+   - If any part of the island in `grid2` is not part of `grid1`, the island cannot be a sub-island.
+
+2. **Counting Sub-Islands:**
+   - For each unvisited land cell in `grid2`, we initiate a DFS. If the DFS confirms that the island is a sub-island (returns `True`), we increment our sub-island count.
+
+3. **Time Complexity:**
+   - The time complexity is $O(m * n)$, where `m` and `n` are the dimensions of the grid. Each cell is visited at most once.
 
