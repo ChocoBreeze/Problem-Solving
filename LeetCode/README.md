@@ -14,3 +14,4 @@
 - [August.Week3](./August/Week3.md)
 - [August.Week4](./August/Week4.md)
 - [August.Week5](./August/Week5.md)
+- [September.Week1](./September/Week1.md)
