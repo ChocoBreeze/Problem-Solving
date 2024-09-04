@@ -20,6 +20,11 @@
       - [Approach 2: Disjoint Set Union](#approach-2-disjoint-set-union)
       - [Approach 3: Disjoint Set Union (Optimized)](#approach-3-disjoint-set-union-optimized)
     - [gpt](#gpt-2)
+  - [24.08.30 - 2699. Modify Graph Edge Weights](#240830---2699-modify-graph-edge-weights)
+    - [나](#나-4)
+    - [해설](#해설-1)
+      - [Approach 1: Traditional Dijkstra's algorithm](#approach-1-traditional-dijkstras-algorithm)
+      - [Approach 2: Dijkstra's Algorithm with Min-Heap](#approach-2-dijkstras-algorithm-with-min-heap)
 
 # August Week 5
 ## 24.08.26 - 590. N-ary Tree Postorder Traversal
@@ -685,4 +690,19 @@ For the input `[[0,0],[2,2],[10000,2]]`:
 - The row `10000` and column `2` will be another separate component.
 
 In this scenario, there are three unique components, so we can only remove `1` stone, which is correct for this particular counterexample.
+
+## 24.08.30 - 2699. Modify Graph Edge Weights
+[문제 링크](https://leetcode.com/problems/modify-graph-edge-weights/description/?envType=daily-question&envId=2024-08-30)
+
+### 나
+해설 참고 하자..
+
+### 해설
+
+#### Approach 1: Traditional Dijkstra's algorithm
+[링크](https://leetcode.com/problems/modify-graph-edge-weights/editorial/?envType=daily-question&envId=2024-08-30#approach-1-traditional-dijkstras-algorithm)
+
+#### Approach 2: Dijkstra's Algorithm with Min-Heap
+[링크](https://leetcode.com/problems/modify-graph-edge-weights/editorial/?envType=daily-question&envId=2024-08-30#approach-2-dijkstras-algorithm-with-min-heap)
+
 
