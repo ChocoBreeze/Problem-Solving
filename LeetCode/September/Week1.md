@@ -11,6 +11,11 @@
   - [24.09.03 - 1945. Sum of Digits of String After Convert](#240903---1945-sum-of-digits-of-string-after-convert)
     - [나](#나-2)
     - [gpt](#gpt-1)
+  - [24.09.04 - 874. Walking Robot Simulation](#240904---874-walking-robot-simulation)
+    - [나](#나-3)
+    - [해설](#해설-1)
+      - [Approach: Simulation](#approach-simulation)
+    - [gpt](#gpt-2)
 
 # September Week 1
 ## 24.09.01 - 2022. Convert 1D Array Into 2D Array
@@ -188,3 +193,85 @@ public:
 
 - $O(n + k \times d)$, where $n$ is the length of the string and $d$ is the number of digits in the number after conversion.
 
+## 24.09.04 - 874. Walking Robot Simulation
+[문제 링크](https://leetcode.com/problems/walking-robot-simulation/description/)
+
+### 나
+simulation은 생각했는데, 장애물 처리 아이디어가 없다.
+- 또 궁금했던 건 장애물이 (0, 0)에 있을 때 그냥 못 가는 건지, 처음에는 갈 수 있는 건지 도 애매했는 것 같다.
+  - 장애물 처리 아이디어 해설 참고!
+
+$\Rightarrow$ 해설 참고
+
+### 해설
+
+#### Approach: Simulation
+[링크](https://leetcode.com/problems/walking-robot-simulation/editorial/#approach-simulation)
+
+
+### gpt
+In the **"Walking Robot Simulation"** problem, you are given a robot starting at the origin of a 2D plane, facing north. The robot receives a series of commands (positive for movement and negative for turns) and obstacles scattered on the plane. The goal is to determine the farthest distance (squared) the robot can be from the origin after executing all commands while avoiding obstacles.
+
+<h3> Approach: </h3>
+
+1. **Movement Logic**: Track robot's position and direction (north, east, south, west).
+2. **Obstacle Handling**: Skip commands that would move the robot into obstacles.
+
+<h3> C++ Code Solution: </h3>
+
+```cpp
+// 124ms, 39.64MB
+class Solution {
+public:
+    int robotSim(vector<int>& commands, vector<vector<int>>& obstacles) {
+        // Directions: north, east, south, west
+        vector<vector<int>> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+        unordered_set<string> obsSet;
+
+        // Add obstacles to a hash set for O(1) lookup
+        for (const auto& obs : obstacles) {
+            obsSet.insert(to_string(obs[0]) + "," + to_string(obs[1]));
+        }
+
+        int x = 0, y = 0;  // Robot's position
+        int dir = 0;  // Start facing north
+        int maxDist = 0;
+
+        for (int cmd : commands) {
+            if (cmd == -1) {
+                // Turn right (clockwise)
+                dir = (dir + 1) % 4;
+            } else if (cmd == -2) {
+                // Turn left (counterclockwise)
+                dir = (dir + 3) % 4;
+            } else {
+                // Move forward by 'cmd' units
+                for (int step = 0; step < cmd; ++step) {
+                    int newX = x + directions[dir][0];
+                    int newY = y + directions[dir][1];
+
+                    if (obsSet.count(to_string(newX) + "," + to_string(newY))) {
+                        break;  // Hit an obstacle, stop moving
+                    }
+
+                    x = newX;
+                    y = newY;
+                    maxDist = max(maxDist, x * x + y * y);  // Update max distance
+                }
+            }
+        }
+
+        return maxDist;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Direction Control**: Use an array to manage directional changes (north, east, south, west).
+2. **Obstacle Checking**: Store obstacles in a hash set for quick lookup and stop movement when hitting one.
+3. **Distance Calculation**: Track the maximum squared distance from the origin.
+
+<h3> Time Complexity: </h3>
+
+- $O(n + m)$, where $n$ is the number of commands and $m$ is the number of obstacles.
