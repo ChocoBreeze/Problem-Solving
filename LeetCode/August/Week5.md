@@ -25,6 +25,7 @@
     - [해설](#해설-1)
       - [Approach 1: Traditional Dijkstra's algorithm](#approach-1-traditional-dijkstras-algorithm)
       - [Approach 2: Dijkstra's Algorithm with Min-Heap](#approach-2-dijkstras-algorithm-with-min-heap)
+  - [24.08.31 - 1514. Path with Maximum Probability](#240831---1514-path-with-maximum-probability)
 
 # August Week 5
 ## 24.08.26 - 590. N-ary Tree Postorder Traversal
@@ -706,3 +707,7 @@ In this scenario, there are three unique components, so we can only remove `1` s
 [링크](https://leetcode.com/problems/modify-graph-edge-weights/editorial/?envType=daily-question&envId=2024-08-30#approach-2-dijkstras-algorithm-with-min-heap)
 
 
+## 24.08.31 - 1514. Path with Maximum Probability
+08.27 문제와 동일.
+
+- [08.27](#240827---1514-path-with-maximum-probability)
