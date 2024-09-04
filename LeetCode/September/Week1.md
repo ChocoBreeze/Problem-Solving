@@ -8,6 +8,9 @@
     - [해설](#해설)
       - [Approach 1: Prefix Sum](#approach-1-prefix-sum)
       - [Approach 2: Binary Search](#approach-2-binary-search)
+  - [24.09.03 - 1945. Sum of Digits of String After Convert](#240903---1945-sum-of-digits-of-string-after-convert)
+    - [나](#나-2)
+    - [gpt](#gpt-1)
 
 # September Week 1
 ## 24.09.01 - 2022. Convert 1D Array Into 2D Array
@@ -114,4 +117,74 @@ public:
 
 #### Approach 2: Binary Search
 [링크](https://leetcode.com/problems/find-the-student-that-will-replace-the-chalk/editorial/?envType=daily-question&envId=2024-09-02#approach-2-binary-search)
+
+## 24.09.03 - 1945. Sum of Digits of String After Convert
+[문제 링크](https://leetcode.com/problems/sum-of-digits-of-string-after-convert/description/?envType=daily-question&envId=2024-09-03)
+
+### 나
+```cpp
+// 5ms, 10.12MB
+class Solution {
+public:
+    int getLucky(string s, int k) {
+        string convertedS;
+        for(char c : s) {
+            convertedS += to_string(c - 'a' + 1);
+        }
+        int num{};
+        for(int i{};i<k;++i) {
+            num = 0;
+            for(char c : convertedS) {
+                num += c - '0';
+            }
+            convertedS = to_string(num);
+        }
+        return  num;
+    }
+};
+```
+
+### gpt
+The **"Sum of Digits of String After Convert"** problem asks you to convert a string into its numeric form based on the position of each letter in the alphabet (a = 1, b = 2, ..., z = 26). After that, you perform a transformation `k` times where you sum the digits of the resulting number.
+
+<h3> Approach: </h3>
+
+1. Convert the string to a numeric string based on the alphabet's position.
+2. Sum the digits of this number for `k` iterations.
+
+<h3> C++ Solution: </h3>
+
+```cpp
+// 6ms, 10.19MB
+class Solution {
+public:
+    int getLucky(string s, int k) {
+        // Convert string to a numerical string based on alphabetic position
+        string numStr = "";
+        for (char c : s) {
+            numStr += to_string(c - 'a' + 1);
+        }
+
+        // Perform the transformation k times
+        int sum = 0;
+        for (int i = 0; i < k; ++i) {
+            sum = 0;
+            for (char c : numStr) {
+                sum += c - '0';  // Sum digits
+            }
+            numStr = to_string(sum);  // Update the number as string
+        }
+        return sum;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Step 1: Conversion:** Convert each character in the string to its position in the alphabet. For example, "zbax" becomes "26213124".
+2. **Step 2: Transformation:** Sum the digits of the resulting number and repeat this process `k` times.
+
+<h3> Time Complexity: </h3>
+
+- $O(n + k \times d)$, where $n$ is the length of the string and $d$ is the number of digits in the number after conversion.
 
