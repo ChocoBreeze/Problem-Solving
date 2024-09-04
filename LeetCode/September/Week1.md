@@ -3,7 +3,11 @@
   - [24.09.01 - 2022. Convert 1D Array Into 2D Array](#240901---2022-convert-1d-array-into-2d-array)
     - [나](#나)
     - [gpt](#gpt)
-  - [24.09.02](#240902)
+  - [24.09.02 - 1894. Find the Student that Will Replace the Chalk](#240902---1894-find-the-student-that-will-replace-the-chalk)
+    - [나](#나-1)
+    - [해설](#해설)
+      - [Approach 1: Prefix Sum](#approach-1-prefix-sum)
+      - [Approach 2: Binary Search](#approach-2-binary-search)
 
 # September Week 1
 ## 24.09.01 - 2022. Convert 1D Array Into 2D Array
@@ -68,4 +72,46 @@ public:
 
 - $O(m \times n)$ for filling the 2D array.
 
-## 24.09.02
+## 24.09.02 - 1894. Find the Student that Will Replace the Chalk
+[문제 링크](https://leetcode.com/problems/find-the-student-that-will-replace-the-chalk/description/?envType=daily-question&envId=2024-09-02)
+
+### 나
+```cpp
+// 79ms, 77.10MB
+class Solution {
+public:
+    int chalkReplacer(vector<int>& chalk, int k) {
+        int answer{};
+        int sum{}; // k <= 10^9 : no need to long long
+        for(int s{}, e{static_cast<int>(chalk.size())}; s<e; ++s) {
+            sum += chalk[s];
+            if(sum > k) {
+                answer = s; // 조기 종료
+                break;
+            }
+        }
+        if(answer) return answer;
+
+        k %= sum;
+        sum = 0;
+        for(int s{}, e{static_cast<int>(chalk.size())}; s<e; ++s) {
+            sum += chalk[s];
+            if(sum > k) {
+                answer = s; // 조기 종료
+                break;
+            }
+        }
+
+        return answer;
+    }
+};
+```
+
+### 해설
+
+#### Approach 1: Prefix Sum
+[링크](https://leetcode.com/problems/find-the-student-that-will-replace-the-chalk/editorial/?envType=daily-question&envId=2024-09-02#approach-1-prefix-sum)
+
+#### Approach 2: Binary Search
+[링크](https://leetcode.com/problems/find-the-student-that-will-replace-the-chalk/editorial/?envType=daily-question&envId=2024-09-02#approach-2-binary-search)
+
