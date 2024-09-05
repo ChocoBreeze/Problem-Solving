@@ -16,6 +16,9 @@
     - [해설](#해설-1)
       - [Approach: Simulation](#approach-simulation)
     - [gpt](#gpt-2)
+  - [24.09.05 - 2028. Find Missing Observations](#240905---2028-find-missing-observations)
+    - [나](#나-4)
+    - [gpt](#gpt-3)
 
 # September Week 1
 ## 24.09.01 - 2022. Convert 1D Array Into 2D Array
@@ -275,3 +278,110 @@ public:
 <h3> Time Complexity: </h3>
 
 - $O(n + m)$, where $n$ is the number of commands and $m$ is the number of obstacles.
+
+## 24.09.05 - 2028. Find Missing Observations
+[문제 링크](https://leetcode.com/problems/find-missing-observations/description/)
+
+### 나
+```cpp
+// 98ms, 126.21MB
+class Solution {
+public:
+    vector<int> missingRolls(vector<int>& rolls, int mean, int n) {
+        int sum{};
+        for(int roll : rolls) sum += roll;
+        int m = rolls.size();
+
+        int rest = mean * (n + m) - sum; // missing: n
+
+        vector<int> answer;
+        if(n <= rest && rest <= 6 * n) { // 답 만들 수 있음.
+            // n개의 수로 others 만들기.
+            for(;rest != n;--n) {
+                int r = rest - (n - 1);
+                if(1 <= r && r <= 6) {
+                    answer.push_back(r);
+                    rest -= r;
+                }
+                else {
+                    answer.push_back(6);
+                    rest -= 6;
+                }
+            }
+            for(int i{};i<n;++i) answer.push_back(1);
+        }
+        
+        return answer;
+    }
+};
+```
+
+### gpt
+To solve the LeetCode problem ["Find Missing Observations"](https://leetcode.com/problems/find-missing-observations/), you need to find `n` missing dice rolls given `m` observed rolls and the mean of all `n + m` rolls. 
+
+The task is to determine what values those missing rolls should have to maintain the overall average.
+
+<h3> Approach: </h3>
+
+1. **Calculate the total sum**:
+   - The sum of all `n + m` rolls must be `mean * (n + m)`.
+   - Calculate the sum of the observed rolls (`rolls[]`) and subtract it from this total to get the sum of the missing rolls.
+   
+2. **Check for feasibility**:
+   - The sum of the missing `n` rolls should be between `n` (all 1s) and `6 * n` (all 6s) because each dice roll is between 1 and 6.
+   - If the sum is outside this range, it's impossible to generate valid rolls, and you return an empty array.
+
+3. **Distribute the sum**:
+   - Distribute the sum of the missing rolls evenly. Start by assigning each missing roll the floor value of the average (`total_sum_of_missing // n`).
+   - Then, distribute the remainder (`total_sum_of_missing % n`) by adding `1` to the first few rolls to balance the total.
+
+<h3> Code Implementation: </h3>
+
+```cpp
+// 107ms, 116.37MB
+class Solution {
+public:
+    vector<int> missingRolls(vector<int>& rolls, int mean, int n) {
+        int m = rolls.size();
+        int total_sum = mean * (n + m);
+        int observed_sum = 0;
+        
+        for (int roll : rolls) {
+            observed_sum += roll;
+        }
+        
+        int missing_sum = total_sum - observed_sum;
+        
+        // Check if it's possible to generate valid missing rolls
+        if (missing_sum < n || missing_sum > 6 * n) {
+            return {};
+        }
+        
+        // Distribute the missing_sum
+        vector<int> result(n, missing_sum / n);
+        int remainder = missing_sum % n;
+        
+        for (int i = 0; i < remainder; ++i) {
+            result[i]++;
+        }
+        
+        return result;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+- We first compute the total sum of all `n + m` rolls.
+- Then, subtract the observed sum to get the sum of the missing rolls.
+- If this sum is not within the valid range (`n <= sum <= 6 * n`), return an empty vector because it's impossible.
+- Otherwise, we distribute the sum evenly among the missing rolls, ensuring that the total remains consistent.
+
+<h3> Time Complexity: </h3>
+
+- The time complexity is $O(m + n)$, where `m` is the size of `rolls` and `n` is the number of missing rolls.
+
+<h3> Space Complexity: </h3>
+
+- The space complexity is $O(n)$ for the result array.
+
