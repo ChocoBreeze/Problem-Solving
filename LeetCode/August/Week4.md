@@ -8,7 +8,10 @@
     - [gpt](#gpt-1)
   - [24.08.21 - 664. Strange Printer](#240821---664-strange-printer)
     - [나](#나-2)
-    - [해설](#해설)
+    - [Solution](#solution)
+      - [Overview](#overview)
+      - [Approach 1: Top-Down Dynamic Programming (Memoization)](#approach-1-top-down-dynamic-programming-memoization)
+      - [Approach 2: Bottom-Up Dynamic Programming (Tabulation)](#approach-2-bottom-up-dynamic-programming-tabulation)
   - [24.08.22 - 476. Number Complement](#240822---476-number-complement)
     - [나](#나-3)
     - [gpt](#gpt-2)
@@ -218,8 +221,64 @@ public:
 ### 나
 이게 뭔가.. 답지 참고
 
-### 해설
-- [Top Down Dynamic Programming (Memoization)](https://leetcode.com/problems/strange-printer/editorial/?envType=daily-question&envId=2024-08-21#approach-1-top-down-dynamic-programming-memoization)
+### Solution
+[링크](https://leetcode.com/problems/strange-printer/editorial)
+
+#### Overview
+
+We have a printer designed to produce a string of lowercase English characters, and we want to return the least number of turns it would take to print a given string. Normally, you would think the number of turns would be the number of characters in the string, but this printer has some bonus features that will let us reduce the number of turns. Instead of counting each keystroke as a turn, we count each time we change the character we are printing as a turn, and we can go back over what we've already typed.
+
+The second bullet point from the problem description is basically saying that we can go back and write over characters we have already printed in previous steps. You could think about it like using an old-school typewriter: it always moves left to right, you have unlimited white-out, and for some reason you want to switch keys as few times as possible.
+
+For example, consider the string `s = "aba"`. We can print it in two ways:
+
+- **Method 1**:
+  1. Turn 1: Print `a`.
+  2. Turn 2: Print `b` after `a`.
+  3. Turn 3: Print `a` after `b`.
+
+- **Method 2**:
+  1. Turn 1: Print `aaa`.
+  2. Turn 2: Print `b` in the middle.
+
+In this case, we return `2` as the least number of steps required.
+
+Our clue to use dynamic programming is the requirement to find the least number of turns to achieve a goal. This suggests both optimal substructure and overlapping subproblems, where finding the minimum turns for different parts of the string often requires repeated calculations.
+
+---
+
+#### Approach 1: Top-Down Dynamic Programming (Memoization)
+
+**Intuition**
+
+Instead of analyzing the string from left to right, we want to consider the entire string and identify segments we can print in one turn. If the character at the end of one segment matches the start of the next, you can potentially print them in one turn and then override the middle character(s) in a later turn. This recursive function will break down the string into smaller substrings and determine the minimum number of turns required for each substring.
+
+We will consider different ways of breaking the string and choose the most efficient option. For example:
+
+```cpp
+s = "cabad"
+Two possible ways to split this string are:
+1. "c" + "aba" + "d"
+2. "cab" + "ad"
+```
+
+To optimize runtime, we first remove consecutive duplicate characters in the input string. This reduction doesn't change the minimum number of turns needed but can significantly decrease the problem size.
+
+The recursive function, `minimumTurns`, calculates the minimum number of turns needed to print the substring from index `start` to `end`. The recursive relation is as follows:
+
+- **Base Case**: If `start > end`, the substring is empty and requires 0 turns.
+- **Initial Case**: Start with the worst-case scenario: `1 + minimumTurns(start + 1, end)`.
+- **Optimization Case**: We try to optimize by checking for matching characters and reducing the number of turns.
+
+Using memoization, we store the results of sub-problems in a cache, preventing redundant computations.
+
+**Algorithm**
+
+- Call `removeDuplicates` to remove consecutive duplicate characters.
+- Initialize a 2-D array `memo` to store the minimum number of turns.
+- Call the recursive function `minimumTurns` to compute the result.
+
+**Implementation**
 
 ```cpp
 // solution code - 12ms, 10.60MB
@@ -280,7 +339,33 @@ private:
 };
 ```
 
-- [Bottom Up Dynamic Programming (Tabulation)](https://leetcode.com/problems/strange-printer/editorial/?envType=daily-question&envId=2024-08-21#approach-2-bottom-up-dynamic-programming-tabulation)
+**Complexity Analysis**
+
+Let $n$ be the length of the input string `s`.
+
+- **Time complexity**: $O(n^3)$.
+  - The recursive function considers all substrings of the input string. For each substring, it iterates through it to find matching characters, leading to a time complexity of $O(n^3)$.
+- **Space complexity**: $O(n^2)$.
+  - The memoization array `memo` has dimensions $n \times n$.
+
+---
+
+#### Approach 2: Bottom-Up Dynamic Programming (Tabulation)
+
+**Intuition**
+
+In our previous approach, we used a top-down recursive solution with memoization. To optimize further, we’ll switch to a bottom-up dynamic programming approach to eliminate recursion.
+
+We use a 2-D array `minTurns` of size $n \times n$, where `minTurns[i][j]` represents the minimum number of turns needed to print the substring from index `i` to `j`. First, we set up the base case: substrings of length 1 require 1 turn to print. Then we build the solution for substrings of all lengths, using previously computed values.
+
+**Algorithm**
+
+- Call `removeDuplicates` to remove consecutive duplicate characters.
+- Initialize a 2-D array `minTurns` of size $n \times n$.
+- Use nested loops to iterate over increasing lengths of substrings.
+- Compute the minimum turns needed for each substring and store the result in `minTurns`.
+
+**Implementation**
 
 ```cpp
 // solution code - 31ms, 10.47MB
@@ -345,6 +430,16 @@ private:
     }
 };
 ```
+
+**Complexity Analysis**
+
+Let $n$ be the length of the input string `s`.
+
+- **Time complexity**: $O(n^3)$.
+  - The main loop iterates over all substrings and computes the minimum number of turns using dynamic programming, which leads to a time complexity of $O(n^3)$.
+- **Space complexity**: $O(n^2)$.
+  - The 2-D array `minTurns` has dimensions $n \times n$.
+
 
 ## 24.08.22 - 476. Number Complement
 [문제 링크](https://leetcode.com/problems/number-complement/description/?envType=daily-question&envId=2024-08-22)
