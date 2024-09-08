@@ -18,6 +18,10 @@
   - [24.08.17 - 1937. Maximum Number of Points with Cost](#240817---1937-maximum-number-of-points-with-cost)
     - [나](#나-5)
     - [gpt](#gpt-5)
+    - [Solution](#solution)
+      - [Overview](#overview)
+      - [Approach 1: Dynamic Programming](#approach-1-dynamic-programming)
+      - [Approach 2: Dynamic Programming (Optimized)](#approach-2-dynamic-programming-optimized)
   - [24.08.18 - 264. Ugly Number II](#240818---264-ugly-number-ii)
     - [나](#나-6)
     - [gpt](#gpt-6)
@@ -862,9 +866,235 @@ We need to compensate with `j` in `prev[j] + j` and `prev[j] - j` to efficiently
 
 These adjustments allow efficient calculation of the maximum possible score while moving across rows in linear time.
 
-> 잘 이해 안 가는데, 일단 넘어가자...
+> 잘 이해 안 가는데, 일단 넘어가자... (하단 솔루션 참고)
 
+### Solution
 참고: [Solution](https://leetcode.com/problems/maximum-number-of-points-with-cost/editorial)
+
+#### Overview
+
+Our goal with this problem is to determine the maximum number of points we can get by picking one cell from each row of a given matrix. The possible score for each row consists of two components:
+
+1. The point value of the selected cell.
+2. A penalty equal to the horizontal distance between the current cell and the selected cell in the previous row.
+
+The problem constraints hint that an efficient solution is needed. Specifically, since the problem is constrained by $m \times n \leq 10^5$, we should aim for an $O(m \times n)$ solution.
+
+In a brute-force approach, the idea would be to explore every possible combination of selecting one element from each row. Starting with the first row, we'd pick an element, then move to the next row and try every possible element there, repeating this process until we've chosen an element from each row. For each of these combinations, we would calculate the sum of the selected elements while also accounting for the cost incurred when switching columns between consecutive rows.
+
+This approach involves using nested loops to compare every possible cell in each row, resulting in an exponential number of possibilities. As the number of rows and columns increases, the number of potential paths grows rapidly, making this method computationally infeasible for large grids. Instead, we need to optimize how we transition from one row to the next while keeping track of the maximum points we can accumulate.
+
+Before attempting this problem, it may be helpful to solve related problems like "[121. Best Time to Buy and Sell Stock](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/)" and "[1014. Best Sightseeing Pair](https://leetcode.com/problems/best-sightseeing-pair/)." These problems involve similar concepts of optimizing a series of decisions or transitions, which is a key aspect of solving the matrix points problem efficiently. Understanding the strategies used in those problems will build a foundation for approaching this one.
+
+#### Approach 1: Dynamic Programming
+
+**Intuition**
+
+Our goal is to create a solution that efficiently finds the maximum points possible while moving from the top row to the bottom row of the matrix. To do this, we initialize an array called `previousRow` with the values of the first row of the matrix. We can then operate off this array to build another array, `currentRow`. Each element in `currentRow` will represent the number of points we can gain by picking that cell, taking into account both the point value of the cell and the penalty for choosing it.
+
+A straightforward approach to build `currentRow` would be to iterate over all cells in `previousRow` and apply the penalty for the horizontal distance:
+
+    // For the Xth and (X+1)th rows of the points matrix
+    currentRow[i] = max(previousRow[j] - abs(j - i) for j in range(n)) + points[X+1][i];
+
+Since this approach directly checks every cell in `previousRow` for each cell in `currentRow`, it involves repeated and redundant calculations and has a time complexity of $O(n^2)$ for each row, where $n$ is the number of columns. Given that we need to repeat this process for every row, this solution would not meet the problem's constraints, especially for large matrices.
+
+Instead of recalculating the possible scores from every cell in `previousRow` for each cell in `currentRow`, we can use two auxiliary arrays, `leftMax` and `rightMax`, to store the maximum possible contributions from the left and right, respectively. This allows us to simply compare these two precomputed values to determine the best score for each cell in `currentRow`.
+
+To construct `leftMax`:
+
+1. Set `leftMax[0]` equal to `previousRow[0]`, as there are no values to its left.
+2. For each subsequent index `i`, compute `leftMax[i]` as the maximum of `previousRow[i]` and `leftMax[i-1] - 1`. The subtraction accounts for the penalty incurred when moving horizontally to the next cell.
+
+Similarly, construct `rightMax` by iterating from right to left.
+
+With `leftMax` and `rightMax` prepared, we can compute the maximum points for each cell in `currentRow` using:
+
+    currentRow[i] = max(leftMax[i], rightMax[i]) + points[X+1][i];
+
+This allows us to efficiently calculate the maximum points for each row in $O(n)$ time, making the overall time complexity $O(m \times n)$, where $m$ is the number of rows.
+
+We apply this optimized process iteratively from the first row to the last row of the matrix. After processing all rows, the array `previousRow` will contain the maximum possible points for each cell in the last row. The final answer is the maximum value found in this array, which represents the highest score achievable while moving from the top to the bottom of the matrix.
+
+**Algorithm**
+
+- Set `rows` and `cols` as the number of rows and columns in the input matrix `points`.
+- Create an array `previousRow`. Initialize it with values of the first row of the input matrix.
+- Iterate from the 0th to rows-2th row. For each `row`:
+  - Initialize arrays:
+    - `leftMax`: for maximum points achievable from left to right.
+    - `rightMax`: for maximum points achievable from right to left.
+    - `currentRow`: for the maximum points achievable for each cell in the current row.
+  - Set the first element of `leftMax` to the first element of `previousRow`.
+  - Loop `col` from 1 to the end of `cols`:
+    - Set `leftMax[col]` to the maximum of `leftMax[col - 1] - 1` and `previousRow[col]`.
+  - Set the last element of `rightMax` to the last element of `previousRow`.
+  - Loop `col` from `cols - 2` to 0:
+    - Set `rightMax[col]` to the maximum of `rightMax[col + 1] - 1` and `previousRow[col]`.
+  - Loop `col` from 0 to the end of `cols`:
+    - Calculate the maximum points for each cell in the current row:
+      - Take the value from `points` for the next row (`points[row + 1][col]`).
+      - Add the maximum of `leftMax[col]` and `rightMax[col]` to it.
+    - Set the calculated value to `currentRow[col]`.
+  - Update `previousRow` to be `currentRow`.
+- Initialize a variable `maxPoints` to store the overall maximum points.
+- Loop through all values of `previousRow` and set `maxPoints` to the maximum.
+- Return `maxPoints` as our answer.
+
+**Implementation**
+
+```cpp
+// 198ms, 129.08MB
+class Solution {
+public:
+    long long maxPoints(vector<vector<int>>& points) {
+        int rows = points.size(), cols = points[0].size();
+        vector<long long> previousRow(cols);
+
+        // Initialize the first row
+        for (int col = 0; col < cols; ++col) {
+            previousRow[col] = points[0][col];
+        }
+
+        // Process each row
+        for (int row = 0; row < rows - 1; ++row) {
+            vector<long long> leftMax(cols);
+            vector<long long> rightMax(cols);
+            vector<long long> currentRow(cols);
+
+            // Calculate left-to-right maximum
+            leftMax[0] = previousRow[0];
+            for (int col = 1; col < cols; ++col) {
+                leftMax[col] = max(leftMax[col - 1] - 1, previousRow[col]);
+            }
+
+            // Calculate right-to-left maximum
+            rightMax[cols - 1] = previousRow[cols - 1];
+            for (int col = cols - 2; col >= 0; --col) {
+                rightMax[col] = max(rightMax[col + 1] - 1, previousRow[col]);
+            }
+
+            // Calculate the current row's maximum points
+            for (int col = 0; col < cols; ++col) {
+                currentRow[col] =
+                    points[row + 1][col] + max(leftMax[col], rightMax[col]);
+            }
+
+            // Update previousRow for the next iteration
+            previousRow = currentRow;
+        }
+
+        // Find the maximum value in the last processed row
+        long long maxPoints = 0;
+        for (int col = 0; col < cols; ++col) {
+            maxPoints = max(maxPoints, previousRow[col]);
+        }
+
+        return maxPoints;
+    }
+};
+```
+
+**Complexity Analysis**
+
+Let $m$ and $n$ be the height and width of `points`.
+
+- **Time complexity:** $O(m \times n)$
+  - The outer loop runs $m - 1$ times. Inside it, two inner loops run $n - 1$ times and another one runs $n$ times. Thus, the overall time complexity is $O(m \times n)$.
+  
+- **Space complexity:** $O(n)$
+  - We use four additional arrays, each of which takes $n$ space. All other variables take constant space.
+
+---
+
+#### Approach 2: Dynamic Programming (Optimized)
+
+**Intuition**
+
+In the previous approach, we used auxiliary arrays to keep track of the maximum points achievable from the left and right directions. This time, we streamline the process by using the `previousRow` array itself as temporary storage for the left-side maximums and then update it with the right-side maximums in a single pass.
+
+Thus, we will require two passes to do this.
+
+1. **First Pass: Left-to-Right Sweep**
+   - We begin by iterating through the row from left to right. As we move, we store the maximum points achievable from the left in the `previousRow` array. This step essentially builds the equivalent of the `leftMax` array directly within `previousRow`.
+   - At the start, `runningMax` is initialized to `0`. At the beginning of each iteration, `runningMax` will hold the maximum value that can be achieved from the left till $i-1$.
+   - For each cell $i$, we update `runningMax` to the maximum of `previousRow[i]` and `runningMax - 1`, where the subtraction accounts for the horizontal distance penalty.
+   - This process ensures that `previousRow[i]` contains the maximum points that can be accumulated when moving from the left to the $i$-th cell.
+
+2. **Second Pass: Right-to-Left Sweep**
+   - Next, we perform a second loop, this time iterating from right to left. This pass starts from the right and combines the results from the left-to-right pass with the maximum values from the right.
+   - We reset `runningMax` to `0` before starting this pass. Similar to the left-to-right pass, we update `runningMax` for each column.
+   - We take the maximum of the current `previousRow[col]` (which now contains the best value from the left) and the new `runningMax` (best value from the right).
+   - We add `row[col]` to this maximum, incorporating the points from the current cell in the current row.
+
+After processing all rows, the array `previousRow` (which now holds the updated values) will contain the maximum points that can be accumulated for each cell in the last row of the matrix. The maximum value in this array is our final answer, representing the highest possible score from the top to the bottom of the matrix.
+
+**Algorithm**
+
+- Set `cols` as the number of columns in `points`.
+- Create an array `previousRow` of size `cols`.
+- Iterate through each `row` in the `points` matrix:
+  - Initialize a variable `runningMax` to `0`.
+  - Iterate `col` from `0` to `cols-1`:
+    - Update `runningMax` to the maximum of `runningMax - 1` and `previousRow[col]`.
+    - Set `previousRow[col]` equal to `runningMax`.
+  - Now, iterate `col` in the reverse order:
+    - Update `runningMax` to the maximum of `runningMax - 1` and `previousRow[col]`.
+    - Update `previousRow[col]` by taking the maximum of its current value and `runningMax`, then add the current cell's value.
+- Loop through all values of `previousRow` and set `maxPoints` to the maximum.
+- Return `maxPoints`.
+
+**Implementation**
+
+```cpp
+// 159ms, 86.5MB
+class Solution {
+public:
+    long long maxPoints(vector<vector<int>>& points) {
+        int cols = points[0].size();
+        vector<long long> previousRow(cols);
+
+        for (auto& row : points) {
+            // runningMax holds the maximum value generated in the previous
+            // iteration of each loop
+            long long runningMax = 0;
+
+            // Left to right pass
+            for (int col = 0; col < cols; ++col) {
+                runningMax = max(runningMax - 1, previousRow[col]);
+                previousRow[col] = runningMax;
+            }
+
+            runningMax = 0;
+            // Right to left pass
+            for (int col = cols - 1; col >= 0; --col) {
+                runningMax = max(runningMax - 1, previousRow[col]);
+                previousRow[col] = max(previousRow[col], runningMax) + row[col];
+            }
+        }
+
+        // Find maximum points in the last row
+        long long maxPoints = 0;
+        for (int col = 0; col < cols; ++col) {
+            maxPoints = max(maxPoints, previousRow[col]);
+        }
+
+        return maxPoints;
+    }
+};
+```
+
+**Complexity Analysis**
+
+Let $m$ and $n$ be the height and width of `points`.
+
+- **Time complexity:** $O(m \times n)$
+  - The main loop iterates through each row of `points`. Inside this loop, the algorithm uses two nested loops, each iterating $n$ times. Overall, this takes $O(m \times n)$ time.
+  - The final loop to find the maximum points also iterates $n$ times.
+
+- **Space complexity:** $O(n)$
+  - The algorithm uses an array `previousRow` of length $n$. Thus, the space complexity of the algorithm is $O(n)$.
+
 
 ## 24.08.18 - 264. Ugly Number II
 [문제 링크](https://leetcode.com/problems/ugly-number-ii/description/)
