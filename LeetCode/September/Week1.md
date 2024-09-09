@@ -22,6 +22,9 @@
   - [24.09.06 - 3217. Delete Nodes From Linked List Present in Array](#240906---3217-delete-nodes-from-linked-list-present-in-array)
     - [나](#나-5)
     - [gpt](#gpt-4)
+  - [24.09.07 - 1367. Linked List in Binary Tree](#240907---1367-linked-list-in-binary-tree)
+    - [나](#나-6)
+    - [해설](#해설-2)
 
 # September Week 1
 ## 24.09.01 - 2022. Convert 1D Array Into 2D Array
@@ -488,4 +491,71 @@ public:
 - **Space Complexity**: $O(n)$, for storing the elements of `nums` in a set.
 
 This approach efficiently handles large inputs due to its linear complexity. 
+
+## 24.09.07 - 1367. Linked List in Binary Tree
+[문제 링크](https://leetcode.com/problems/linked-list-in-binary-tree/description/?envType=daily-question&envId=2024-09-07)
+
+### 나
+TLE가 나서 해설 참고..
+
+```cpp
+// TLE
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    bool answer{};
+    ListNode* listStart;
+    void traverseSubPath(ListNode* head, TreeNode* root) {
+        if(answer) return;
+        
+        if(head == nullptr) { // reach the end.
+            answer = true;
+            return;
+        }
+
+        if(root == nullptr) return; // leaf
+
+        if(head->val == root->val) { // 같다면 유지
+            traverseSubPath(head->next, root->left);
+            traverseSubPath(head->next, root->right);
+        }
+
+        // 아닌 경우 새로 시작
+        traverseSubPath(listStart, root->left);
+        traverseSubPath(listStart, root->right);
+    }
+
+    bool isSubPath(ListNode* head, TreeNode* root) {
+        listStart = head;
+        traverseSubPath(head, root);
+
+        return answer;
+    }
+};
+```
+
+### 해설
+[링크](https://leetcode.com/problems/linked-list-in-binary-tree/editorial)
+
+추후 작성.
 
