@@ -25,6 +25,9 @@
   - [24.09.07 - 1367. Linked List in Binary Tree](#240907---1367-linked-list-in-binary-tree)
     - [나](#나-6)
     - [해설](#해설-2)
+  - [24.09.08 - 725. Split Linked List in Parts](#240908---725-split-linked-list-in-parts)
+    - [나](#나-7)
+    - [gpt](#gpt-5)
 
 # September Week 1
 ## 24.09.01 - 2022. Convert 1D Array Into 2D Array
@@ -558,4 +561,160 @@ public:
 [링크](https://leetcode.com/problems/linked-list-in-binary-tree/editorial)
 
 추후 작성.
+
+## 24.09.08 - 725. Split Linked List in Parts
+[문제 링크](https://leetcode.com/problems/split-linked-list-in-parts/description/?envType=daily-question&envId=2024-09-08)
+
+### 나
+```cpp
+// 0ms, 13.9MB
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    vector<ListNode*> splitListToParts(ListNode* head, int k) {
+        int cnt{};
+        /*
+        // 이 부분이 틀렸네..
+        for(ListNode* now = head;now->next;now = now->next, ++cnt)
+        if(head) ++cnt; // 초기 원소 누락
+        */
+        ListNode* now = head;
+        while (now) {
+            ++cnt;
+            now = now->next;
+        }
+
+        int quotient = cnt / k, remainder = cnt % k;
+        vector<int> sizes(k, quotient); // 크기 k, 원소 값: quotient
+        for(int i{};i<remainder;++i) sizes[i]++;
+
+        vector<ListNode*> answer;
+        now = head;
+        for(int i{}; i<k; ++i) {
+            answer.push_back(now); // if nullptr => push_back nullptr.
+
+            for(int j{};j<sizes[i] && now;++j) {
+                if(j == sizes[i] - 1) {
+                    ListNode* tmp = now->next; // 마지막 원소 연결 끊기
+                    now->next = nullptr;
+                    now = tmp;
+                }
+                else now = now->next;
+            }
+        }
+
+        return answer;
+    }
+};
+```
+
+개수 카운팅할 때
+```cpp
+for(ListNode* now = head;now->next;now = now->next, ++cnt)
+if(head) ++cnt; // 초기 원소 누락
+```
+위의 코드에서 틀렸는데, 반례가 없을까..
+
+수정한 코드
+```cpp
+for(ListNode* now = head;now;now = now->next) { // 조건 수정
+    ++cnt;
+}
+```
+OR
+```cpp
+ListNode* now = head;
+while (now) {
+    ++cnt;
+    now = now->next;
+}
+```
+
+### gpt
+To solve the problem **"Split Linked List in Parts"**, the idea is to divide the linked list into `k` parts where each part has an approximately equal number of nodes. The first few parts may have an extra node if the number of nodes is not perfectly divisible by `k`.
+
+<h3> Steps to Solve: </h3>
+
+1. **Calculate the Length** of the Linked List:
+   Traverse the entire list to determine its total length `N`.
+
+2. **Determine the Size of Each Part**:
+   - Each part should have a base size of `N // k`.
+   - There will be `N % k` parts that need one extra node. These parts should be handled first.
+
+3. **Split the List**:
+   Traverse the list again to split it into parts. For each part:
+   - Determine its size (either `N // k` or `N // k + 1`).
+   - Detach it from the main list by updating the `next` pointer.
+
+4. **Handle Remaining Parts**:
+   If `k` is larger than `N`, the remaining parts will be empty (`null`).
+
+<h3> Code Example in C++: </h3>
+
+```cpp
+// 5ms, 13.88MB
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    vector<ListNode*> splitListToParts(ListNode* head, int k) {
+        vector<ListNode*> result(k, nullptr);
+        int length = 0;
+        ListNode* temp = head;
+
+        // Step 1: Calculate the total length of the linked list
+        while (temp != nullptr) {
+            length++;
+            temp = temp->next;
+        }
+
+        int base_size = length / k;
+        int extra = length % k;
+
+        temp = head;
+        for (int i = 0; i < k; ++i) {
+            result[i] = temp;
+            int part_size = base_size + (i < extra ? 1 : 0);
+
+            // Split the list and prepare the next part
+            for (int j = 0; j < part_size - 1; ++j) {
+                if (temp != nullptr) {
+                    temp = temp->next;
+                }
+            }
+
+            if (temp != nullptr) {
+                ListNode* next_part = temp->next;
+                temp->next = nullptr;
+                temp = next_part;
+            }
+        }
+
+        return result;
+    }
+};
+```
+
+<h3> Complexity: </h3>
+
+- **Time Complexity**: $O(N)$, where `N` is the number of nodes in the list (two passes).
+- **Space Complexity**: $O(k)$ for storing the result.
 
