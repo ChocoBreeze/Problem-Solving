@@ -19,6 +19,9 @@
   - [24.09.05 - 2028. Find Missing Observations](#240905---2028-find-missing-observations)
     - [나](#나-4)
     - [gpt](#gpt-3)
+  - [24.09.06 - 3217. Delete Nodes From Linked List Present in Array](#240906---3217-delete-nodes-from-linked-list-present-in-array)
+    - [나](#나-5)
+    - [gpt](#gpt-4)
 
 # September Week 1
 ## 24.09.01 - 2022. Convert 1D Array Into 2D Array
@@ -384,4 +387,105 @@ public:
 <h3> Space Complexity: </h3>
 
 - The space complexity is $O(n)$ for the result array.
+
+## 24.09.06 - 3217. Delete Nodes From Linked List Present in Array
+[문제 링크](https://leetcode.com/problems/delete-nodes-from-linked-list-present-in-array/description/?envType=daily-question&envId=2024-09-06)
+
+### 나
+```cpp
+// 387ms, 319.5MB
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* modifiedList(vector<int>& nums, ListNode* head) {
+        const int SIZE = 100'010;
+        vector<int> dat(SIZE, 0);
+        for(int num : nums) dat[num] = 1;
+
+        // 시작점 찾기
+        while(head -> next) {
+            if(dat[head->val]) {
+                head = head->next;
+            }
+            else break;
+        }
+
+        ListNode* now = head; // 첫 시작점은 무조건 존재하는 head
+        while(now -> next) {
+            ListNode* next = now -> next;
+            if(dat[next->val]) {
+                now -> next = next -> next;
+            }
+            else {
+                if(!(now->next)) break;
+                now = now -> next;
+            }
+        }
+
+        return head;
+    }
+};
+```
+
+### gpt
+To solve the problem "Delete Nodes From Linked List Present in Array" on LeetCode, the goal is to remove all nodes from the linked list whose values are present in the given array `nums`. Here's an efficient approach using a hash set for constant-time lookups.
+
+<h3> Approach: </h3>
+
+1. **Create a Set**: Store all elements from the array `nums` in an unordered set for $O(1)$ lookup time.
+2. **Use a Dummy Node**: Create a dummy node pointing to the head of the linked list. This simplifies edge cases like removing the head node.
+3. **Traverse the List**: Iterate through the linked list and check if the value of the current node's `next` is in the set:
+   - If it is, bypass that node by adjusting the pointers.
+   - Otherwise, move to the next node.
+4. **Return the Modified List**: Finally, return the list starting from `dummy.next` (to skip the dummy node itself).
+
+<h3> C++ Solution: </h3>
+
+```cpp
+// 405ms, 258.36MB
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* modifiedList(vector<int>& nums, ListNode* head) {
+        unordered_set<int> values(nums.begin(), nums.end());
+        ListNode* dummy = new ListNode(0, head);
+        ListNode* current = dummy;
+        
+        while (current->next != nullptr) {
+            if (values.count(current->next->val)) {
+                current->next = current->next->next;  // Remove the node
+            } else {
+                current = current->next;
+            }
+        }
+        
+        return dummy->next;  // Return the modified list
+    }
+};
+```
+
+<h3> Complexity: </h3>
+
+- **Time Complexity**: $O(n + m)$, where `n` is the size of the array `nums` and `m` is the number of nodes in the linked list.
+- **Space Complexity**: $O(n)$, for storing the elements of `nums` in a set.
+
+This approach efficiently handles large inputs due to its linear complexity. 
 
