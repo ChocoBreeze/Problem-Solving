@@ -3,6 +3,9 @@
   - [24.09.09 - 2326. Spiral Matrix IV](#240909---2326-spiral-matrix-iv)
     - [나](#나)
     - [gpt](#gpt)
+  - [24.09.10 - 2807. Insert Greatest Common Divisors in Linked List](#240910---2807-insert-greatest-common-divisors-in-linked-list)
+    - [나](#나-1)
+    - [gpt](#gpt-1)
 
 # September Week 2
 ## 24.09.09 - 2326. Spiral Matrix IV
@@ -116,4 +119,128 @@ public:
 - $O(m * n)$ for storing the matrix.
 
 This approach efficiently simulates the spiral filling, and handles edge cases like small matrix sizes and lists shorter than `m * n`.
+
+## 24.09.10 - 2807. Insert Greatest Common Divisors in Linked List
+[문제 링크](https://leetcode.com/problems/insert-greatest-common-divisors-in-linked-list/description/?envType=daily-question&envId=2024-09-10)
+
+### 나
+```cpp
+// 41ms, 35.6MB
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* insertGreatestCommonDivisors(ListNode* head) {
+        ListNode* now = head;
+        while(now) {
+            ListNode* next = now->next;
+            if(next == nullptr) break;
+            int num = [](int a ,int b) -> int {
+                while(b) {
+                    int tmp = b;
+                    b = a%b;
+                    a = tmp;
+                }
+                return a;
+            } (now->val, next->val);
+            ListNode *tmp = new ListNode{num, next};
+            now->next = tmp;
+
+            now = next;
+        }
+        return head;
+    }
+};
+```
+
+```cpp
+// 38ms, 35.5MB
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* insertGreatestCommonDivisors(ListNode* head) {
+        ListNode* now = head;
+        while(now) {
+            ListNode* next = now->next;
+            if(next == nullptr) break;
+            int num = gcd(now->val, next->val);
+            ListNode *tmp = new ListNode{num, next};
+            now->next = tmp;
+
+            now = next;
+        }
+        return head;
+    }
+private:
+    int gcd(int a,int b) {
+        if(b==0) return a;
+        return gcd(b, a%b);
+    }
+};
+```
+
+### gpt
+To solve the problem "Insert Greatest Common Divisors in Linked List," you need to modify the linked list by inserting a new node between every two adjacent nodes. The value of the new node should be the Greatest Common Divisor (GCD) of the values of these two adjacent nodes. Here's a step-by-step approach to solve this:
+
+<h3> Steps: </h3>
+
+1. **Traverse the Linked List**: Start at the head of the linked list and traverse through each node.
+2. **Calculate GCD**: For every pair of adjacent nodes, compute the GCD of their values.
+3. **Insert a New Node**: Create a new node with the GCD value and insert it between the two adjacent nodes.
+4. **Continue**: Move to the next node and repeat the process until the end of the list.
+
+<h3> Algorithm in C++: </h3>
+
+```cpp
+// 37ms, 35.58MB
+class Solution {
+public:
+    ListNode* insertGreatestCommonDivisors(ListNode* head) {
+        ListNode* curr = head;
+        while (curr->next != nullptr) {
+            // Calculate GCD of curr and next node values
+            int gcdValue = gcd(curr->val, curr->next->val);
+            // Create a new node with the GCD value
+            ListNode* newNode = new ListNode(gcdValue, curr->next);
+            // Insert the new node between curr and the next node
+            curr->next = newNode;
+            // Move curr to the node after the newly inserted one
+            curr = newNode->next;
+        }
+        return head;
+    }
+
+private:
+    int gcd(int a, int b) {
+        if (b == 0) return a;
+        return gcd(b, a % b);
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+- **GCD Calculation**: The `gcd()` function uses the Euclidean algorithm to compute the GCD of two integers.
+- **Insertion Logic**: The loop goes through each node in the list and calculates the GCD between the current node's value and the next node's value. A new node with the GCD is created and inserted between these two nodes. The traversal continues with the next node after the newly inserted one.
+  
+<h3> Time Complexity: </h3>
+
+The time complexity is $O(n \log M)$, where $n$ is the number of nodes in the linked list, and $M$ is the maximum value of the node values. This accounts for both the list traversal and the GCD calculation.
 
