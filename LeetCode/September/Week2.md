@@ -6,6 +6,9 @@
   - [24.09.10 - 2807. Insert Greatest Common Divisors in Linked List](#240910---2807-insert-greatest-common-divisors-in-linked-list)
     - [나](#나-1)
     - [gpt](#gpt-1)
+  - [24.09.11 - 2220. Minimum Bit Flips to Convert Number](#240911---2220-minimum-bit-flips-to-convert-number)
+    - [나](#나-2)
+    - [gpt](#gpt-2)
 
 # September Week 2
 ## 24.09.09 - 2326. Spiral Matrix IV
@@ -243,4 +246,66 @@ private:
 <h3> Time Complexity: </h3>
 
 The time complexity is $O(n \log M)$, where $n$ is the number of nodes in the linked list, and $M$ is the maximum value of the node values. This accounts for both the list traversal and the GCD calculation.
+
+## 24.09.11 - 2220. Minimum Bit Flips to Convert Number
+[문제 링크](https://leetcode.com/problems/minimum-bit-flips-to-convert-number/description/?envType=daily-question&envId=2024-09-11)
+
+### 나
+```cpp
+// 0ms, 7.5MB
+class Solution {
+public:
+    int minBitFlips(int start, int goal) {
+        int tmp = start ^ goal;
+        int cnt{};
+        while(tmp) {
+            if(tmp&1) ++cnt;
+            tmp >>= 1;
+        }
+        return cnt;
+    }
+};
+```
+
+### gpt
+The problem "Minimum Bit Flips to Convert Number" can be solved using a simple bit manipulation technique. Here's how:
+
+<h3> Problem Summary: </h3>
+
+Given two integers `start` and `goal`, the task is to determine the minimum number of bit flips required to convert `start` into `goal`. A "bit flip" refers to changing a bit from 0 to 1 or from 1 to 0 in the binary representation.
+
+<h3> Approach: </h3>
+
+1. **Use XOR**: Perform XOR (`^`) between `start` and `goal`. XOR will set bits to `1` where the bits of `start` and `goal` differ and to `0` where they are the same.
+2. **Count 1s in the Result**: After XOR, count the number of `1`s in the result. Each `1` represents a bit that needs to be flipped.
+
+<h3> Example: </h3>
+
+For `start = 10` and `goal = 7`:
+- Binary of `10` is `1010`.
+- Binary of `7` is `0111`.
+- XOR of `1010 ^ 0111` = `1101`. There are 3 ones, so 3 bit flips are needed.
+
+<h3> C++ Code Implementation: </h3>
+
+```cpp
+// 3ms, 7.7MB
+class Solution {
+public:
+    int minBitFlips(int start, int goal) {
+        int xorResult = start ^ goal;
+        int bitCount = 0;
+        while (xorResult > 0) {
+            bitCount += xorResult & 1;
+            xorResult >>= 1;
+        }
+        return bitCount;
+    }
+};
+```
+
+<h3> Time Complexity: </h3>
+
+- $O(log(max(start, goal)))$: This is because we are counting the number of bits in the XOR result.
+- **Space Complexity**: $O(1)$, since we use a constant amount of space.
 
