@@ -9,6 +9,9 @@
   - [24.09.11 - 2220. Minimum Bit Flips to Convert Number](#240911---2220-minimum-bit-flips-to-convert-number)
     - [나](#나-2)
     - [gpt](#gpt-2)
+  - [24.09.12 - 1684. Count the Number of Consistent Strings](#240912---1684-count-the-number-of-consistent-strings)
+    - [나](#나-3)
+    - [gpt](#gpt-3)
 
 # September Week 2
 ## 24.09.09 - 2326. Spiral Matrix IV
@@ -309,3 +312,76 @@ public:
 - $O(log(max(start, goal)))$: This is because we are counting the number of bits in the XOR result.
 - **Space Complexity**: $O(1)$, since we use a constant amount of space.
 
+## 24.09.12 - 1684. Count the Number of Consistent Strings
+[문제 링크](https://leetcode.com/problems/count-the-number-of-consistent-strings/description/)
+
+### 나
+```cpp
+// 46ms, 33.92MB
+class Solution {
+public:
+    int countConsistentStrings(string allowed, vector<string>& words) {
+        int dat[27]{};
+        for(char c : allowed) {
+            dat[c - 'a'] = 1;
+        }
+
+        int answer{};
+        for(string word : words) {
+            auto ret = [&]() -> bool {
+                for(char c : word) {
+                    if(!dat[c - 'a']) return false;
+                }
+                return true;
+            } ();
+            if(ret) ++answer;
+        }
+
+        return answer;
+    }
+};
+```
+
+### gpt
+The problem "Count the Number of Consistent Strings" on LeetCode asks you to find how many strings in an array consist only of characters found in a given string called `allowed`.
+
+<h3> Solution Approach: </h3>
+
+1. **Input**: A string `allowed` and an array of strings `words`.
+2. **Output**: Count how many strings in `words` consist only of characters from `allowed`.
+3. **Plan**:
+   - Convert the `allowed` string into a set for fast lookups.
+   - For each word, check if all its characters belong to this set.
+   - Count the words that meet the condition.
+
+<h3> C++ Code: </h3>
+
+```cpp
+// 43ms, 34.11MB
+class Solution {
+public:
+    int countConsistentStrings(string allowed, vector<string>& words) {
+        unordered_set<char> allowed_set(allowed.begin(), allowed.end());
+        int count = 0;
+        for (const auto& word : words) {
+            bool is_consistent = true;
+            for (char c : word) {
+                if (allowed_set.find(c) == allowed_set.end()) {
+                    is_consistent = false;
+                    break;
+                }
+            }
+            if (is_consistent) {
+                ++count;
+            }
+        }
+        return count;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. **Set for allowed characters**: This speeds up the check for each character in `words`.
+2. **Loop over words**: For each word, verify if all characters are in the `allowed` set.
+3. **Return the count** of consistent strings.
