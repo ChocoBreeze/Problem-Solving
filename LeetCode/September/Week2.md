@@ -12,6 +12,11 @@
   - [24.09.12 - 1684. Count the Number of Consistent Strings](#240912---1684-count-the-number-of-consistent-strings)
     - [나](#나-3)
     - [gpt](#gpt-3)
+  - [24.09.13 - 1310. XOR Queries of a Subarray](#240913---1310-xor-queries-of-a-subarray)
+    - [나](#나-4)
+    - [Solution](#solution)
+      - [Iteratve Approach](#iteratve-approach)
+      - [Prefix XOR Array](#prefix-xor-array)
 
 # September Week 2
 ## 24.09.09 - 2326. Spiral Matrix IV
@@ -385,3 +390,79 @@ public:
 1. **Set for allowed characters**: This speeds up the check for each character in `words`.
 2. **Loop over words**: For each word, verify if all characters are in the `allowed` set.
 3. **Return the count** of consistent strings.
+
+## 24.09.13 - 1310. XOR Queries of a Subarray
+[문제 링크](https://leetcode.com/problems/xor-queries-of-a-subarray/description/?envType=daily-question&envId=2024-09-13)
+
+### 나
+```cpp
+// 52ms, 42.22MB
+class Solution {
+public:
+    vector<int> xorQueries(vector<int>& arr, vector<vector<int>>& queries) {
+        const int SIZE = static_cast<int>(arr.size());
+        vector<int> preXor(SIZE + 1, 0);
+        for(int s{}, e{SIZE};s<e;++s){
+            preXor[s+1] = preXor[s] ^ arr[s];
+        }
+
+        vector<int> answer;
+        for(vector<int>& query : queries) {
+            int start = query[0], finish = query[1]; // [0, 1]
+            answer.push_back(preXor[finish + 1] ^ preXor[start]);
+        }
+
+        return answer;
+    }
+};
+```
+
+### Solution
+#### Iteratve Approach
+```cpp
+// 1960ms, 41.83MB
+// Iterative Approach
+class Solution {
+public:
+    vector<int> xorQueries(vector<int>& arr, vector<vector<int>>& queries) {
+        vector<int> result;
+        // Process each query
+        for (const auto& q : queries) {
+            int xorSum = 0;
+            // Calculate XOR for the range [q[0], q[1]]
+            for (int i = q[0]; i <= q[1]; i++) {
+                xorSum ^= arr[i];
+            }
+            result.push_back(xorSum);
+        }
+        return result;
+    }
+};
+```
+
+
+#### Prefix XOR Array
+```cpp
+// 69ms, 42.13MB
+// Prefix XOR Array
+class Solution {
+public:
+    vector<int> xorQueries(vector<int>& arr, vector<vector<int>>& queries) {
+        int n = arr.size();
+        vector<int> prefixXOR(n + 1, 0);
+
+        // Build prefix XOR array
+        for (int i = 0; i < n; i++) {
+            prefixXOR[i + 1] = prefixXOR[i] ^ arr[i];
+        }
+
+        vector<int> result;
+        // Process each query using prefix XOR
+        for (const auto& q : queries) {
+            result.push_back(prefixXOR[q[1] + 1] ^ prefixXOR[q[0]]);
+        }
+        return result;
+    }
+};
+```
+
