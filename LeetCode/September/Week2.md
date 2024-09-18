@@ -20,6 +20,14 @@
   - [24.09.14 - 2419. Longest Subarray With Maximum Bitwise AND](#240914---2419-longest-subarray-with-maximum-bitwise-and)
     - [나](#나-5)
     - [Solution](#solution-1)
+  - [24.09.15 - 1371. Find the Longest Substring Containing Vowels in Even Counts](#240915---1371-find-the-longest-substring-containing-vowels-in-even-counts)
+    - [나](#나-6)
+    - [Solution](#solution-2)
+      - [Approach: Bitmasking](#approach-bitmasking)
+        - [Intuition](#intuition)
+      - [Algorithm](#algorithm)
+      - [Implementation](#implementation)
+      - [Complexity Analysis](#complexity-analysis)
 
 # September Week 2
 ## 24.09.09 - 2326. Spiral Matrix IV
@@ -560,3 +568,92 @@ Let $N$ be the length of `nums`.
 
 - **Space Complexity**: $O(1)$  
   The function uses a fixed amount of extra space regardless of the size of the input array `nums`. Specifically, it only requires a few variables (`max_val`, `ans`, `current_streak`, and `num`) to keep track of intermediate values. This fixed space usage means the space complexity remains constant.
+
+## 24.09.15 - 1371. Find the Longest Substring Containing Vowels in Even Counts
+[문제 링크](https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/description/?envType=daily-question&envId=2024-09-15)
+
+### 나
+Solution Code 참고.
+
+### Solution
+
+#### Approach: Bitmasking
+
+##### Intuition
+
+Given a string `s`, we need to find the length of the longest substring in which any vowel present must appear an even number of times. A brute force approach would involve iterating through every substring and counting vowels, but this would result in a Time Limit Exceeded (TLE). Instead, we need to think of a more efficient solution, aiming for a linear or log-linear time complexity.
+
+Observe that we don't need to know the exact count of the vowels to solve this problem; we only need to know the parity of each vowel (whether it appears an even or odd number of times). The parity of each vowel can be stored in a boolean or bit, where `0` means even and `1` means odd. We need five bits to track the parity of all five vowels (a, e, i, o, u), resulting in $2^5 = 32$ possible states.
+
+We can assign the first bit to `a`, the second to `e`, and so on. The state of the vowels can be represented as a binary string. For instance, `00000` means all vowels have even counts, while `10000` means only `a` has an odd count.
+By converting these binary states to integers, we can assign values to the vowels: `a = 1`, `e = 2`, `i = 4`, `o = 8`, and `u = 16`. If both `a` and `i` have odd counts, their total value would be `1 + 4 = 5`. A total value of `0` means all vowels have even counts.
+
+![alt text](image.png)
+
+To find substrings with even vowels, we can use the XOR operator to update and track the parity of the vowels. If a vowel appears an even number of times, the result of XOR will be 0; if it appears an odd number of times, the result will be 1.
+
+We compute a running XOR for each vowel as we traverse the string. To check for substrings with even vowels, we consider two cases:
+
+1. If the current XOR value is `00000` (i.e., all vowels have even counts), the substring from the start of the string to the current position contains even vowels.
+2. If the current XOR value has occurred before, the substring between the first occurrence of that XOR value and the current position also contains even vowels.
+
+![alt text](image-1.png)
+
+#### Algorithm
+
+1. Initialize an integer variable `prefixXOR` and set it to 0.
+2. Initialize a character array `characterMap[26]` where specific vowel characters `('a', 'e', 'i', 'o', 'u')` have unique mask values `(1, 2, 4, 8, 16)`.
+3. Initialize an array `mp` of size 32, where all elements are set to -1. This will store the index of the first occurrence of each `prefixXOR` value.
+4. Initialize an integer variable `longestSubstring` and set it to `0`.
+5. Iterate through each character in the string `s`:
+   - Update `prefixXOR` by XORing it with the mask value of the current character (from `characterMap`).
+   - If the current `prefixXOR` value is not found in `mp` and `prefixXOR` is not 0:
+     - Store the current index in `mp` at the position corresponding to `prefixXOR`.
+   - Update `longestSubstring` by comparing it with the difference between the current index and `mp[prefixXOR]`.
+6. Return `longestSubstring` as the final result.
+
+#### Implementation
+
+```cpp
+// 42ms, 17.66MB
+class Solution {
+public:
+    int findTheLongestSubstring(string s) {
+        int prefixXOR = 0;
+        // Store the masks of all letters in an array.
+        int characterMap[26] = {0};
+        characterMap['a' - 'a'] = 1;
+        characterMap['e' - 'a'] = 2;
+        characterMap['i' - 'a'] = 4;
+        characterMap['o' - 'a'] = 8;
+        characterMap['u' - 'a'] = 16;
+        // Initialize mp to store the previous index with this prefixXOR value.
+        vector<int> mp(32, -1);
+        int longestSubstring = 0;
+
+        for (int i = 0; i < s.length(); i++) {
+            // If the current character is a vowel, find it's prefix XOR and add
+            // it in the map.
+            prefixXOR ^= characterMap[s[i] - 'a'];
+            if (mp[prefixXOR] == -1 and prefixXOR != 0) mp[prefixXOR] = i;
+
+            // If the value of prefixXOR exists in the map, find the longest
+            // subarray.
+            longestSubstring = max(longestSubstring, i - mp[prefixXOR]);
+        }
+
+        return longestSubstring;
+    }
+};
+```
+
+#### Complexity Analysis
+
+Let $m$ be the size of the given `s` string.
+
+- **Time complexity**: $O(n)$  
+  We iterate through the string `s` exactly once. Apart from this, all operations are constant time. Therefore, the total time complexity is given by $O(\text{max}(m, n))$.
+
+- **Space complexity**: $O(1)$  
+  Apart from the `characterMap` and `mp` array, no additional space is used to solve the problem. Therefore, the space complexity is given by $O(26) + O(32) ≈ O(1)$.
+
