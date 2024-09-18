@@ -15,19 +15,12 @@
   - [24.09.13 - 1310. XOR Queries of a Subarray](#240913---1310-xor-queries-of-a-subarray)
     - [나](#나-4)
     - [Solution](#solution)
-      - [Iteratve Approach](#iteratve-approach)
-      - [Prefix XOR Array](#prefix-xor-array)
   - [24.09.14 - 2419. Longest Subarray With Maximum Bitwise AND](#240914---2419-longest-subarray-with-maximum-bitwise-and)
     - [나](#나-5)
     - [Solution](#solution-1)
   - [24.09.15 - 1371. Find the Longest Substring Containing Vowels in Even Counts](#240915---1371-find-the-longest-substring-containing-vowels-in-even-counts)
     - [나](#나-6)
     - [Solution](#solution-2)
-      - [Approach: Bitmasking](#approach-bitmasking)
-        - [Intuition](#intuition)
-      - [Algorithm](#algorithm)
-      - [Implementation](#implementation)
-      - [Complexity Analysis](#complexity-analysis)
 
 # September Week 2
 ## 24.09.09 - 2326. Spiral Matrix IV
@@ -429,7 +422,8 @@ public:
 ```
 
 ### Solution
-#### Iteratve Approach
+<h3> Iteratve Approach </h3>
+
 ```cpp
 // 1960ms, 41.83MB
 // Iterative Approach
@@ -451,8 +445,8 @@ public:
 };
 ```
 
+<h3> Prefix XOR Array </h3>
 
-#### Prefix XOR Array
 ```cpp
 // 69ms, 42.13MB
 // Prefix XOR Array
@@ -577,9 +571,9 @@ Solution Code 참고.
 
 ### Solution
 
-#### Approach: Bitmasking
+<h3> Approach: Bitmasking </h3>
 
-##### Intuition
+<h3> Intuition </h3>
 
 Given a string `s`, we need to find the length of the longest substring in which any vowel present must appear an even number of times. A brute force approach would involve iterating through every substring and counting vowels, but this would result in a Time Limit Exceeded (TLE). Instead, we need to think of a more efficient solution, aiming for a linear or log-linear time complexity.
 
@@ -599,7 +593,7 @@ We compute a running XOR for each vowel as we traverse the string. To check for 
 
 ![alt text](image-1.png)
 
-#### Algorithm
+<h3> Algorithm </h3>
 
 1. Initialize an integer variable `prefixXOR` and set it to 0.
 2. Initialize a character array `characterMap[26]` where specific vowel characters `('a', 'e', 'i', 'o', 'u')` have unique mask values `(1, 2, 4, 8, 16)`.
@@ -612,7 +606,7 @@ We compute a running XOR for each vowel as we traverse the string. To check for 
    - Update `longestSubstring` by comparing it with the difference between the current index and `mp[prefixXOR]`.
 6. Return `longestSubstring` as the final result.
 
-#### Implementation
+<h3> Implementation </h3>
 
 ```cpp
 // 42ms, 17.66MB
@@ -647,7 +641,7 @@ public:
 };
 ```
 
-#### Complexity Analysis
+<h3> Complexity Analysis </h3>
 
 Let $m$ be the size of the given `s` string.
 
