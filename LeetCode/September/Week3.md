@@ -3,6 +3,9 @@
   - [24.09.16 - 539. Minimum Time Difference](#240916---539-minimum-time-difference)
     - [나](#나)
     - [Solution](#solution)
+  - [24.09.17 - 884. Uncommon Words from Two Sentences](#240917---884-uncommon-words-from-two-sentences)
+    - [나](#나-1)
+    - [gpt](#gpt)
 
 # September Week 3
 ## 24.09.16 - 539. Minimum Time Difference
@@ -192,4 +195,83 @@ Let $N$ be the size of the given array `timePoints`.
   
 - **Space Complexity**: $O(1)$  
   Our array `minutes` will always have a size of $24 \cdot 60$, so the space complexity is constant.
+
+
+## 24.09.17 - 884. Uncommon Words from Two Sentences
+[문제 링크](https://leetcode.com/problems/uncommon-words-from-two-sentences/description/?envType=daily-question&envId=2024-09-17)
+
+### 나
+```cpp
+// 0ms, 8.9MB
+class Solution {
+public:
+    vector<string> uncommonFromSentences(string s1, string s2) {
+        istringstream iss(s1);
+        string tmp;
+        map<string, int> stringMap;
+        while(getline(iss, tmp, ' ')) {
+            if(stringMap.count(tmp)) {
+                stringMap[tmp]++;
+            }
+            else stringMap[tmp] = 1;
+        }
+
+        
+        istringstream iss2(s2);
+        while(getline(iss2, tmp, ' ')) {
+            if(stringMap.count(tmp)) {
+                stringMap[tmp]++;
+            }
+            else stringMap[tmp] = 1;
+        }
+
+        vector<string> answer;
+        for(auto& [key, value] : stringMap) {
+            if(value == 1) answer.push_back(key);
+        }
+
+        return answer;
+    }
+};
+```
+
+### gpt
+The problem asks to find "uncommon words" from two given sentences. An uncommon word is defined as one that appears exactly once in either sentence but not in both. 
+
+Here's a C++ solution that solves this problem:
+
+```cpp
+// 5ms, 8.71MB
+class Solution {
+public:
+    vector<string> uncommonFromSentences(string s1, string s2) {
+        unordered_map<string, int> wordCount;
+        stringstream ss(s1 + " " + s2);
+        string word;
+        
+        // Count frequency of each word in both sentences
+        while (ss >> word) {
+            wordCount[word]++;
+        }
+        
+        // Collect words that appear only once
+        vector<string> result;
+        for (auto& entry : wordCount) {
+            if (entry.second == 1) {
+                result.push_back(entry.first);
+            }
+        }
+        
+        return result;
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+1. Combine both sentences into a single string with `s1 + " " + s2`.
+2. Use a `stringstream` to extract each word and store it in a `unordered_map<string, int>` to track word frequencies.
+3. Traverse the map and collect words with a frequency of exactly 1 into a result vector.
+
+Time complexity: $O(N)$, where N is the total number of words in both sentences.
 
