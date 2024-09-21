@@ -3,6 +3,8 @@
   - [24.09.16 - 539. Minimum Time Difference](#240916---539-minimum-time-difference)
     - [나](#나)
     - [Solution](#solution)
+      - [Approach 1: Sort](#approach-1-sort)
+      - [Approach 2: Bucket Sort](#approach-2-bucket-sort)
   - [24.09.17 - 884. Uncommon Words from Two Sentences](#240917---884-uncommon-words-from-two-sentences)
     - [나](#나-1)
     - [gpt](#gpt)
@@ -53,7 +55,7 @@ private:
 
 We are given an array of times, where each time is given in `"HH:MM"` string format. We must return the minimum difference in minutes between any pair of times in the array.
 
-<h3> Approach 1: Sort </h3>
+#### Approach 1: Sort
 
 <h3> Intuition </h3>
 
@@ -121,7 +123,7 @@ Let $N$ be the size of the given array `timePoints`.
 - **Space Complexity**: $O(N)$  
   Our array `minutes` to store the converted input takes $O(N)$ space.
 
-<h3> Approach 2: Bucket Sort </h3>
+#### Approach 2: Bucket Sort
 
 <h3> Intuition </h3>
 
