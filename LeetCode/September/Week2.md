@@ -24,6 +24,7 @@
   - [24.09.15 - 1371. Find the Longest Substring Containing Vowels in Even Counts](#240915---1371-find-the-longest-substring-containing-vowels-in-even-counts)
     - [나](#나-6)
     - [Solution](#solution-2)
+      - [Approach: Bitmasking](#approach-bitmasking)
 
 # September Week 2
 ## 24.09.09 - 2326. Spiral Matrix IV
@@ -602,7 +603,7 @@ Solution Code 참고.
 
 ### Solution
 
-<h3> Approach: Bitmasking </h3>
+#### Approach: Bitmasking
 
 <h3> Intuition </h3>
 
