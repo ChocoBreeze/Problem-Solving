@@ -11,7 +11,7 @@
       - [Approach 3: Dijkstra's Algorithm](#approach-3-dijkstras-algorithm)
   - [24.08.28 - 1905. Count Sub Islands](#240828---1905-count-sub-islands)
     - [나](#나-2)
-    - [추후 답지 정리.](#추후-답지-정리)
+    - [Solution](#solution-1)
       - [Approach 1: Breadth-First Search (BFS)](#approach-1-breadth-first-search-bfs)
       - [Approach 2: Depth-First Search](#approach-2-depth-first-search)
       - [Approach 3: Union-Find](#approach-3-union-find)
@@ -460,16 +460,439 @@ public:
 ```
 너무 한 번에 하려고 했던 것 같다. (2번 각각 돌리고 나중에 한 번 더 확인하면 될 듯,)
 
-### 추후 답지 정리.
+### Solution
+
+<h3> Overview </h3>
+
+We are given two binary matrices, `grid1` and `grid2`, both of size `m x n`, where 1 represents land and 0 represents water. An island is a group of connected 1s, connected horizontally or vertically. The task is to find how many islands in `grid2` are also sub-islands of `grid1`. An island in `grid2` is considered a sub-island if every land cell of the island is part of an island in `grid1`.
+
+![alt text](image-1.png)
+
+If we overlap this image with `grid1`, we can see all the land cells of the island of `grid2` lie on one island in `grid1`.
+
+![alt text](image-2.png)
+
+Let's consider another island of the `grid2`. Now, is this a sub-island?
+
+![alt text](image-3.png)
+
+If we overlap this image with `grid1`, we can see two land cells are lying on the water cell, thus this island can't be considered a sub-island.
+
+![alt text](image-4.png)
+
+The above images hint that, to check whether an island of `grid2` is a sub-island in `grid1`, we can start traversing each land cell of the current island of `grid2`, and for each land cell, there should be a land cell in `grid1` at the same position (at the same `(x, y)` index in grids).
+
+Each grid cell is connected to its adjacent neighbors 4-directionally (horizontal or vertical). This grid problem can be visualized as a graph traversal problem, where each cell is a node and the 4-directions are edges connecting those nodes.
+
+![alt text](image-5.png)
+
+We will iterate on each cell of the `grid2`. If the current cell is a land cell, we traverse the whole island of `grid2` containing the current land cell. While traversing over the entire island, we keep track of whether for each land cell of the island of `grid2`, the `grid1` also has a land cell at the respective position using a boolean variable. After iteration on the current island is completed, this boolean variable will denote if the island is a sub-island or not.
+
+The following slideshow will give you an idea about this approach: (생략)
+
+There are different techniques to traverse a graph. In this article, we will cover some of them briefly. We assume you already have a good knowledge of them. If you are new to the graph traversal algorithms, we recommend you read the following Leetcode articles before proceeding:
+
+- [Breadth-First Search](https://leetcode.com/explore/learn/card/graph/620/breadth-first-search-in-graph/3883/)
+- [Depth-First Search](https://leetcode.com/explore/learn/card/graph/619/depth-first-search-in-graph/3882/)
+- [Union Find](https://leetcode.com/discuss/general-discussion/1072418/Disjoint-Set-Union-(DSU)Union-Find-A-Complete-Guide)
+
+---
 
 #### Approach 1: Breadth-First Search (BFS)
-[링크](https://leetcode.com/problems/count-sub-islands/editorial/?envType=daily-question&envId=2024-08-28#approach-1-breadth-first-search-bfs)
+
+<h3> Intuition </h3>
+
+Breadth-first search is used to traverse graphs level by level, and in this problem, each cell in the grid represents a node, with 4-directional connections as edges. The goal is to check if an island in `grid2` is a sub-island of `grid1`. We start BFS from each unvisited land cell in `grid2` and verify if all corresponding cells in `grid1` are also land cells. If we encounter a land cell in `grid2` where the corresponding cell in `grid1` is water, the island in `grid2` is not a sub-island.
+
+We iterate through each cell in `grid2`, initiating BFS from each unvisited land cell to explore the island. During the traversal, we use a boolean flag `isSubIsland` to track if all corresponding cells in `grid1` are land. If the flag remains `true` after the traversal, we increment our sub-island count.
+
+<h3> Algorithm </h3>
+
+1. Create an array of `directions` storing the up, down, left, and right direction movements, which is the change in the `(x, y)` position value of the cell while moving.
+2. Create a helper method `isCellLand(x, y, grid)` that returns a boolean value indicating whether the cell at position `(x, y)` in `grid` is a land cell.
+3. Create a helper method `isSubIsland(x, y, grid1, grid2, visited)` that returns a boolean value indicating whether the island of `grid2` containing the cell at position `(x, y)` is a sub-island in `grid1`. This method will utilize the BFS algorithm to traverse all cells of the island of `grid2`:
+   - Initialize a variable `isSubIsland` to `true`, indicating whether the island of `grid2` is a sub-island or not.
+   - Initialize a queue, push the starting cell `(x, y)` in the queue and mark it as visited.
+   - While the queue is not empty:
+     - Pop the current cell from the queue.
+     - If the cell in `grid1` at the same position as the current cell of `grid2` is not a land cell, then this island can't be a sub-island, so we mark the `isSubIsland` flag as `false`.
+     - Next, we move in all 4 directions one by one using the `directions` array. If the cell at the next position `(nextX, nextY)` lies inside `grid2`, was not visited earlier, and is also a land cell, then we will traverse this cell by pushing it in the queue and marking it as visited.
+   - When we traverse all cells of the current island, we return `isSubIsland`.
+4. Initialize a boolean `visited` matrix of the same size as `grid2` to mark visited land cells.
+5. Initialize a variable `subIslandsCount` to `0` to count the total number of islands in `grid2` that are also sub-islands.
+6. Iterate over all cells of `grid2` using a nested for loop. If the current cell is not visited, is a land cell in `grid2`, and is a sub-island, increment the `subIslandsCount` by `1`.
+7. At the end, return `subIslandsCount`.
+
+<h3> Implementation </h3>
+
+```cpp
+// 312ms, 223.36MB
+class Solution {
+    // Directions in which we can traverse inside the grids.
+    int directions[4][2] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+
+    // Helper method to check if the cell at the position (x, y) in the 'grid'
+    // is a land cell.
+    bool isCellLand(int x, int y, vector<vector<int>>& grid) {
+        return grid[x][y] == 1;
+    }
+
+public:
+    // Traverse all cells of island starting at position (x, y) in 'grid2',
+    // and check this island is a sub-island in 'grid1'.
+    bool isSubIsland(int x, int y, vector<vector<int>>& grid1,
+                     vector<vector<int>>& grid2,
+                     vector<vector<bool>>& visited) {
+        int totalRows = grid2.size();
+        int totalCols = grid2[0].size();
+
+        int isSubIsland = true;
+
+        queue<pair<int, int>> pendingCells;
+        // Push the starting cell in the queue and mark it as visited.
+        pendingCells.push({x, y});
+        visited[x][y] = true;
+
+        // Traverse on all cells using the breadth-first search method.
+        while (!pendingCells.empty()) {
+            int currX = pendingCells.front().first;
+            int currY = pendingCells.front().second;
+            pendingCells.pop();
+
+            // If the current position cell is not a land cell in 'grid1',
+            // then the current island can't be a sub-island.
+            if (!isCellLand(currX, currY, grid1)) {
+                isSubIsland = false;
+            }
+
+            for (auto& direction : directions) {
+                int nextX = currX + direction[0];
+                int nextY = currY + direction[1];
+                // If the next cell is inside 'grid2', is never visited and
+                // is a land cell, then we traverse to the next cell.
+                if (nextX >= 0 && nextY >= 0 && nextX < totalRows &&
+                    nextY < totalCols && !visited[nextX][nextY] &&
+                    isCellLand(nextX, nextY, grid2)) {
+                    // Push the next cell in the queue and mark it as visited.
+                    pendingCells.push({nextX, nextY});
+                    visited[nextX][nextY] = true;
+                }
+            }
+        }
+
+        return isSubIsland;
+    }
+
+    int countSubIslands(vector<vector<int>>& grid1,
+                        vector<vector<int>>& grid2) {
+        int totalRows = grid2.size();
+        int totalCols = grid2[0].size();
+
+        vector<vector<bool>> visited(totalRows, vector<bool>(totalCols, false));
+        int subIslandCounts = 0;
+
+        // Iterate on each cell in 'grid2'
+        for (int x = 0; x < totalRows; ++x) {
+            for (int y = 0; y < totalCols; ++y) {
+                // If cell at the position (x, y) in the 'grid2' is not visited,
+                // is a land cell in 'grid2', and the island
+                // starting from this cell is a sub-island in 'grid1', then we
+                // increment the count of sub-islands.
+                if (!visited[x][y] && isCellLand(x, y, grid2) &&
+                    isSubIsland(x, y, grid1, grid2, visited)) {
+                    subIslandCounts += 1;
+                }
+            }
+        }
+        // Return total count of sub-islands.
+        return subIslandCounts;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $m$ and $n$ represent the number of rows and columns, respectively.
+
+- **Time complexity**: $O(m \cdot n)$
+  - We iterate on each grid cell and perform BFS to traverse all land cells of all the islands. Each land cell is only traversed once. In the worst case, we may traverse all cells of the grid.
+  - Thus, in the worst case time complexity will be $O(m \cdot n)$
+  
+- **Space complexity**: $O(m \cdot n)$
+  - We create an additional grid `visited` of size $m \cdot n$ and push the land cells into the queue.
+  - Thus, in the worst case space complexity will be $O(m \cdot n)$
+
 
 #### Approach 2: Depth-First Search
-[링크](https://leetcode.com/problems/count-sub-islands/editorial/?envType=daily-question&envId=2024-08-28#approach-2-depth-first-search)
+
+<h3> Intuition </h3>
+
+Depth-first search (DFS) explores as far as possible along each branch before backtracking, making it effective for checking if an island in `grid2` is a sub-island of `grid1`.
+
+We start by iterating through each cell in `grid2`. Upon encountering an unvisited land cell, we initiate a DFS to mark all connected land cells as visited. During the traversal, we compare each cell in `grid2` with the corresponding cell in `grid1`. If any land cell in `grid2` maps to a water cell in `grid1`, the island is disqualified. If the island passes the check, it is counted as a sub-island.
+
+DFS is ideal for this task because it efficiently handles deep, recursive exploration, avoiding the need for additional data structures like a queue.
+
+<h3> Algorithm </h3>
+
+1. Create an array `directions` for the four movement directions: up, down, left, and right, representing changes in `(x, y)` coordinates.
+2. Define a helper method `isCellLand(x, y, grid)` to check if the cell at `(x, y)` in `grid` is a land cell.
+3. Define a helper method `isSubIsland(x, y, grid1, grid2, visited)` to determine if the island in `grid2` containing cell `(x, y)` is a sub-island of `grid1`. This method uses DFS to:
+   - Initialize `isSubIsland` as `true`.
+   - Check if the corresponding cell in `grid1` is land; if not, set `isSubIsland` to `false`.
+   - Move in all four directions. For each valid, unvisited land cell in `grid2`, recursively check if it’s part of a sub-island and update `isSubIsland` accordingly.
+   - Return `isSubIsland` after traversing the island.
+4. Initialize a boolean `visited` matrix of the same size as `grid2` to keep track of visited cells.
+5. Initialize `subIslandsCount` to `0` to count sub-islands.
+6. Iterate through all cells of `grid2`. For each unvisited land cell, use `isSubIsland` to check if it's a sub-island of `grid1`. Increment `subIslandsCount` if it is.
+7. Return `subIslandsCount`.
+
+<h3> Implementation </h3>
+
+```cpp
+// 408ms, 112.42MB
+class Solution {
+    // Directions in which we can traverse inside the grids.
+    int directions[4][2] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+
+    // Helper method to check if the cell at the position (x, y) in the 'grid'
+    // is a land cell.
+    bool isCellLand(int x, int y, vector<vector<int>>& grid) {
+        return grid[x][y] == 1;
+    }
+
+    // Traverse all cells of island starting at position (x, y) in 'grid2',
+    // and check this island is a sub-island in 'grid1'.
+    bool isSubIsland(int x, int y, vector<vector<int>>& grid1,
+                     vector<vector<int>>& grid2,
+                     vector<vector<bool>>& visited) {
+        int totalRows = grid2.size();
+        int totalCols = grid2[0].size();
+        // Traverse on all cells using the depth-first search method.
+        bool isSubIsLand = true;
+
+        // If the current cell is not a land cell in 'grid1', then the current
+        // island can't be a sub-island.
+        if (!isCellLand(x, y, grid1)) {
+            isSubIsLand = false;
+        }
+
+        // Traverse on all adjacent cells.
+        for (auto& direction : directions) {
+            int nextX = x + direction[0];
+            int nextY = y + direction[1];
+            // If the next cell is inside the 'grid2', is never visited and is a
+            // land cell, then we traverse to the next cell.
+            if (nextX >= 0 && nextY >= 0 && nextX < totalRows &&
+                nextY < totalCols && !visited[nextX][nextY] &&
+                isCellLand(nextX, nextY, grid2)) {
+                // Push the next cell in the recursive stack and mark it as
+                // visited.
+                visited[nextX][nextY] = true;
+                bool nextCellIsPartOfSubIsland =
+                    isSubIsland(nextX, nextY, grid1, grid2, visited);
+                isSubIsLand = isSubIsLand && nextCellIsPartOfSubIsland;
+            }
+        }
+        return isSubIsLand;
+    }
+
+public:
+    int countSubIslands(vector<vector<int>>& grid1,
+                        vector<vector<int>>& grid2) {
+        int totalRows = grid2.size();
+        int totalCols = grid2[0].size();
+
+        vector<vector<bool>> visited(totalRows, vector<bool>(totalCols, false));
+        int subIslandCounts = 0;
+
+        // Iterate on each cell in 'grid2'
+        for (int x = 0; x < totalRows; ++x) {
+            for (int y = 0; y < totalCols; ++y) {
+                // If cell at the position (x, y) in the 'grid2' is not visited,
+                // is a land cell in 'grid2',
+                // and the island starting from this cell is a sub-island in
+                // 'grid1', then we increment the count of sub-islands.
+                if (!visited[x][y] && isCellLand(x, y, grid2)) {
+                    visited[x][y] = true;
+                    if (isSubIsland(x, y, grid1, grid2, visited)) {
+                        subIslandCounts += 1;
+                    }
+                }
+            }
+        }
+        // Return total count of sub-islands.
+        return subIslandCounts;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $m$ and $n$ represent the number of rows and columns, respectively.
+
+- **Time complexity**: $O(m \cdot n)$
+  - We iterate on each grid cell and perform DFS to traverse all land cells of all the islands. Each land cell is only traversed once. In the worst case, we may traverse all cells of the grid.
+  - Thus, in the worst case time complexity will be $O(m \cdot n)$
+  
+- **Space complexity**: $O(m \cdot n)$
+  - We create an additional grid `visited` of size $m \cdot n$ and push the land cells in the recursive stack.
+  - Thus, in the worst case space complexity will be $O(m \cdot n)$
 
 #### Approach 3: Union-Find
-[링크](https://leetcode.com/problems/count-sub-islands/editorial/?envType=daily-question&envId=2024-08-28#approach-3-union-find)
+
+<h3> Intuition </h3>
+
+Union-Find, or Disjoint Set Union (DSU), is a data structure that efficiently manages disjoint subsets, supporting quick union and find operations. It’s well-suited for problems where you need to determine if elements are in the same subset or to merge subsets. The key idea is to treat each island as a separate set and unite these sets based on connectivity.
+
+In this problem, each land cell in both `grid1` and `grid2` is treated as a node. We group nodes (land cells) into islands by using union operations. Then, we verify if the islands in `grid2` are entirely contained within the corresponding islands in `grid1`.
+
+<h3> Algorithm </h3>
+
+1. Create an array of `directions` to store the up, down, left, and right movements.
+2. Define a `UnionFind` class that supports `find` and `union` operations.
+   - `find(u)`: Returns the root of element `u`, applying path compression for optimization.
+   - `union(u, v)`: Unites the sets containing `u` and `v`.
+3. Use a helper method `convertToIndex(x, y, totalCols)` to convert 2D grid coordinates to a 1D index for the Union-Find structure.
+4. Initialize a `UnionFind` object `uf` for both grids.
+5. Iterate through `grid2`, performing union operations on adjacent land cells to group them into islands.
+6. Use a boolean array `isSubIsland` to keep track of whether each island in `grid2` is a valid sub-island.
+7. Iterate through `grid2` again. For each land cell in `grid2`, if its corresponding cell in `grid1` is water, mark the island as not a sub-island.
+8. Count and return the number of sub-islands.
+
+<h3> Implementation </h3>
+
+```cpp
+// 240ms, 96.08MB
+class Solution {
+    // Directions in which we can traverse inside the grids.
+    int directions[4][2] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+
+    // Helper method to check if the cell at the position (x, y) in the 'grid'
+    // is a land cell.
+    bool isCellLand(int x, int y, vector<vector<int>>& grid) {
+        return grid[x][y] == 1;
+    }
+
+    // Union-Find class.
+    class UnionFind {
+    public:
+        vector<int> parent;
+        vector<int> rank;
+
+        // Itialize union-find object with 'n' elements.
+        UnionFind(int n) {
+            parent.resize(n);
+            rank.resize(n, 0);
+            for (int i = 0; i < n; ++i) {
+                parent[i] = i;
+            }
+        }
+
+        // Find the root of element 'u', using the path-compression technique.
+        int find(int u) {
+            if (parent[u] != u) {
+                parent[u] = find(parent[u]);
+            }
+            return parent[u];
+        }
+
+        // Union two components of elements 'u' and 'v' respectively on the
+        // basis of their ranks.
+        void unionSets(int u, int v) {
+            int rootU = find(u);
+            int rootV = find(v);
+            if (rootU != rootV) {
+                if (rank[rootU] > rank[rootV]) {
+                    parent[rootV] = rootU;
+                } else if (rank[rootU] < rank[rootV]) {
+                    parent[rootU] = rootV;
+                } else {
+                    parent[rootV] = rootU;
+                    rank[rootU]++;
+                }
+            }
+        }
+    };
+
+    // Helper method to convert (x, y) position to 1-dimensional index.
+    int convertToIndex(int x, int y, int totalCols) {
+        return x * totalCols + y;
+    }
+
+public:
+    int countSubIslands(vector<vector<int>>& grid1,
+                        vector<vector<int>>& grid2) {
+        int totalRows = grid2.size();
+        int totalCols = grid2[0].size();
+        UnionFind uf(totalRows * totalCols);
+
+        // Traverse on each land cell of 'grid2'.
+        for (int x = 0; x < totalRows; ++x) {
+            for (int y = 0; y < totalCols; ++y) {
+                if (isCellLand(x, y, grid2)) {
+                    // Union adjacent land cells with the current land cell.
+                    for (auto& direction : directions) {
+                        int nextX = x + direction[0], nextY = y + direction[1];
+                        if (nextX >= 0 && nextY >= 0 && nextX < totalRows &&
+                            nextY < totalCols &&
+                            isCellLand(nextX, nextY, grid2)) {
+                            uf.unionSets(
+                                convertToIndex(x, y, totalCols),
+                                convertToIndex(nextX, nextY, totalCols));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Traverse on 'grid2' land cells and mark that cell's root not a
+        // sub-island if land cell not present at the respective position in
+        // 'grid1'.
+        vector<bool> isSubIsland(totalRows * totalCols, true);
+        for (int x = 0; x < totalRows; ++x) {
+            for (int y = 0; y < totalCols; ++y) {
+                if (isCellLand(x, y, grid2) && !isCellLand(x, y, grid1)) {
+                    int root = uf.find(convertToIndex(x, y, totalCols));
+                    isSubIsland[root] = false;
+                }
+            }
+        }
+
+        // Count all the sub-islands.
+        int subIslandCounts = 0;
+        for (int x = 0; x < totalRows; ++x) {
+            for (int y = 0; y < totalCols; ++y) {
+                if (isCellLand(x, y, grid2)) {
+                    int root = uf.find(convertToIndex(x, y, totalCols));
+                    if (isSubIsland[root]) {
+                        subIslandCounts++;
+                        // One cell can be the root of multiple land cells, so
+                        // to avoid counting the same island multiple times and
+                        // mark it as false.
+                        isSubIsland[root] = false;
+                    }
+                }
+            }
+        }
+
+        return subIslandCounts;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $m$ and $n$ represent the number of rows and columns, respectively.
+
+- **Time complexity**: $O(m \cdot n)$
+  - Each land cell is processed once during the union operations.
+  - Thus, in the worst case time complexity will be $O(m \cdot n)$.
+  
+- **Space complexity**: $O(m \cdot n)$
+  - The `UnionFind` data structure and the `isSubIsland` array both have size $m \cdot n$.
+  - Thus, in the worst case space complexity will be $O(m \cdot n)$.
+
 
 ### gpt
 
