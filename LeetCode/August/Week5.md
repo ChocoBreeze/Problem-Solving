@@ -466,25 +466,25 @@ public:
 
 We are given two binary matrices, `grid1` and `grid2`, both of size `m x n`, where 1 represents land and 0 represents water. An island is a group of connected 1s, connected horizontally or vertically. The task is to find how many islands in `grid2` are also sub-islands of `grid1`. An island in `grid2` is considered a sub-island if every land cell of the island is part of an island in `grid1`.
 
-![alt text](image-1.png)
+![alt text](images/image-1.png)
 
 If we overlap this image with `grid1`, we can see all the land cells of the island of `grid2` lie on one island in `grid1`.
 
-![alt text](image-2.png)
+![alt text](images/image-2.png)
 
 Let's consider another island of the `grid2`. Now, is this a sub-island?
 
-![alt text](image-3.png)
+![alt text](images/image-3.png)
 
 If we overlap this image with `grid1`, we can see two land cells are lying on the water cell, thus this island can't be considered a sub-island.
 
-![alt text](image-4.png)
+![alt text](images/image-4.png)
 
 The above images hint that, to check whether an island of `grid2` is a sub-island in `grid1`, we can start traversing each land cell of the current island of `grid2`, and for each land cell, there should be a land cell in `grid1` at the same position (at the same `(x, y)` index in grids).
 
 Each grid cell is connected to its adjacent neighbors 4-directionally (horizontal or vertical). This grid problem can be visualized as a graph traversal problem, where each cell is a node and the 4-directions are edges connecting those nodes.
 
-![alt text](image-5.png)
+![alt text](images/image-5.png)
 
 We will iterate on each cell of the `grid2`. If the current cell is a land cell, we traverse the whole island of `grid2` containing the current land cell. While traversing over the entire island, we keep track of whether for each land cell of the island of `grid2`, the `grid1` also has a land cell at the respective position using a boolean variable. After iteration on the current island is completed, this boolean variable will denote if the island is a sub-island or not.
 
@@ -1042,7 +1042,7 @@ We are given a 2-D plane with `n` stones placed at integer coordinates, where a 
 
 Two stones are considered "connected" if they share a row or column, but this connection extends beyond just pairs of stones. If stone A is connected to stone B and stone B is connected to stone C, then all three stones form part of the same group, even if A and C don’t directly share a row or column. This concept is akin to connected components in graph theory, where a connected component is a group of nodes where you can reach any node from any other node in the group.
 
-![alt text](image-6.png)
+![alt text](images/image-6.png)
 
 Since every stone in a connected component shares a row or column with at least one other stone, we can remove all but one stone. The remaining stone cannot be removed as it no longer shares coordinates with any other stone, having eliminated all others in its component.
 

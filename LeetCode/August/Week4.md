@@ -776,7 +776,7 @@ After generating these candidates, we compare them to `n` and choose the one wit
 3. Mirror the digits of `left` to form a palindrome.
 4. Return the palindrome `res`.
 
-![alt text](image.png)
+![alt text](images/image.png)
 
 **Implementation**
 ```cpp
