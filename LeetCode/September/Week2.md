@@ -15,9 +15,12 @@
   - [24.09.13 - 1310. XOR Queries of a Subarray](#240913---1310-xor-queries-of-a-subarray)
     - [나](#나-4)
     - [Solution](#solution)
+      - [Iteratve Approach](#iteratve-approach)
+      - [Prefix XOR Array](#prefix-xor-array)
   - [24.09.14 - 2419. Longest Subarray With Maximum Bitwise AND](#240914---2419-longest-subarray-with-maximum-bitwise-and)
     - [나](#나-5)
     - [Solution](#solution-1)
+      - [Approach: Longest consecutive sequence of the maximum value](#approach-longest-consecutive-sequence-of-the-maximum-value)
   - [24.09.15 - 1371. Find the Longest Substring Containing Vowels in Even Counts](#240915---1371-find-the-longest-substring-containing-vowels-in-even-counts)
     - [나](#나-6)
     - [Solution](#solution-2)
@@ -422,7 +425,8 @@ public:
 ```
 
 ### Solution
-<h3> Iteratve Approach </h3>
+
+#### Iteratve Approach
 
 ```cpp
 // 1960ms, 41.83MB
@@ -445,7 +449,7 @@ public:
 };
 ```
 
-<h3> Prefix XOR Array </h3>
+#### Prefix XOR Array
 
 ```cpp
 // 69ms, 42.13MB
@@ -507,9 +511,9 @@ public:
 
 We need to find the longest subarray in an integer array where the bitwise AND of all elements equals the maximum possible bitwise AND of any subarray. The bitwise AND results in a value that is always less than or equal to the operands. This operation is commonly used in fields like network filtering, hardware design, and cryptography for tasks such as subnet masking, configuration checks, and data analysis.
 
-<h3> Approach: Longest consecutive sequence of the maximum value </h3>
+#### Approach: Longest consecutive sequence of the maximum value
 
-<h4> Intuition </h4>
+<h3> Intuition </h3>
 
 To understand this problem, we first need to understand what a bitwise AND operation is. In simple terms, a bitwise AND operation takes two binary representations of an integer and performs the logical AND operation on each pair of the corresponding bits. If both bits are 1, the result is 1; otherwise, it's 0.
 
@@ -543,7 +547,7 @@ Let’s look at some examples of subarrays and their bitwise AND results:
 
 From this, we can see that the largest bitwise AND can only be achieved when all the elements in the subarray are equal to the maximum number. So, the task is to find the longest subarray where all the numbers are the maximum value in the array.
 
-<h4> Algorithm </h4>
+<h3> Algorithm </h3>
 
 1. Initialize `max_val = 0`, `ans = 0`, and `current_streak = 0` to track the maximum value, the length of the longest subarray, and the current streak of elements, respectively.
 2. Iterate through each element `num` in the array `nums`.
@@ -553,7 +557,33 @@ From this, we can see that the largest bitwise AND can only be achieved when all
 6. Update `ans` to be the maximum of `ans` and `current_streak` to ensure `ans` holds the length of the longest subarray with the maximum value.
 7. After the loop finishes, return `ans`, which represents the length of the longest subarray where the bitwise AND equals the maximum value.
 
-<h4> Implementation </h4>
+<h3> Implementation </h3>
+
+```cpp
+// 89ms, 84.88MB
+class Solution {
+public:
+    int longestSubarray(vector<int>& nums) {
+        int maxVal = 0, ans = 0, currentStreak = 0;
+
+        for (int num : nums) {
+            if (maxVal < num) {
+                maxVal = num;
+                ans = currentStreak = 0;
+            }
+
+            if (maxVal == num) {
+                currentStreak++;
+            } else {
+                currentStreak = 0;
+            }
+
+            ans = max(ans, currentStreak);
+        }
+        return ans;
+    }
+};
+```
  
 Let $N$ be the length of `nums`.
 
@@ -562,6 +592,7 @@ Let $N$ be the length of `nums`.
 
 - **Space Complexity**: $O(1)$  
   The function uses a fixed amount of extra space regardless of the size of the input array `nums`. Specifically, it only requires a few variables (`max_val`, `ans`, `current_streak`, and `num`) to keep track of intermediate values. This fixed space usage means the space complexity remains constant.
+
 
 ## 24.09.15 - 1371. Find the Longest Substring Containing Vowels in Even Counts
 [문제 링크](https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/description/?envType=daily-question&envId=2024-09-15)
