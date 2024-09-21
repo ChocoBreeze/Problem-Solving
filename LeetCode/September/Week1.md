@@ -13,7 +13,7 @@
     - [gpt](#gpt-1)
   - [24.09.04 - 874. Walking Robot Simulation](#240904---874-walking-robot-simulation)
     - [나](#나-3)
-    - [해설](#해설)
+    - [Solution](#solution-1)
       - [Approach: Simulation](#approach-simulation)
     - [gpt](#gpt-2)
   - [24.09.05 - 2028. Find Missing Observations](#240905---2028-find-missing-observations)
@@ -24,7 +24,7 @@
     - [gpt](#gpt-4)
   - [24.09.07 - 1367. Linked List in Binary Tree](#240907---1367-linked-list-in-binary-tree)
     - [나](#나-6)
-    - [해설](#해설-1)
+    - [해설](#해설)
   - [24.09.08 - 725. Split Linked List in Parts](#240908---725-split-linked-list-in-parts)
     - [나](#나-7)
     - [gpt](#gpt-5)
@@ -354,11 +354,155 @@ simulation은 생각했는데, 장애물 처리 아이디어가 없다.
 
 $\Rightarrow$ 해설 참고
 
-### 해설
+### Solution
+
+<h3> Overview </h3>
+
+We have a robot facing north at the origin `(0, 0)` of an infinite 2D grid. The robot receives a series of instructions from a given list of `commands`, where instruction can be of three types:
+
+1. `-2`: Turn left 90 degrees while staying at the current coordinate.
+2. `-1`: Turn right 90 degrees while staying at the current coordinate.
+3. Any positive integer `k` from 1 to 9: Advance `k` units in the current direction.
+
+Additionally, we are given a list of `obstacles` containing the coordinates of various obstacles on the grid. If the robot encounters an obstacle while moving forward, it stops its motion at the coordinate just before the obstacle and proceeds to the next command.
+
+Our goal is to find the farthest squared distance from the origin that the robot reaches during its journey. In other words, we need to find the maximum value of $x \times x + y \times y$ that can be achieved at any point `(x, y)` visited by the robot.
+
+Keep in mind when planning your approach that the farthest traveled distance during the robot's journey is not the same as its distance from the origin at the end of its journey.
+
+> Note: An obstacle may exist at the origin (0, 0). In this case, the robot can move away from the starting point but will be unable to return to (0, 0).
 
 #### Approach: Simulation
-[링크](https://leetcode.com/problems/walking-robot-simulation/editorial/#approach-simulation)
 
+<h3> Intuition </h3>
+
+The robot's state is defined by two factors:
+
+1. The coordinates of the robot's position: we can use a simple integer array `[x, y]`.
+2. The direction the robot is facing: we can use an integer value (0, 1, 2, 3) representing North, East, South, and West respectively. Consequently, we need a `directions` array representing the direction of motion of the robot, where each index corresponds to [North, East, South, West].
+
+The presence of obstacles prevents us from being able to simply loop over each command and simulate the robot's motion on the grid. A naive approach would be to loop through the obstacle array to check if the next attempted move is blocked by an obstacle. However, this results in quadratic complexity, which is inefficient given our constraints.
+
+Checking whether a given coordinate is an obstacle using hash sets allows for constant-time lookups. If you're unfamiliar with hash sets, this LeetCode [Explore Card](https://leetcode.com/explore/learn/card/hash-table/183/combination-with-other-algorithms/1130/) provides an in-depth explanation.
+
+Our challenge becomes how to look up coordinates in a hash set.
+
+We solve this by hashing the coordinates of each obstacle to a unique integer value and storing these values in the hash set. To check if a coordinate contains an obstacle, we hash the coordinates using the same function and check if the value is present in the hash set.
+
+There are various methods to create [hashing functions](https://en.wikipedia.org/wiki/List_of_hash_functions). For this problem, we'll create a simple one that generates a unique integer value for all coordinates within the given problem constraints.
+
+```python
+hash(x, y) = x + HASH_MULTIPLIER * y
+```
+
+Where `HASH_MULTIPLIER` is a constant slightly larger than twice the maximum possible coordinate value. In this case, we choose `60013`.
+
+> We choose `60013` because it is the smallest prime number greater than 60000 (twice the maximum possible coordinate). This helps reduce the number of potential collisions in our hash function.
+
+slideshow 생략
+
+<h3> Algorithm </h3>
+
+- Create a constant `HASH_MULTIPLIER` to use in the hashing function.
+
+`robotSim` Function:
+- Convert the list of obstacles into a set of hashed coordinates for quick lookup during the simulation.
+- Define the four possible movement directions corresponding to North, East, South, and West.
+- Initialize the robot's starting position at the origin `(0, 0)` and set the initial maximum distance squared to zero.
+- Initialize the current direction of the robot facing North.
+- Iterate through the list of commands:
+  - If the command is `-1`, turn the robot 90 degrees to the right by adjusting the current direction index.
+  - If the command is `-2`, turn the robot 90 degrees to the left by adjusting the current direction index.
+  - Otherwise, for a positive command, move the robot forward step by step:
+    - Calculate the next potential position by adding the current direction vector to the robot's position.
+    - If the next position is an obstacle, stop moving forward.
+    - Otherwise, update the robot's position to the new coordinates.
+  - Update the maximum distance squared if the current position is farther from the origin than before.
+- Return the maximum distance squared as the result of the simulation.
+
+`hashCoordinates` Function:
+- Combine the `x` and `y` coordinates into a unique hash value by multiplying the `y` coordinate by a constant multiplier and adding the `x` coordinate.
+- Return the computed hash value to be used for obstacle lookup.
+
+<h3> Implementation </h3>
+
+```cpp
+// 76ms, 38.18MB
+class Solution {
+private:
+    static const long long HASH_MULTIPLIER =
+        60013;  // Slightly larger than 2 * max coordinate value
+
+    // Hash function to convert (x, y) coordinates to a unique integer value
+    long long hashCoordinates(long long x, long long y) {
+        return x + HASH_MULTIPLIER * y;
+    }
+
+public:
+    int robotSim(vector<int>& commands, vector<vector<int>>& obstacles) {
+        // Store obstacles in an unordered_set for efficient lookup
+        unordered_set<long long> obstacleSet;
+        for (auto& obstacle : obstacles) {
+            obstacleSet.insert(hashCoordinates(obstacle[0], obstacle[1]));
+        }
+
+        // Define direction vectors: North, East, South, West
+        vector<vector<int>> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+
+        vector<int> currentPosition = {0, 0};
+        int maxDistanceSquared = 0;
+        int currentDirection = 0;  // 0: North, 1: East, 2: South, 3: West
+
+        for (int command : commands) {
+            if (command == -1) {
+                // Turn right
+                currentDirection = (currentDirection + 1) % 4;
+                continue;
+            }
+            if (command == -2) {
+                // Turn left
+                currentDirection = (currentDirection + 3) % 4;
+                continue;
+            }
+
+            // Move forward
+            vector<int> direction = directions[currentDirection];
+            for (int step = 0; step < command; step++) {
+                int nextX = currentPosition[0] + direction[0];
+                int nextY = currentPosition[1] + direction[1];
+                if (obstacleSet.contains(hashCoordinates(nextX, nextY))) {
+                    break;
+                }
+                currentPosition[0] = nextX;
+                currentPosition[1] = nextY;
+            }
+
+            maxDistanceSquared =
+                max(maxDistanceSquared,
+                    currentPosition[0] * currentPosition[0] +
+                        currentPosition[1] * currentPosition[1]);
+        }
+
+        return maxDistanceSquared;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $m$ and $n$ be the length of `commands` and `obstacles`, respectively.
+
+- **Time complexity**: $O(m + n)$  
+  The algorithm initially iterates over the `obstacles` array and hashes each obstacle’s coordinates, taking $O(n)$ time.
+  
+  The algorithm then loops over the `commands` array. In the worst case, each command is a positive integer `k`. Since the maximum value of `k` is limited to 9, this step has a time complexity of $O(9 \cdot m) = O(m)$.
+
+  Thus, the overall time complexity of the algorithm is $O(n) + O(m) = O(m + n)$.
+
+- **Space complexity**: $O(n)$  
+  The only additional space used by the algorithm is the `obstacleSet`, which stores up to $n$ hashed obstacle positions. The `directions` and `currentPosition` arrays and all other primitive variables use constant space.
+
+  Thus, the space complexity of the algorithm is $O(n)$.
 
 ### gpt
 In the **"Walking Robot Simulation"** problem, you are given a robot starting at the origin of a 2D plane, facing north. The robot receives a series of commands (positive for movement and negative for turns) and obstacles scattered on the plane. The goal is to determine the farthest distance (squared) the robot can be from the origin after executing all commands while avoiding obstacles.
