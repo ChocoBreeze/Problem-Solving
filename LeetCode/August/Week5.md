@@ -18,7 +18,7 @@
     - [gpt](#gpt-1)
   - [24.08.29 - 947. Most Stones Removed with Same Row or Column](#240829---947-most-stones-removed-with-same-row-or-column)
     - [나](#나-3)
-    - [추후 해설 참고](#추후-해설-참고)
+    - [Solution](#solution-2)
       - [Approach 1: Depth First Search](#approach-1-depth-first-search)
       - [Approach 2: Disjoint Set Union](#approach-2-disjoint-set-union)
       - [Approach 3: Disjoint Set Union (Optimized)](#approach-3-disjoint-set-union-optimized)
@@ -1030,17 +1030,416 @@ public:
 };
 ```
 
-### 추후 해설 참고
+### Solution
+
+<h3> Overview </h3>
+
+We are given a 2-D plane with `n` stones placed at integer coordinates, where a stone can be removed only if another stone shares either its row or column. Our task is to determine the maximum number of stones that can be removed from the plane under these conditions.
 
 #### Approach 1: Depth First Search
-[링크](https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/editorial/?envType=daily-question&envId=2024-08-29#approach-1-depth-first-search)
+
+<h3> Intuition </h3>
+
+Two stones are considered "connected" if they share a row or column, but this connection extends beyond just pairs of stones. If stone A is connected to stone B and stone B is connected to stone C, then all three stones form part of the same group, even if A and C don’t directly share a row or column. This concept is akin to connected components in graph theory, where a connected component is a group of nodes where you can reach any node from any other node in the group.
+
+![alt text](image-6.png)
+
+Since every stone in a connected component shares a row or column with at least one other stone, we can remove all but one stone. The remaining stone cannot be removed as it no longer shares coordinates with any other stone, having eliminated all others in its component.
+
+Therefore, if our 2-D plane contains multiple connected components, each can be reduced to a single stone. The maximum number of stones that can be removed can be mathematically expressed as:
+
+$$
+\text{Max removable stones} = \text{Total stones} - \text{Number of connected components}
+$$
+
+<details>
+  <summary>Proof that in a connected component of stones, we can remove all but one stone.</summary> <br/>
+  
+  **Base case:** For $n \leq 2$, the statement is trivially true.
+
+  - For $n = 1$, we can't remove any stones.
+  - For $n = 2$, we can remove one stone, leaving the other.
+
+  **Inductive hypothesis:** Assume the statement holds for all connected components of size $k$ or less, where $k \geq 2$.
+
+  **Inductive step:** Consider a connected component $C$ of size $k + 1$.
+
+  1. Choose an arbitrary stone $S$ to keep.
+  2. The remaining $k$ stones form $m$ connected sub-components $C_1, C_2, ..., C_m$, where $1 \leq m \leq k$.
+  3. For each sub-component $C_i$:
+     - By the inductive hypothesis, we can remove all but one stone from $C_i$.
+     - Choose to keep the stone in $C_i$ that is connected to $S$ in the original component $C$.
+  4. After applying step 4 to all sub-components, we have removed $(s_1 - 1) + (s_2 - 1) + ... + (s_m - 1) = k - m$ stones.
+  5. We are now left with $m + 1$ stones: the $m$ stones we kept from each sub-component, plus our original chosen stone $S$.
+  6. Each of these $m$ stones shares either a row or column with $S$, so we can remove these $m$ stones one by one.
+  7. In total, we have removed $(k - m) + m = k$ stones, leaving only the originally chosen stone $S$.
+  
+  **Conclusion:** By the principle of mathematical induction, we've proved that for any connected component of size $n$, we can remove $n - 1$ stones, leaving just one stone.
+</details> <br/>
+
+So, our implementation boils down to two parts:
+
+1. Represent the stones as a graph.
+2. Count the number of connected components in this graph.
+
+For the first part, we can utilize an adjacency list, where for each stone, we maintain a list of all other stones it's connected to (i.e., shares a row or column with).
+
+For the second part, we can apply a graph traversal algorithm, such as Depth-First Search (DFS). We start a DFS from an unvisited stone, marking all reachable stones as visited, and count this as one connected component. We repeat this process until all stones are visited. The number of DFS executions will give us the total number of connected components in the grid, after which we can apply the formula above to determine the maximum number of stones that can be removed.
+
+> Note: While we've discussed using depth-first search to explore each connected component, breadth-first search is an equally valid alternative, offering similar time and space complexities.
+
+<h3> Algorithm </h3>
+
+Main method `removeStones`:
+
+- Set `n` as the length of the input array `stones`.
+- Initialize a list of lists `adjacencyList` with `n` empty lists.
+- Iterate over each stone `i`:
+  - For each stone `i`, iterate over stones `j` from `i+1` to `n-1`:
+    - If `stones[i]` shares the same row (`stones[i][0] == stones[j][0]`) or column (`stones[i][1] == stones[j][1]`) as `stones[j]`:
+      - Add `j` to the adjacency list of `i` and `i` to the adjacency list of `j`.
+- Initialize a variable `numOfConnectedComponents` to `0` to keep track of the number of connected components in the graph.
+- Create a boolean array `visited` of length `n` initialized to `false`, to track which stones have been visited during the DFS.
+- Iterate over each stone `i`:
+  - If stone `i` has not been visited, perform a DFS starting from stone `i` to visit all stones in the same connected component.
+  - After the DFS completes, increment `numOfConnectedComponents` by `1`.
+- Return `n - numOfConnectedComponents` as our answer.
+
+Helper method `depthFirstSearch`:
+
+- Define a method `depthFirstSearch` with parameters: `adjacencyList`, `visited`, and the current `stone`.
+- Mark the current `stone` as visited by setting `visited[stone]` to `true`.
+- For each `neighbor` of `stone` in the `adjacencyList`:
+  - If the neighbor has not been visited:
+    - Recursively call `depthFirstSearch` on `neighbor` to visit all stones in the connected component.
+
+<h3> Implementation </h3>
+
+```cpp
+// 93ms, 20.44MB
+class Solution {
+public:
+    int removeStones(vector<vector<int>>& stones) {
+        int n = stones.size();
+
+        // Adjacency list to store graph connections
+        vector<vector<int>> adjacencyList(n);
+
+        // Build the graph: Connect stones that share the same row or column
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (stones[i][0] == stones[j][0] ||
+                    stones[i][1] == stones[j][1]) {
+                    adjacencyList[i].push_back(j);
+                    adjacencyList[j].push_back(i);
+                }
+            }
+        }
+
+        int numOfConnectedComponents = 0;
+        vector<bool> visited(n, false);
+
+        // Traverse all stones using DFS to count connected components
+        for (int i = 0; i < n; i++) {
+            if (!visited[i]) {
+                depthFirstSearch(adjacencyList, visited, i);
+                numOfConnectedComponents++;
+            }
+        }
+
+        // Maximum stones that can be removed is total stones minus number of
+        // connected components
+        return n - numOfConnectedComponents;
+    }
+
+private:
+    // DFS to visit all stones in a connected component
+    void depthFirstSearch(vector<vector<int>>& adjacencyList,
+                          vector<bool>& visited, int stone) {
+        visited[stone] = true;
+
+        for (int neighbor : adjacencyList[stone]) {
+            if (!visited[neighbor]) {
+                depthFirstSearch(adjacencyList, visited, neighbor);
+            }
+        }
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the length of the `stones` array.
+
+- **Time complexity:** $O(n^2)$
+  - The graph is built by iterating over all pairs of stones $(i, j)$ to check if they share the same row or column, resulting in $O(n^2)$ time complexity.
+  - In the worst case, the depth-first search will traverse all nodes and edges. Since each stone can be connected to every other stone, the algorithm can visit all $O(n^2)$ edges across all DFS calls.
+  - Thus, the overall time complexity of the algorithm is $O(n^2)$.
+
+- **Space complexity:** $O(n^2)$
+  - The `adjacencyList` could store up to $O(n^2)$ edges.
+  - The `visited` array takes an additional linear space.
+  - The recursive DFS call stack can go as deep as the number of stones in a single connected component. In the worst case, this depth could be $n$, leading to $O(n)$ additional space for the stack.
+  - Thus, the space complexity of the algorithm is $O(n^2)$.
 
 #### Approach 2: Disjoint Set Union
-[링크](https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/editorial/?envType=daily-question&envId=2024-08-29#approach-2-disjoint-set-union)
+
+<h3> Intuition </h3>
+
+A Disjoint Set Union (or Union-Find) is an efficient data structure for identifying connected components in a graph. It helps us group elements into disjoint sets, determine which set an element belongs to, and efficiently merge sets—exactly what we need here. If you are unfamiliar with DSU, have a look at this LeetCode [Explore Card](https://leetcode.com/explore/learn/card/graph/618/disjoint-set/3881/) for in-depth explanation.
+
+We begin by treating each stone as a separate set, meaning every stone starts off in its own connected component. Then, we iterate over each pair of stones and merge (union) them if they share a common row or column.
+
+In our Union-Find data structure, we also maintain a `count`, which keeps track of the total number of separate connected components in the graph. This `count` is initially set to `n`, the total number of stones. Each successful union operation indicates that two separate components have merged into one, so we decrement the `count`.
+
+After processing all possible pairs of stones, the value of `n - count` gives us the maximum number of stones that can be removed.
+
+<h3> Algorithm </h3>
+
+Main method `removeStones`:
+
+- Set `n` as the length of the input array `stones`.
+- Initialize a `UnionFind` object `uf` with `n` as the size.
+- Iterate over each stone `i`:
+  - For each `i`, iterate over stones `j` from `i+1` to `n-1`:
+    - If stone `i` shares the same row or column as stone `j`:
+      - Perform a `union` operation on `i` and `j`.
+- Return `n - uf.count`.
+
+Helper class `UnionFind`:
+
+- Define a class `UnionFind` with fields: an integer array `parent` and a variable `count`.
+- Override the default constructor:
+  - Initialize `parent` to size `n` with all elements set to `-1`.
+  - Set `count` to `n`, representing the initial number of connected components.
+
+Helper method `find(node)` [`UnionFind`]:
+
+- If the parent of `node` is `-1`, return `node` as it is its own root.
+- Otherwise, recursively call `find` on `parent[node]`, set its result to `parent[node]` and return it.
+
+Helper method `union(n1, n2)` `[UnionFind]`:
+
+- Find the roots of `n1` and `n2` using the `find` method and store it in `root1` and `root2`, respectively.
+- If `root1` is equal to `root2`, both stones are already in the same connected component, so return.
+- If `root1` and `root2` are different, merge the two components by setting `parent[root1]` to `root2`.
+- Decrement `count`.
+
+<h3> Implementation </h3>
+
+```cpp
+// 63ms, 18.09MB
+class Solution {
+public:
+    int removeStones(vector<vector<int>>& stones) {
+        int n = stones.size();
+        UnionFind uf(n);
+
+        // Populate uf by connecting stones that share the same row or column
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (stones[i][0] == stones[j][0] ||
+                    stones[i][1] == stones[j][1]) {
+                    uf.unionNodes(i, j);
+                }
+            }
+        }
+
+        return n - uf.count;
+    }
+
+private:
+    // Union-Find data structure for tracking connected components
+    class UnionFind {
+    public:
+        vector<int> parent;  // Array to track the parent of each node
+        int count;           // Number of connected components
+
+        UnionFind(int n) {
+            parent.resize(n, -1);  // Initialize all nodes as their own parent
+            count = n;  // Initially, each stone is its own connected component
+        }
+
+        // Find the root of a node with path compression
+        int find(int node) {
+            if (parent[node] == -1) {
+                return node;
+            }
+            return parent[node] = find(parent[node]);
+        }
+
+        // Union two nodes, reducing the number of connected components
+        void unionNodes(int n1, int n2) {
+            int root1 = find(n1);
+            int root2 = find(n2);
+
+            if (root1 == root2) {
+                return;  // If they are already in the same component, do
+                         // nothing
+            }
+
+            // Merge the components and reduce the count of connected components
+            count--;
+            parent[root1] = root2;
+        }
+    };
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the length of the `stones` array.
+
+- **Time complexity:** $O(n^2 \cdot \alpha(n))$
+  - Initializing the `parent` array with `-1$ takes $O(n)$ time.
+  - The nested loops iterate through each pair of stones, resulting in $O(n^2)$ time complexity.
+  - Each `union` operation takes $O(\alpha(n))$, where $\alpha(n)$ is the [inverse Ackermann function](https://www.gabrielnivasch.org/fun/inverse-ackermann).
+  - Thus, the overall time complexity is $O(n^2 \cdot \alpha(n))$.
+
+- **Space complexity:** $O(n)$
+  - The `parent` array takes $O(n)$ space.
+
+
+---
 
 #### Approach 3: Disjoint Set Union (Optimized)
-[링크](https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/editorial/?envType=daily-question&envId=2024-08-29#approach-3-disjoint-set-union-optimized)
 
+<h3> Intuition </h3>
+
+The most time-consuming part of our previous algorithms has been iterating through every possible pair of stones, but can we do better?
+
+In our earlier approach, each stone was treated as a distinct entity. In this improved method, we'll break each stone down into two entities: a row index and a column index. Although this effectively doubles the total number of nodes in the graph, it doesn't affect our solution since our goal is to find the number of connected components, not the number of nodes within each component.
+
+When we treat the row and column indices as separate entities, all stones that share the same row or column index become implicitly connected, eliminating the need to manually connect these stones. However, we do need to connect the row and column indices of a stone since they were originally part of the same element.
+
+This optimization condenses our algorithm into a single step: looping through the input array `stones` and unioning the row and column indices of each element. However, this approach introduces two challenges:
+
+1. **Differentiating Between Row and Column Elements**:  
+   If a row and column share the same value, how do we distinguish between them? For instance, consider two stones positioned at (x, y) and (y, z). If we union x with y, and y with z, the Disjoint Set Union (DSU) might incorrectly consider the two stones as connected, which is not necessarily true. To address this, we differentiate between row and column elements by offsetting the column value by a large constant that places it beyond the range of valid row values. We use 10,001 for this purpose, as the range of row indices is [0, 10,000].
+
+2. **Counting the Number of Connected Components**:  
+   Initially, we assumed the number of connected components was `n` since each stone was treated as a separate node. However, in this approach, a stone is no longer the basic unit in the graph. While it might seem logical to consider the number of nodes as twice the number of stones, this assumption is incorrect because row and column indices are likely to be repeated among stones and thus will not form separate nodes in the graph.
+
+   To accurately track the number of nodes, we maintain a set called `uniqueNodes`. Before performing a union operation, we check if the nodes (row and column) have been encountered before. If not, these are new nodes in the graph and can initially be considered separate components, so we increment our count. If the union operation is successful, we subsequently decrease the count.
+
+After all operations are complete, the count will store the number of connected components in the graph.
+
+<h3> Algorithm </h3>
+
+Main method `removeStones`:
+
+- Set `n` as the length of the input array `stones`.
+- Create an instance of the `UnionFind` class `uf` with a size of `20002` to handle the coordinate range.
+- Loop through each stone `i` in `stones`:
+  - Call `uf.union()` to union the x-coordinate (`stones[i][0]`) and the y-coordinate offset by `10001` (`stones[i][1] + 10001`).
+- Return `n - uf.componentCount` as our result.
+
+Helper Class: `UnionFind`
+
+- Fields:
+  - `parent`: an integer array to track the parent of each node.
+  - `componentCount`: a counter to track the number of connected components.
+  - `uniqueNodes`: a set to store all the unique row and column indices that have been processed.
+
+- Constructor:
+  - Initialize `parent` to size `n` with all elements set to `-1`.
+  - Set `componentCount` to `0` to track the number of connected components.
+  - Initialize `uniqueNodes` to track which nodes have been processed.
+
+- Helper method `find(node)`:
+  - If `node` is not in `uniqueNodes`:
+    - Increment `componentCount` and add the node to `uniqueNodes`.
+  - If the parent of the `node` is `-1`:
+    - Return `node` itself as it is its own parent.
+  - Otherwise, recursively call `find` on `parent[node]`, set its result to `parent[node]`, and return it.
+
+- Helper method `union(n1, n2)`:
+  - Find the roots of `n1` and `n2` using the `find` method and store it in `root1` and `root2`, respectively.
+  - If the roots are the same, they are already in the same component, so return.
+  - Otherwise, merge the two components by setting `parent[root1]` to `root2`.
+  - Decrement `componentCount`.
+
+<h3> Implementations </h3>
+
+```cpp
+// 26ms, 27.02MB
+class Solution {
+public:
+    int removeStones(vector<vector<int>>& stones) {
+        int n = stones.size();
+        UnionFind uf(20002);  // Initialize UnionFind with a large enough range
+                              // to handle coordinates
+
+        // Union stones that share the same row or column
+        for (int i = 0; i < n; i++) {
+            uf.unionNodes(
+                stones[i][0],
+                stones[i][1] + 10001);  // Offset y-coordinates to avoid
+                                        // conflict with x-coordinates
+        }
+
+        return n - uf.componentCount;
+    }
+
+private:
+    // Union-Find data structure for tracking connected components
+    class UnionFind {
+    public:
+        vector<int> parent;  // Array to track the parent of each node
+        int componentCount;  // Number of connected components
+        unordered_set<int> uniqueNodes;  // Set to track unique nodes
+
+        UnionFind(int n) {
+            parent.resize(n, -1);  // Initialize all nodes as their own parent
+            componentCount = 0;
+        }
+
+        // Find the root of a node with path compression
+        int find(int node) {
+            // If node is not marked, increase the component count
+            if (uniqueNodes.find(node) == uniqueNodes.end()) {
+                componentCount++;
+                uniqueNodes.insert(node);
+            }
+
+            if (parent[node] == -1) {
+                return node;
+            }
+            return parent[node] = find(parent[node]);
+        }
+
+        // Union two nodes, reducing the number of connected components
+        void unionNodes(int node1, int node2) {
+            int root1 = find(node1);
+            int root2 = find(node2);
+
+            if (root1 == root2) {
+                return;  // If they are already in the same component, do
+                         // nothing
+            }
+
+            // Merge the components and reduce the component count
+            parent[root1] = root2;
+            componentCount--;
+        }
+    };
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the length of the `stones` array.
+
+- **Time complexity**: $O(n)$  
+  Since the size of the `parent` array is constant (`20002`), initializing it takes constant time.  
+  The `union` operation is called $n$ times, once for each stone. All `union` and `find` operations take $O(\alpha(n))$ time, where $\alpha$ is the inverse Ackermann function. Thus, the overall time complexity is $O(n)$.
+
+- **Space complexity**: $O(n + 20002)$  
+  The `parent` array takes a constant space of `20002`.  
+  The `uniqueNodes` set can have at most $2n$ elements, corresponding to all unique $x$ and $y$ coordinates.  
+  The space complexity of this set is $O(n)$.  
+  Thus, the overall space complexity of the approach is $O(n + 20002)$.
+  > While constants are typically excluded from complexity analysis, we've included it here due to its substantial size.
 
 ### gpt
 Certainly! The problem "Most Stones Removed with Same Row or Column" on LeetCode is an interesting problem that can be approached using graph theory, specifically using the Union-Find (also known as Disjoint Set Union) algorithm. 
