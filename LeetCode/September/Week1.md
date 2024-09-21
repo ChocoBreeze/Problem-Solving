@@ -24,7 +24,10 @@
     - [gpt](#gpt-4)
   - [24.09.07 - 1367. Linked List in Binary Tree](#240907---1367-linked-list-in-binary-tree)
     - [나](#나-6)
-    - [해설](#해설)
+    - [Solution](#solution-2)
+      - [Approach 1: DFS](#approach-1-dfs)
+      - [Approach 2: Iterative Approach](#approach-2-iterative-approach)
+      - [Approach 3: Knuth-Morris-Pratt (KMP) Algorithm](#approach-3-knuth-morris-pratt-kmp-algorithm)
   - [24.09.08 - 725. Split Linked List in Parts](#240908---725-split-linked-list-in-parts)
     - [나](#나-7)
     - [gpt](#gpt-5)
@@ -840,10 +843,294 @@ public:
 };
 ```
 
-### 해설
-[링크](https://leetcode.com/problems/linked-list-in-binary-tree/editorial)
+### Solution
 
-추후 작성.
+<h3> Overview </h3>
+
+We are given a binary tree and a linked list. Our task is to determine if the linked list is represented by any downward path in the binary tree. A downward path in the binary tree is defined as a path that starts at any node and extends to its subsequent child nodes, going downward.
+
+#### Approach 1: DFS
+
+<h3> Intuition </h3>
+
+A direct approach is to explore every possible path in the tree using Depth-First Search (DFS). This method allows us to examine each path fully before moving to the next.
+
+We begin at the root of the tree and compare its value to the head of the linked list. If they match, we continue by checking the left and right children of the tree node against the next node in the linked list. If the tree node's value does not match the linked list node, we stop exploring that path since it can't lead to a match. We then backtrack and try the next possible path.
+
+<h3> Algorithm </h3>
+
+- If `root` is null, return `false` (base case).
+- Call `checkPath(root, head)` to start checking for the linked list path in the tree.
+- `checkPath` function:
+  - If `node` is null, return `false` (base case).
+  - Call `dfs(node, head)` to check if a matching path starts from `node`.
+    - If `dfs` returns `true`, return `true` (a matching path is found).
+  - Recursively call `checkPath` on both left and right subtrees with the same `head`.
+- `dfs` function:
+  - If `head` is null, return `true` (all nodes in the list have been matched).
+  - If `node` is null, return `false` (reached end of the tree without matching all nodes).
+  - If the value of `node` does not match `head`, return `false` (value mismatch).
+  - Recursively call `dfs` on both left and right children of `node` with `head->next`.
+- Return `true` if `checkPath` or `dfs` finds a matching path; otherwise, continue checking.
+
+<h3> Implementation </h3>
+
+```cpp
+// 25ms, 30.86MB
+class Solution {
+public:
+    bool isSubPath(ListNode* head, TreeNode* root) {
+        if (!root) return false;
+        return checkPath(root, head);
+    }
+
+private:
+    bool checkPath(TreeNode* node, ListNode* head) {
+        if (!node) return false;
+        if (dfs(node, head)) return true;  // If a matching path is found
+        // Recursively check left and right subtrees
+        return checkPath(node->left, head) || checkPath(node->right, head);
+    }
+
+    bool dfs(TreeNode* node, ListNode* head) {
+        if (!head) return true;  // All nodes in the list matched
+        if (!node)
+            return false;  // Reached end of tree without matching all nodes
+        if (node->val != head->val) return false;  // Value mismatch
+        return dfs(node->left, head->next) || dfs(node->right, head->next);
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the number of nodes in the tree and $m$ be the length of the linked list.
+
+- **Time complexity**: $O(n \times m)$  
+  In the worst case, we might need to check every node in the tree as a potential starting point for the linked list. For each node, we might need to traverse up to $m$ nodes in the linked list.
+  
+- **Space complexity**: $O(n + m)$  
+  The space complexity remains the same as Approach 1 due to the recursive nature of the solution.
+
+#### Approach 2: Iterative Approach
+
+<h3> Intuition </h3>
+
+A common rule of thumb is that all approaches solvable via recursion can also be solved using a stack to mimic the call stack's nature. Unlike recursion, where each function call adds a new frame to the call stack, using a stack avoids the risk of stack overflow errors in cases where the depth of recursion is too large (e.g., in a very deep tree).
+
+We start by putting the root of the tree onto the stack. This stack helps us explore the tree without recursion. We repeatedly take the top node from the stack and check if there is a path from this node that matches the linked list. If there is, we return true. If not, we add the node's left and right children to the stack for further checking.
+
+To match the path, we use another stack to keep track of pairs of tree nodes and linked list nodes. We compare each pair, and if they match, we continue with the next node in the linked list and the children of the current tree node. If we find that the entire linked list matches a path in the tree, we return true.
+
+If we finish checking all possible paths without finding a match, we return false.
+
+> Fun fact: Iterative approaches often provide more control over traversal, allowing you to access every path and create patterns that do not follow traditional recursion rules.
+
+<h3> Algorithm </h3>
+
+- Check if `root` is null:
+  - If `root` is null, return `false` (base case).
+- Initialize a stack `nodes` and push `root` onto the stack.
+- While the stack `nodes` is not empty:
+  - Pop the top `node` from the stack.
+  - Call `isMatch(node, head)` to check if the linked list `head` matches a path starting from `node`.
+    - If `isMatch` returns `true`, return `true` (a matching path is found).
+  - If `node` has a left child, push it onto the stack.
+  - If `node` has a right child, push it onto the stack.
+- If no matching path is found after checking all nodes, return `false`.
+- `isMatch` function:
+  - Initialize a stack `s` and push a pair `{node, lst}` onto it.
+  - While the stack `s` is not empty:
+    - Pop the top pair `{currentNode, currentList}` from the stack.
+    - While both `currentNode` and `currentList` are not null:
+      - If `currentNode->val` does not match `currentList->val`, break (no match).
+      - Move to the next node in the linked list (`currentList = currentList->next`).
+      - If `currentList` is not null:
+        - If `currentNode` has a left child, push `{currentNode->left, currentList}` onto the stack.
+        - If `currentNode` has a right child, push `{currentNode->right, currentList}` onto the stack.
+        - Break to continue with the next pair in the stack.
+    - If `currentList` becomes null, return `true` (all nodes in the list matched).
+- Return `false` if no matching path is found after exploring all possibilities.
+
+<h3> Implementation </h3>
+
+```cpp
+// 47ms, 50.24MB
+class Solution {
+public:
+    bool isSubPath(ListNode* head, TreeNode* root) {
+        if (!root) return false;
+
+        // Initialize a stack for DFS on the tree
+        stack<TreeNode*> nodes;
+        nodes.push(root);
+
+        // Perform DFS
+        while (!nodes.empty()) {
+            TreeNode* node = nodes.top();
+            nodes.pop();
+
+            // Check if the current node's path matches the linked list
+            if (isMatch(node, head)) {
+                return true;
+            }
+
+            // Push left and right children onto the stack
+            if (node->left) {
+                nodes.push(node->left);
+            }
+            if (node->right) {
+                nodes.push(node->right);
+            }
+        }
+
+        return false;
+    }
+
+private:
+    bool isMatch(TreeNode* node, ListNode* lst) {
+        stack<pair<TreeNode*, ListNode*>> s;
+        s.push({node, lst});
+
+        while (!s.empty()) {
+            auto [currentNode, currentList] = s.top();
+            s.pop();
+
+            while (currentNode && currentList) {
+                if (currentNode->val != currentList->val) {
+                    break;
+                }
+                currentList = currentList->next;
+
+                if (currentList) {
+                    if (currentNode->left) {
+                        s.push({currentNode->left, currentList});
+                    }
+                    if (currentNode->right) {
+                        s.push({currentNode->right, currentList});
+                    }
+                    break;
+                }
+            }
+
+            if (!currentList) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the number of nodes in the tree and $m$ be the length of the linked list.
+
+- **Time complexity**: $O(n \times m)$  
+  We potentially visit each node in the tree once. For each node, we might need to check up to $m$ nodes in the linked list.
+  
+- **Space complexity**: $O(n)$  
+  The space is used by the stack, which in the worst case might contain all nodes of the tree. We don't need extra space for the linked list traversal as it's done iteratively.
+
+#### Approach 3: Knuth-Morris-Pratt (KMP) Algorithm
+
+<h3> Intuition </h3>
+
+Approach 3 is more advanced and requires an understanding of the Knuth-Morris-Pratt (KMP) string-matching algorithm. We suggest reviewing [28. Find the Index of the First Occurrence in a String - Easy Tagged](https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/description/) and solving it using the KMP algorithm before diving into this approach.
+
+The previous approaches all involve searching the tree from the root and checking each path independently, which can be repetitive. By adjusting the idea behind the KMP algorithm, we can reduce this repetition and optimize the approach.
+
+The KMP algorithm efficiently finds occurrences of a pattern (in this case, the linked list) within a text by using a prefix table, or failure function, to skip unnecessary comparisons.
+
+The key to KMP is the prefix table, also known as the failure function. This table helps us understand how to skip certain comparisons based on what we’ve already matched.
+
+We first build a table that indicates the longest proper prefix of the pattern that is also a suffix. This table tells us where to resume the search in the pattern after a mismatch. For example, consider the pattern `ABABCABAB`. The prefix table for this pattern helps us understand that if a mismatch occurs after `AB`, we don’t need to start from the beginning of the pattern but can skip to the next best position that aligns with what we’ve already matched.
+
+As we search for the pattern in the text, if we encounter a mismatch, the prefix table tells us how far back we should go in the pattern to continue the search efficiently. Instead of starting the comparison from the beginning of the pattern again, we use the prefix table to skip over parts of the pattern that have already been matched. This reduces unnecessary comparisons.
+
+Similarly, we construct the prefix table for the linked list by following the same principle of finding the longest prefix that is also a suffix. This helps in efficiently finding where to resume the search if a mismatch occurs while traversing paths in the tree.
+
+We perform a DFS on the tree, treating each node's value as part of the text where we want to match our pattern (the linked list). As we traverse the tree, if a mismatch occurs, the prefix table tells us how much of the pattern we can skip, based on what we’ve already matched.
+
+> Note: Running through a dry run of this approach will help you get a better grip on how it works. It’s a great way to see the logic in action with a few concrete examples and spot any issues.
+
+<h3> Algorithm </h3>
+
+- Build the pattern and prefix table from the linked list:
+  - Initialize `pattern` with the value of the head node of the linked list.
+  - Initialize `prefixTable` with `0` to store prefix lengths.
+  - Iterate through the linked list to construct `pattern` and `prefixTable`:
+    - For each value, update the `patternIndex` to find matching prefixes using the `prefixTable`.
+    - Add the current value to `pattern` and update `prefixTable` accordingly.
+    - Move to the next node in the linked list.
+- Perform DFS to search for the pattern in the tree:
+  - Call `searchInTree` with the root of the tree, starting pattern index `0`, and the `pattern` and `prefixTable`.
+- `searchInTree` function:
+  - If `node` is null, return `false` (base case).
+  - Update `patternIndex` to find the matching prefix:
+    - If the current node value does not match the pattern at `patternIndex`, use the `prefixTable` to backtrack to the correct index.
+    - Increment `patternIndex` if there is a match.
+  - Check if the entire `pattern` has been matched (`patternIndex == pattern.size()`):
+    - If matched, return `true`.
+  - Recursively search in both left and right subtrees of the current `node`:
+    - Return `true` if either subtree contains a matching path; otherwise, continue searching.
+
+<h3> Implementation </h3>
+
+```cpp
+// 34ms, 30.95MB
+class Solution {
+public:
+    bool isSubPath(ListNode* head, TreeNode* root) {
+        // Build the pattern and prefix table from the linked list
+        vector<int> pattern = {head->val}, prefixTable = {0};
+        int patternIndex = 0;
+        head = head->next;
+
+        while (head) {
+            while (patternIndex && head->val != pattern[patternIndex])
+                patternIndex = prefixTable[patternIndex - 1];
+            patternIndex += head->val == pattern[patternIndex];
+            pattern.push_back(head->val);
+            prefixTable.push_back(patternIndex);
+            head = head->next;
+        }
+
+        // Perform DFS to search for the pattern in the tree
+        return searchInTree(root, 0, pattern, prefixTable);
+    }
+
+private:
+    bool searchInTree(TreeNode* node, int patternIndex,
+                      const vector<int>& pattern,
+                      const vector<int>& prefixTable) {
+        if (!node) return false;
+
+        while (patternIndex && node->val != pattern[patternIndex])
+            patternIndex = prefixTable[patternIndex - 1];
+        patternIndex += node->val == pattern[patternIndex];
+
+        // Check if the pattern is fully matched
+        if (patternIndex == pattern.size()) return true;
+
+        // Recursively search left and right subtrees
+        return searchInTree(node->left, patternIndex, pattern, prefixTable) ||
+               searchInTree(node->right, patternIndex, pattern, prefixTable);
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the number of nodes in the tree and $m$ be the length of the linked list.
+
+- **Time complexity**: $O(n + m)$  
+  Building the pattern and prefix table takes $O(m)$, and searching the tree is $O(n)$.
+  
+- **Space complexity**: $O(n + m)$  
+  We need $O(m)$ space for the pattern and prefix table. The recursive call stack in the worst case (skewed tree) can take up to $O(n)$ space.
+
 
 ## 24.09.08 - 725. Split Linked List in Parts
 [문제 링크](https://leetcode.com/problems/split-linked-list-in-parts/description/?envType=daily-question&envId=2024-09-08)
