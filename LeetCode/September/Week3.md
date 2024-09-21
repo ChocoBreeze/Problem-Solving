@@ -11,6 +11,9 @@
   - [24.09.18 - 179. Largest Number](#240918---179-largest-number)
     - [나](#나-2)
     - [Solution](#solution-1)
+      - [Proof of Correctness](#proof-of-correctness)
+      - [Approach 1: Using Built-in Function](#approach-1-using-built-in-function)
+      - [Approach 5: TimSort](#approach-5-timsort)
     - [TimSort \& IntroSort](#timsort--introsort)
       - [TimSort](#timsort)
       - [IntroSort](#introsort)
@@ -342,7 +345,7 @@ To fix this, we compare the concatenated results of pairs of numbers. For exampl
 
 The key is that this comparison ensures that the greedy approach of comparing pairs of numbers leads to the correct result. The difficult part is proving that this greedy logic always gives the correct answer.
 
-<h3> Proof of Correctness </h3>
+#### Proof of Correctness
 
 **Objective**: To ensure that our custom comparator for sorting numbers produces the largest possible concatenated number.
 
@@ -384,7 +387,7 @@ The key is that this comparison ensures that the greedy approach of comparing pa
 
    We confirm that sorting numbers with this comparator yields the largest concatenated number. For example, sorting `[3, 30, 34, 5, 9]` yields `[9, 5, 34, 3, 30]`, which concatenates to `"9534330"`, the largest possible number.
 
-<h3> Approach 1: Using Built-in Function </h3>
+#### Approach 1: Using Built-in Function
 
 <h3> Intuition </h3>
 
@@ -451,7 +454,7 @@ QuickSort, Merge Sort, Heap Sort 생략
 
 Here is the same content formatted in Markdown with mathematical expressions rendered using LaTeX syntax:
 
-<h3> Approach 5: TimSort </h3>
+#### Approach 5: TimSort
 
 TimSort is a sorting algorithm that combines insertion sort and merge sort.
 
