@@ -24,6 +24,9 @@
       - [Approach 1: Recursion](#approach-1-recursion)
       - [Approach 2: Memoization](#approach-2-memoization)
       - [Approach 3: Tabulation](#approach-3-tabulation)
+  - [24.09.20 - 214. Shortest Palindrome](#240920---214-shortest-palindrome)
+    - [나](#나-4)
+    - [Solution 추후 갱신](#solution-추후-갱신)
 
 # September Week 3
 ## 24.09.16 - 539. Minimum Time Difference
@@ -1284,3 +1287,14 @@ Let $n$ be the length of the input string `expression`.
   The space complexity is similar to the previous approach, with one key difference: the absence of the recursive stack space.
 
   However, the `dp` table dominates the space complexity anyway, keeping the overall space complexity as $O(n^2 \cdot 2^n)$.
+
+
+## 24.09.20 - 214. Shortest Palindrome
+[문제 링크](https://leetcode.com/problems/shortest-palindrome/description/?envType=daily-question&envId=2024-09-20)
+
+### 나
+Solution 참고
+
+### Solution 추후 갱신
+[링크](https://leetcode.com/problems/shortest-palindrome/editorial/?envType=daily-question&envId=2024-09-20)
+
