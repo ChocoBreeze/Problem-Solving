@@ -27,6 +27,9 @@
   - [24.09.20 - 214. Shortest Palindrome](#240920---214-shortest-palindrome)
     - [나](#나-4)
     - [Solution 추후 갱신](#solution-추후-갱신)
+  - [24.09.21 - 386. Lexicographical Numbers](#240921---386-lexicographical-numbers)
+    - [나](#나-5)
+    - [Solution 추후 갱신](#solution-추후-갱신-1)
 
 # September Week 3
 ## 24.09.16 - 539. Minimum Time Difference
@@ -1298,3 +1301,41 @@ Solution 참고
 ### Solution 추후 갱신
 [링크](https://leetcode.com/problems/shortest-palindrome/editorial/?envType=daily-question&envId=2024-09-20)
 
+
+## 24.09.21 - 386. Lexicographical Numbers
+[문제 링크](https://leetcode.com/problems/lexicographical-numbers/description/?envType=daily-question&envId=2024-09-21)
+
+### 나
+```cpp
+// 65ms 14.9MB
+class Solution {
+public:
+	vector<int> lexicalOrder(int n) {
+		vector<int> answer;
+
+		for (int i = 1; i <= 9; ++i) {
+			string start = to_string(i);
+			makeAnswer(n, start, answer);
+		}
+		
+		return answer;
+	}
+
+	void makeAnswer(int n, string& now, vector<int>& answer) {
+		if (stoi(now) > n) return;
+
+		answer.push_back(stoi(now));
+
+		for (int i = 0; i <= 9; ++i) {
+			now.push_back('0' + i);
+			makeAnswer(n, now, answer);
+			now.pop_back();
+		}
+	}
+};
+```
+
+Solution 1과 비슷해 보이는데 왜 시간이 더 걸렸지..?
+
+### Solution 추후 갱신
+[링크](https://leetcode.com/problems/lexicographical-numbers/editorial)
