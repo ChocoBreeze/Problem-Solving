@@ -30,6 +30,9 @@
   - [24.09.21 - 386. Lexicographical Numbers](#240921---386-lexicographical-numbers)
     - [나](#나-5)
     - [Solution 추후 갱신](#solution-추후-갱신-1)
+  - [24.09.22 - 440. K-th Smallest in Lexicographical Order](#240922---440-k-th-smallest-in-lexicographical-order)
+    - [나](#나-6)
+    - [Solution 추후 갱신](#solution-추후-갱신-2)
 
 # September Week 3
 ## 24.09.16 - 539. Minimum Time Difference
@@ -1339,3 +1342,55 @@ Solution 1과 비슷해 보이는데 왜 시간이 더 걸렸지..?
 
 ### Solution 추후 갱신
 [링크](https://leetcode.com/problems/lexicographical-numbers/editorial)
+
+
+## 24.09.22 - 440. K-th Smallest in Lexicographical Order
+[문제 링크](https://leetcode.com/problems/k-th-smallest-in-lexicographical-order/description/?envType=daily-question&envId=2024-09-22)
+
+### 나
+k 값이 10억이 될 수 있기 때문에 어제 문제처럼 일일이 다 계산할 수 없다.
+
+- 시작 글자에 대해 몇 글자가 가능한지 확인
+- kth가 포함이면 해당 경우 계산, 아닌 경우 다음 시작 글자
+
+아이디어는 있는데 구현이 너무 귀찮다,,
+
+구현은 답지 참고..
+```cpp
+// 2ms, 7.5MB
+// Solution Code
+class Solution {
+public:
+    int findKthNumber(int n, int k) {
+        int curr = 1;
+        k--;
+
+        while (k > 0) {
+            int step = countSteps(n, curr, curr + 1);
+            if (step <= k) {
+                curr++;
+                k -= step;
+            } else {
+                curr *= 10;
+                k--;
+            }
+        }
+
+        return curr;
+    }
+
+private:
+    int countSteps(int n, long prefix1, long prefix2) {
+        int steps = 0;
+        while (prefix1 <= n) {
+            steps += min((long)(n + 1), prefix2) - prefix1;
+            prefix1 *= 10;
+            prefix2 *= 10;
+        }
+        return steps;
+    }
+};
+```
+
+### Solution 추후 갱신
+[링크](https://leetcode.com/problems/k-th-smallest-in-lexicographical-order/editorial)
