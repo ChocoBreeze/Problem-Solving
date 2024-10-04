@@ -34,10 +34,12 @@
       - [Approach 5: Manacher's Algorithm](#approach-5-manachers-algorithm)
   - [24.09.21 - 386. Lexicographical Numbers](#240921---386-lexicographical-numbers)
     - [나](#나-5)
-    - [Solution 추후 갱신](#solution-추후-갱신)
+    - [Solution](#solution-4)
+      - [Approach 1: DFS Approach](#approach-1-dfs-approach)
+      - [Approach 2: Iterative Approach](#approach-2-iterative-approach)
   - [24.09.22 - 440. K-th Smallest in Lexicographical Order](#240922---440-k-th-smallest-in-lexicographical-order)
     - [나](#나-6)
-    - [Solution 추후 갱신](#solution-추후-갱신-1)
+    - [Solution 추후 갱신](#solution-추후-갱신)
 
 # September Week 3
 ## 24.09.16 - 539. Minimum Time Difference
@@ -1913,8 +1915,160 @@ public:
 
 Solution 1과 비슷해 보이는데 왜 시간이 더 걸렸지..?
 
-### Solution 추후 갱신
-[링크](https://leetcode.com/problems/lexicographical-numbers/editorial)
+### Solution
+<h3> Overview </h3>
+
+We need to create a list of integers from 1 to $n$ and sort them in lexicographical order. Lexicographical order is similar to dictionary order, where the sequence is based on how words are arranged alphabetically. For numbers, this means sorting them as if they were strings. For example, `'10'` comes before `'2'` because `'1'` is less than `'2'`.
+
+The solution must be efficient, with a time complexity of $O(n)$. This means the algorithm should handle the input size directly without any nested loops that could slow it down. Additionally, the solution should use constant extra space, $O(1)$, which means it should not require extra memory beyond the output list itself.
+
+#### Approach 1: DFS Approach
+
+<h3> Intuition </h3>
+
+We can think of generating numbers in lexicographical order by imagining how they would appear in a dictionary. The first number is `1`, followed by `10`, `11`, `12`, and so on, before moving to `2`, then `20`, `21`, and so forth. The key is that smaller numbers starting with a particular digit should be fully explored before moving to the next starting digit.
+
+Now, to translate this thinking into an algorithm, consider each number as part of a tree. For instance, `1` has children like `10`, `11`, `12`, and so on, while `2` has children `20`, `21`, and so forth. This naturally suggests a depth-first search (DFS) approach: we explore each number and its children before moving to the next digit.
+
+We start with the numbers `1` through `9` as the roots of the tree. For each of these, we generate their children by appending digits from `0` to `9`, as long as the resulting number remains within the range $[1, n]$. Once we exhaust one branch (e.g., numbers starting with `1` that exceed $n$), we move to the next root (i.e., `2`) and repeat the process. In this way, we progressively build the lexicographical order.
+
+![alt text](image-6.png)
+
+<h3> Algorithm </h3>
+
+- Initialize an empty array `lexicographicalNumbers` to store the result.
+- Iterate over each starting number from 1 to 9:
+  - For each `start`, call `generateLexicalNumbers` with the current `start`, limit $n$, and `lexicographicalNumbers` array.
+  
+- **`generateLexicalNumbers` function:**
+  - If `currentNumber` exceeds the `limit`, return from the function to stop recursion.
+  - Add the `currentNumber` to the `result` array.
+  - Iterate over digits from 0 to 9 to try appending them to `currentNumber`:
+    - Calculate `nextNumber` by appending the digit to `currentNumber`.
+    - If `nextNumber` is within the `limit`, recursively call `generateLexicalNumbers` with `nextNumber`, `limit`, and `result`.
+    - If `nextNumber` exceeds the `limit`, break the loop to avoid unnecessary further recursion.
+
+- Return the `lexicographicalNumbers` array containing numbers in lexicographical order.
+
+<h3> Implementation </h3>
+
+```cpp
+// 0ms, 13.80MB
+class Solution {
+public:
+    vector<int> lexicalOrder(int n) {
+        vector<int> lexicographicalNumbers;
+        // Start generating numbers from 1 to 9
+        for (int start = 1; start <= 9; ++start) {
+            generateLexicalNumbers(start, n, lexicographicalNumbers);
+        }
+        return lexicographicalNumbers;
+    }
+
+private:
+    void generateLexicalNumbers(int currentNumber, int limit,
+                                vector<int>& result) {
+        // If the current number exceeds the limit, stop recursion
+        if (currentNumber > limit) return;
+
+        // Add the current number to the result
+        result.push_back(currentNumber);
+
+        // Try to append digits from 0 to 9 to the current number
+        for (int nextDigit = 0; nextDigit <= 9; ++nextDigit) {
+            int nextNumber = currentNumber * 10 + nextDigit;
+            // If the next number is within the limit, continue recursion
+            if (nextNumber <= limit) {
+                generateLexicalNumbers(nextNumber, limit, result);
+            } else {
+                break;  // No need to continue if nextNumber exceeds limit
+            }
+        }
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+- **Time Complexity: $O(n)$**  
+  The algorithm generates all numbers from 1 to $n$ in lexicographical order. Each number is visited exactly once and added to the result list. The total number of operations is proportional to the number of elements generated, which is $n$.
+
+- **Space Complexity: $O(\log_{10}(n))$**  
+  We only consider the recursion stack depth. The depth of recursion is proportional to the number of digits $d$ in $n$. Given that the maximum value for $n$ is 50,000, the maximum number of digits $d$ is 5. Thus, the recursion stack depth and corresponding space complexity is $O(d)$, which simplifies to $O(\log_{10}(n))$, but with a maximum constant value of 5 for practical constraints. It can also be argued as $O(1)$. This is because, when substituting $n$ as 50,000, the result is approximately 5 (specifically $4.698970004336$), which is extremely small and does not significantly affect the overall complexity in this range.
+
+> The space complexity analysis does not account for the result list itself, as the problem requires returning a list with $n$ elements. Since we are only storing the elements in the list without performing additional operations on it, the space used by the list is not considered in the complexity analysis.
+
+#### Approach 2: Iterative Approach
+
+<h3> Intuition </h3>
+
+We can do the same thing iteratively; the overall concept remains the same as the DFS approach. The difference will be how we organize and implement it.
+
+We initialize the current number as `1`, which is the first number in lexicographical order, and set up a loop that runs $n$ times because we want to generate exactly $n$ numbers.
+
+In each iteration, we add the current number to the result list. After that, we check if we can go deeper by multiplying the current number by 10, appending a zero to the current number, giving us the lexicographically smallest possible next number. If the result is still less than or equal to $n$, we update the current number to this new value and continue.
+
+If multiplying by 10 would exceed $n$, we increment the current number. However, this increment can’t always happen directly. If the current number ends in 9 or goes beyond the next "root" (like moving from `19` to `2`), we divide by 10 to move up a level and strip off the last digit. This way, we make sure we don’t skip any numbers.
+
+After incrementing, if the new current number ends in a zero (like `20`), we continue removing zeroes, dividing by 10, until we get a valid number. This ensures we stay in lexicographical order as we move forward.
+
+This way, we mimic the way we would manually write numbers in lexicographical order. We move from one number to the next by considering when to go deeper (appending digits) and when to backtrack (moving to the next root). Unlike the recursive method, which builds numbers by diving into each tree branch, this approach keeps track of the current number and adjusts it directly, making it more space efficient with no space overhead and in $O(n)$ time.
+
+<h3> Algorithm </h3>
+
+1. Initialize an empty array `lexicographicalNumbers` to store the results.
+2. Start with `currentNumber` set to 1.
+3. Generate numbers from 1 to $n$:
+   - Add `currentNumber` to the `lexicographicalNumbers` array.
+   - If multiplying `currentNumber` by 10 is less than or equal to $n$ (i.e., `currentNumber * 10 \leq n`), multiply `currentNumber` by 10 to move to the next lexicographical number (i.e., go deeper into the tree of numbers).
+   - Otherwise:
+     - Adjust `currentNumber` to move to the next valid lexicographical number:
+       - While `currentNumber` ends with a 9 or is greater than or equal to $n$:
+         - Divide `currentNumber` by 10 to remove the last digit.
+       - Increment `currentNumber` by 1 to move to the next number in the sequence.
+4. Return the `lexicographicalNumbers` array containing the numbers in lexicographical order from 1 to $n$.
+
+<h3> Implementation </h3>
+
+```cpp
+// 4ms, 12.48MB
+class Solution {
+public:
+    vector<int> lexicalOrder(int n) {
+        vector<int> lexicographicalNumbers;
+        int currentNumber = 1;
+
+        // Generate numbers from 1 to n
+        for (int i = 0; i < n; ++i) {
+            lexicographicalNumbers.push_back(currentNumber);
+
+            // If multiplying the current number by 10 is within the limit, do
+            // it
+            if (currentNumber * 10 <= n) {
+                currentNumber *= 10;
+            } else {
+                // Adjust the current number by moving up one digit
+                while (currentNumber % 10 == 9 || currentNumber >= n) {
+                    currentNumber /= 10;  // Remove the last digit
+                }
+                currentNumber += 1;  // Increment the number
+            }
+        }
+
+        return lexicographicalNumbers;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+- **Time Complexity: $O(n)$**  
+  The algorithm generates numbers in lexicographical order and iterates up to $n$ times to populate the `lexicographicalNumbers` array. Each iteration involves constant-time operations (checking conditions and updating `currentNumber`). Thus, the time complexity is linear in terms of $n$.
+
+- **Space Complexity: $O(1)$**  
+  The algorithm uses a constant amount of additional space for variables like `currentNumber` and loop counters. Therefore, the space complexity is $O(1)$.
+
+> The space complexity analysis does not account for the result list itself, as the problem requires returning a list with $n$ elements. Since we are only storing the elements in the list without performing additional operations on it, the space used by the list is not considered in the complexity analysis.
 
 
 ## 24.09.22 - 440. K-th Smallest in Lexicographical Order
