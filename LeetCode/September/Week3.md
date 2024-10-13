@@ -87,7 +87,7 @@ We are given an array of times, where each time is given in `"HH:MM"` string for
 
 Since the times are given in `"HH:MM"` string format instead of the number of minutes, we can start by parsing the string format of each time and converting it into the total number of minutes passed since `"00:00"`.
 
-![alt text](image-2.png)
+![alt text](images/image-2.png)
 
 If this converted array is sorted in ascending order, then the minimum difference must be the difference in an adjacent pair of times. This is because adjacent elements in a sorted array have smaller differences than nonadjacent elements. Thus, we can sort our array and calculate the difference between each adjacent pair of elements, keeping track of the smallest difference.
 
@@ -314,7 +314,7 @@ Time complexity: $O(N)$, where N is the total number of words in both sentences.
 [문제 링크](https://leetcode.com/problems/largest-number/description/?envType=daily-question&envId=2024-09-18)
 
 ### 나
-![alt text](image-3.png)
+![alt text](images/image-3.png)
 
 ㅎㅎ..
 
@@ -902,7 +902,7 @@ For longer expressions, we find operators to split the expression. We iterate th
 
 Here’s a visual example of how a recursion subtree might look:
 
-![alt text](image-4.png)
+![alt text](images/image-4.png)
 
 By the end of the process, the `results` list will contain all possible results from grouping the numbers and operators in the expression.
 
@@ -1523,7 +1523,7 @@ for (int i = 1; i < n; i++) {
     - Finally, set `prefixTable[i] = length`.
 
 The lookup table generation is as illustrated below:  
-![alt text](image-7.png)
+![alt text](images/image-7.png)
 
 <h3> Algorithm </h3>
 
@@ -1933,7 +1933,7 @@ Now, to translate this thinking into an algorithm, consider each number as part 
 
 We start with the numbers `1` through `9` as the roots of the tree. For each of these, we generate their children by appending digits from `0` to `9`, as long as the resulting number remains within the range $[1, n]$. Once we exhaust one branch (e.g., numbers starting with `1` that exceed $n$), we move to the next root (i.e., `2`) and repeat the process. In this way, we progressively build the lexicographical order.
 
-![alt text](image-8.png)
+![alt text](images/image-8.png)
 
 <h3> Algorithm </h3>
 

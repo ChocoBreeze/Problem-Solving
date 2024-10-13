@@ -614,7 +614,7 @@ Observe that we don't need to know the exact count of the vowels to solve this p
 We can assign the first bit to `a`, the second to `e`, and so on. The state of the vowels can be represented as a binary string. For instance, `00000` means all vowels have even counts, while `10000` means only `a` has an odd count.
 By converting these binary states to integers, we can assign values to the vowels: `a = 1`, `e = 2`, `i = 4`, `o = 8`, and `u = 16`. If both `a` and `i` have odd counts, their total value would be `1 + 4 = 5`. A total value of `0` means all vowels have even counts.
 
-![alt text](image.png)
+![alt text](images/image.png)
 
 To find substrings with even vowels, we can use the XOR operator to update and track the parity of the vowels. If a vowel appears an even number of times, the result of XOR will be 0; if it appears an odd number of times, the result will be 1.
 
@@ -623,7 +623,7 @@ We compute a running XOR for each vowel as we traverse the string. To check for 
 1. If the current XOR value is `00000` (i.e., all vowels have even counts), the substring from the start of the string to the current position contains even vowels.
 2. If the current XOR value has occurred before, the substring between the first occurrence of that XOR value and the current position also contains even vowels.
 
-![alt text](image-1.png)
+![alt text](images/image-1.png)
 
 <h3> Algorithm </h3>
 

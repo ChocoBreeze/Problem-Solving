@@ -84,7 +84,7 @@ The initial call to the recursive function is made with `start` set to 0, indica
 
 Here's how this algorithm will work for the string s `"LTSCD"` and dictionary `["LT", "CD"]`:
 
-![alt text](image-6.png)
+![alt text](images/image-6.png)
 
 <h3> Algorithm </h3>
 
