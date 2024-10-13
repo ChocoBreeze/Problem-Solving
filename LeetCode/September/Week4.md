@@ -21,6 +21,13 @@
     - [Solution](#solution-2)
       - [Approach #2: Sorted List + Binary Search](#approach-2-sorted-list--binary-search)
       - [Complexity Analysis](#complexity-analysis-2)
+  - [24.09.27 - 731. My Calendar II](#240927---731-my-calendar-ii)
+    - [나](#나-4)
+    - [Solution](#solution-3)
+      - [Approach 1: Using Overlapped Intervals](#approach-1-using-overlapped-intervals)
+      - [Complexity Analysis](#complexity-analysis-3)
+      - [Approach 2: Line Sweep](#approach-2-line-sweep)
+      - [Complexity Analysis](#complexity-analysis-4)
 
 # September Week 4
 
@@ -730,4 +737,133 @@ Like Approach 1, let $N$ be the number of events booked.
   O(N)
   $$
   This is the space complexity due to the size of the data structures used, which scales linearly with the number of events, $N$.
+
+## 24.09.27 - 731. My Calendar II
+[문제 링크](https://leetcode.com/problems/my-calendar-ii/description/?envType=daily-question&envId=2024-09-27)
+
+### 나
+다른 아이디어가 없다..
+
+### Solution
+#### Approach 1: Using Overlapped Intervals
+```cpp
+class MyCalendarTwo {
+public:
+    vector<pair<int, int>> bookings;
+    vector<pair<int, int>> overlapBookings;
+
+    MyCalendarTwo() {}
+
+    bool book(int start, int end) {
+        // Returns false if the new booking overlaps with the existing
+        // double-booked bookings.
+        for (pair<int, int> booking : overlapBookings) {
+            if (doesOverlap(booking.first, booking.second, start, end)) {
+                return false;
+            }
+        }
+
+        // Add the double overlapping if any with the new booking.
+        for (pair<int, int> booking : bookings) {
+            if (doesOverlap(booking.first, booking.second, start, end)) {
+                overlapBookings.push_back(
+                    getOverlapped(booking.first, booking.second, start, end));
+            }
+        }
+
+        // Add the booking to the list of bookings.
+        bookings.push_back({start, end});
+        return true;
+    }
+
+private:
+    // Return true if the booking [start1, end1) & [start2, end2) overlaps.
+    bool doesOverlap(int start1, int end1, int start2, int end2) {
+        return max(start1, start2) < min(end1, end2);
+    }
+
+    // Return overlapping booking between [start1, end1) & [start2, end2).
+    pair<int, int> getOverlapped(int start1, int end1, int start2, int end2) {
+        return {max(start1, start2), min(end1, end2)};
+    }
+};
+```
+
+#### Complexity Analysis
+
+Here, $N$ is the size of the list of `bookings`.
+
+- **Time Complexity**: 
+  $$
+  O(N)
+  $$
+  The time complexity for the `book(start, end)` function is $O(N)$ because we iterate through the `bookings` list to check for overlaps and possibly add a new booking. Additionally, we check the `overlapBookings` list, which tracks overlaps. Since the size of `overlapBookings` is always smaller than or equal to the size of `bookings`, the overall time complexity remains $O(N)$.
+
+- **Space Complexity**: 
+  $$
+  O(N)
+  $$
+  We maintain two lists: `bookings` for all the bookings and `overlapBookings` for the overlapping intervals. The size of `overlapBookings` can never exceed the size of `bookings`, so the total space complexity is $O(N)$.
+
+#### Approach 2: Line Sweep
+```cpp
+class MyCalendarTwo {
+public:
+    // Store the number of bookings at each point.
+    map<int, int> bookingCount;
+    // The maximum number of overlapped bookings allowed.
+    int maxOverlappedBooking;
+
+    MyCalendarTwo() { maxOverlappedBooking = 2; }
+
+    bool book(int start, int end) {
+        // Increase and decrease the booking count at the start and end
+        // respectively.
+        bookingCount[start]++;
+        bookingCount[end]--;
+
+        int overlappedBooking = 0;
+        // Find the prefix sum.
+        for (pair<int, int> bookings : bookingCount) {
+            overlappedBooking += bookings.second;
+
+            // If the number of bookings is more than 2, return false.
+            // Also roll back the counts for this booking as we won't add it.
+            if (overlappedBooking > maxOverlappedBooking) {
+                bookingCount[start]--;
+                bookingCount[end]++;
+
+                // Remove the entries from the map to avoid unnecessary
+                // iteration.
+                if (bookingCount[start] == 0) {
+                    bookingCount.erase(start);
+                }
+                if (bookingCount[end] == 0) {
+                    bookingCount.erase(end);
+                }
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+};
+```
+
+#### Complexity Analysis
+
+Here, $N$ is the size of the list of `bookings`.
+
+- **Time Complexity**: 
+  $$
+  O(N)
+  $$
+  The time complexity for the `book(start, end)` function is $O(N)$. This is because we iterate over the bookings entries in the map and find the prefix sum. The number of entries would be $O(N)$, and for each of these, we can have constant time operations with $O(\log N)$ complexity. Once we find a triple booking, we return, and no more iterations are required. Hence, the time complexity for the function `book(start, end)` becomes $O(N)$.
+
+- **Space Complexity**: 
+  $$
+  O(N)
+  $$
+  The space complexity is $O(N)$ because we store the start and end points of each booking in the map. Each booking requires two entries in the map, so for $N$ bookings, we store $2N$ entries. Therefore, the space complexity is proportional to $N$.
 
