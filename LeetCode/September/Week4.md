@@ -39,6 +39,9 @@
     - [나](#나-6)
     - [Solution](#solution-5)
       - [Complexity Analysis](#complexity-analysis-7)
+  - [24.09.30 - 1381. Design a Stack With Increment Operation](#240930---1381-design-a-stack-with-increment-operation)
+    - [나](#나-7)
+    - [gpt](#gpt)
 
 # September Week 4
 
@@ -1246,3 +1249,112 @@ private:
 
   Each `Node` contains a set of `keys`, which can also grow with the number of unique keys in the worst case. Hence, the total space consumed by the linked list of nodes will also contribute to $O(N)$.
 
+
+## 24.09.30 - 1381. Design a Stack With Increment Operation
+[문제 링크](https://leetcode.com/problems/design-a-stack-with-increment-operation/description/?envType=daily-question&envId=2024-09-30)
+
+### 나
+```cpp
+// 28ms, 25.99MB
+class CustomStack {
+public:
+    CustomStack(int maxSize) {
+        st.assign(maxSize, 0);
+        now = 0;
+        siz = maxSize;
+    }
+    
+    void push(int x) {
+        if(now >= siz) return; // overflow
+        st[now++] = x;
+    }
+    
+    int pop() {
+        if(now == 0) return -1; // empty
+        return st[--now];
+    }
+    
+    void increment(int k, int val) {
+        for(int i{}, e = min(now, k);i<e;++i) {
+            st[i] += val;
+        }
+    }
+private:
+    vector<int> st;
+    int now{}, siz{};
+};
+
+/**
+* Your CustomStack object will be instantiated and called as such:
+* CustomStack* obj = new CustomStack(maxSize);
+* obj->push(x);
+* int param_2 = obj->pop();
+* obj->increment(k,val);
+*/
+```
+
+### gpt
+The problem on LeetCode asks you to design a custom stack that supports three operations: `push`, `pop`, and `increment`. Here's a high-level approach to solve the problem efficiently:
+
+<h3> Problem Breakdown: </h3>
+
+1. **`push(x)`**: Adds an element `x` to the stack.
+2. **`pop()`**: Removes the top element from the stack and returns it. If empty, returns `-1`.
+3. **`increment(k, val)`**: Increments the bottom `k` elements of the stack by `val`.
+
+<h3> Efficient Approach: </h3>
+
+- Use a normal stack for `push` and `pop`.
+- For `increment`, instead of incrementing directly, use an auxiliary array to track pending increments, applying them only during `pop()` to avoid repeated updates.
+
+Here's the C++ code implementation:
+
+```cpp
+// 35ms, 25.92MB
+class CustomStack {
+public:
+    vector<int> stack;
+    vector<int> inc;
+    int maxSize;
+
+    CustomStack(int maxSize) {
+        this->maxSize = maxSize;
+    }
+    
+    void push(int x) {
+        if (stack.size() < maxSize) {
+            stack.push_back(x);
+            inc.push_back(0);
+        }
+    }
+    
+    int pop() {
+        if (stack.empty()) {
+            return -1;
+        }
+        int idx = stack.size() - 1;
+        int res = stack.back() + inc.back();
+        if (idx > 0) {
+            inc[idx - 1] += inc[idx];
+        }
+        stack.pop_back();
+        inc.pop_back();
+        return res;
+    }
+    
+    void increment(int k, int val) {
+        int limit = min(k, (int)stack.size()) - 1;
+        if (limit >= 0) {
+            inc[limit] += val;
+        }
+    }
+};
+```
+
+<h3> Explanation: </h3>
+
+- **`push(x)`**: Adds the value to the stack and initializes a `0` in the `inc` array for future increments.
+- **`pop()`**: Pops the top element, applying any pending increment from the `inc` array.
+- **`increment(k, val)`**: Instead of modifying the bottom `k` elements directly, we increment the `inc[k-1]` to propagate the increment lazily when the elements are popped.
+
+This approach ensures that all operations are efficient, avoiding repeated operations during `increment`.
