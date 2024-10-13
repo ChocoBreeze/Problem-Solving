@@ -18,3 +18,4 @@
 - [September.Week2](./September/Week2.md)
 - [September.Week3](./September/Week3.md)
 - [September.Week4](./September/Week4.md)
+- [October.Week1]
