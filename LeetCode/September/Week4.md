@@ -16,6 +16,11 @@
       - [Complexity Analysis](#complexity-analysis-1)
   - [24.09.25 - 2416. Sum of Prefix Scores of Strings](#240925---2416-sum-of-prefix-scores-of-strings)
     - [나](#나-2)
+  - [24.09.26 - 729. My Calendar I](#240926---729-my-calendar-i)
+    - [나](#나-3)
+    - [Solution](#solution-2)
+      - [Approach #2: Sorted List + Binary Search](#approach-2-sorted-list--binary-search)
+      - [Complexity Analysis](#complexity-analysis-2)
 
 # September Week 4
 
@@ -646,4 +651,83 @@ public:
     }
 };
 ```
+
+## 24.09.26 - 729. My Calendar I
+[문제 링크](https://leetcode.com/problems/my-calendar-i/editorial/?envType=daily-question&envId=2024-09-26)
+
+### 나
+Solution 참고 - Brute Force
+
+```cpp
+// 88ms, 41.58MB
+// Brute Force
+class MyCalendar {
+private:
+    vector<pair<int, int>> calender;
+public:
+    MyCalendar() {
+        
+    }
+    
+    bool book(int start, int end) {
+        for(auto [s, e] : calender) {
+            if(start < e && s < end) {
+                return false;
+            }
+        }
+        calender.emplace_back(start, end);
+        return true;
+    }
+};
+
+/**
+ * Your MyCalendar object will be instantiated and called as such:
+ * MyCalendar* obj = new MyCalendar();
+ * bool param_1 = obj->book(start,end);
+ */
+```
+
+### Solution
+#### Approach #2: Sorted List + Binary Search
+
+```cpp
+class MyCalendar {
+private:
+    set<pair<int, int>> calendar;
+
+public:
+    bool book(int start, int end) {
+        const pair<int, int> event{start, end};
+        const auto nextEvent = calendar.lower_bound(event);
+        if (nextEvent != calendar.end() && nextEvent->first < end) {
+            return false;
+        }
+
+        if (nextEvent != calendar.begin()) {
+            const auto prevEvent = prev(nextEvent);
+            if (prevEvent->second > start) {
+                return false;
+            }
+        }
+
+        calendar.insert(event);
+        return true;
+    }
+};
+```
+
+#### Complexity Analysis
+Like Approach 1, let $N$ be the number of events booked.
+
+- **Time Complexity**: 
+  $$
+  O(N \cdot \log N)
+  $$
+  For each new event, we search to ensure that the event is legal in $O(\log N)$ time, then insert it in $O(\log N)$ time. Thus, the overall time complexity is $O(N \cdot \log N)$.
+
+- **Space Complexity**: 
+  $$
+  O(N)
+  $$
+  This is the space complexity due to the size of the data structures used, which scales linearly with the number of events, $N$.
 
