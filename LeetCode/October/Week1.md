@@ -1,4 +1,28 @@
 ## ToC
+- [October Week 1](#october-week-1)
+  - [24.10.01 - 1497. Check If Array Pairs Are Divisible by k](#241001---1497-check-if-array-pairs-are-divisible-by-k)
+    - [나](#나)
+    - [Solution](#solution)
+      - [Approach 1: Hashing / Counting](#approach-1-hashing--counting)
+      - [Approach 2: Sorting and Two-Pointers](#approach-2-sorting-and-two-pointers)
+  - [24.10.02 - 1331. Rank Transform of an Array](#241002---1331-rank-transform-of-an-array)
+    - [나](#나-1)
+  - [24.10.03 - 1590. Make Sum Divisible by P](#241003---1590-make-sum-divisible-by-p)
+    - [나](#나-2)
+    - [Solution](#solution-1)
+      - [Approach 2: Prefix Sum Modulo](#approach-2-prefix-sum-modulo)
+  - [24.10.04 - 2491. Divide Players Into Teams of Equal Skill](#241004---2491-divide-players-into-teams-of-equal-skill)
+    - [나](#나-3)
+    - [Solution](#solution-2)
+      - [Approach 2: Frequency Table](#approach-2-frequency-table)
+      - [Approach 3: Map](#approach-3-map)
+  - [24.10.05 - 567. Permutation in String](#241005---567-permutation-in-string)
+    - [나](#나-4)
+  - [24.10.06 - 1813. Sentence Similarity III](#241006---1813-sentence-similarity-iii)
+    - [나](#나-5)
+    - [Solution](#solution-3)
+      - [Approach 1: Deque](#approach-1-deque)
+      - [Approach 2: Two Pointers](#approach-2-two-pointers)
 
 # October Week 1
 ## 24.10.01 - 1497. Check If Array Pairs Are Divisible by k
