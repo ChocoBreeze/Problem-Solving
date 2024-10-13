@@ -154,4 +154,119 @@ public:
 };
 ```
 
-## 
+## 24.10.04 - 2491. Divide Players Into Teams of Equal Skill
+[문제 링크](https://leetcode.com/problems/divide-players-into-teams-of-equal-skill/description/?envType=daily-question&envId=2024-10-04)
+
+### 나
+간단하게 생각하기
+
+```cpp
+// 70ms, 56.40MB
+// 간단하게 생각하기.
+class Solution {
+public:
+    long long dividePlayers(vector<int>& skill) {
+        sort(begin(skill), end(skill));
+
+        int team = skill.front() + skill.back();
+        long long answer{};
+
+        for(int s{}, e{static_cast<int>(skill.size())};s < e / 2;++s) {
+            int curr = skill[s] + skill[e - s - 1];
+
+            if(curr != team) return -1;
+
+            answer += (long long)skill[s] * skill[e - s - 1];
+        }
+
+        return answer;
+    }
+};
+```
+
+### Solution
+#### Approach 2: Frequency Table
+```cpp
+class Solution {
+public:
+    long long dividePlayers(vector<int>& skill) {
+        int n = skill.size();
+        int totalSkill = 0;
+        vector<int> skillFrequency(1001, 0);
+
+        // Calculate total skill and skill frequency
+        for (int playerSkill : skill) {
+            totalSkill += playerSkill;
+            skillFrequency[playerSkill]++;
+        }
+
+        // Check if total skill can be evenly distributed among teams
+        if (totalSkill % (n / 2) != 0) {
+            return -1;
+        }
+
+        int targetTeamSkill = totalSkill / (n / 2);
+        long long totalChemistry = 0;
+
+        // Calculate total chemistry while verifying valid team formations
+        for (int playerSkill : skill) {
+            int partnerSkill = targetTeamSkill - playerSkill;
+
+            // Check if a valid partner exists
+            if (skillFrequency[partnerSkill] == 0) {
+                return -1;
+            }
+
+            totalChemistry += (long long)playerSkill * (long long)partnerSkill;
+            skillFrequency[partnerSkill]--;
+        }
+
+        // Return half of totalChemistry as each pair is counted twice
+        return totalChemistry / 2;
+    }
+};
+```
+
+#### Approach 3: Map
+```cpp
+class Solution {
+public:
+    long long dividePlayers(vector<int>& skill) {
+        int n = skill.size();
+        int totalSkill = 0;
+        unordered_map<int, int> skillMap;
+
+        // Calculate total skill and build frequency map
+        for (int s : skill) {
+            totalSkill += s;
+            skillMap[s] = skillMap[s] + 1;
+        }
+
+        // Check if total skill can be evenly distributed among teams
+        if (totalSkill % (n / 2) != 0) {
+            return -1;
+        }
+
+        int targetSkill = totalSkill / (n / 2);
+        long long totalChemistry = 0;
+
+        // Iterate through unique skill values
+        for (auto& [currSkill, currFreq] : skillMap) {
+            int partnerSkill = targetSkill - currSkill;
+
+            // Check if valid partner skill exists with matching frequency
+            if (skillMap.find(partnerSkill) == skillMap.end() ||
+                currFreq != skillMap[partnerSkill]) {
+                return -1;
+            }
+
+            // Calculate chemistry for all pairs with this skill
+            totalChemistry += (long long)currSkill * (long long)partnerSkill *
+                              (long long)currFreq;
+        }
+
+        // Return half of total chemistry (as each pair is counted twice)
+        return totalChemistry / 2;
+    }
+};
+```
