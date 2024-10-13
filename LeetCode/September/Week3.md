@@ -1523,7 +1523,7 @@ for (int i = 1; i < n; i++) {
     - Finally, set `prefixTable[i] = length`.
 
 The lookup table generation is as illustrated below:  
-![alt text](image-5.png)
+![alt text](image-7.png)
 
 <h3> Algorithm </h3>
 
@@ -1933,7 +1933,7 @@ Now, to translate this thinking into an algorithm, consider each number as part 
 
 We start with the numbers `1` through `9` as the roots of the tree. For each of these, we generate their children by appending digits from `0` to `9`, as long as the resulting number remains within the range $[1, n]$. Once we exhaust one branch (e.g., numbers starting with `1` that exceed $n$), we move to the next root (i.e., `2`) and repeat the process. In this way, we progressively build the lexicographical order.
 
-![alt text](image-6.png)
+![alt text](image-8.png)
 
 <h3> Algorithm </h3>
 
