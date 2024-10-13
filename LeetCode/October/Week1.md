@@ -270,3 +270,46 @@ public:
     }
 };
 ```
+
+## 24.10.05 - 567. Permutation in String
+[문제 링크](https://leetcode.com/problems/permutation-in-string/description/?envType=daily-question&envId=2024-10-05)
+
+### 나
+```cpp
+// 4ms, 8.70MB
+class Solution {
+public:
+    bool checkInclusion(string s1, string s2) {
+        if(s1.length() > s2.length()) return false;
+
+        int n = s1.length();
+        int datS1[26]{}, cnt{}, datS2[26]{};
+        for(int s{}, e{static_cast<int>(s1.length())};s < e; ++s) { 
+            ++datS1[s1[s] - 'a'];
+            ++datS2[s2[s] - 'a'];
+        }
+
+        for(int i{};i<26;++i) {
+            if(datS1[i] && datS1[i] == datS2[i]) cnt += datS1[i];
+        }
+        if(cnt == n) return true;
+
+        for(int s{n}, e{static_cast<int>(s2.length())};s < e; ++s) {
+            int last = s2[s - n] - 'a';
+            --datS2[last];
+
+            int now = s2[s] - 'a';
+            ++datS2[now];
+
+            cnt = 0;
+            for(int i{};i<26;++i) {
+                if(datS1[i] && datS1[i] == datS2[i]) cnt += datS1[i];
+            }
+            if(cnt == n) return true;
+        }
+
+        return false;
+    }
+};
+```
+
