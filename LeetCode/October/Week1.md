@@ -72,3 +72,33 @@ public:
 };
 ```
 
+## 24.10.02 - 1331. Rank Transform of an Array
+[문제 링크](https://leetcode.com/problems/rank-transform-of-an-array/description/?envType=daily-question&envId=2024-10-02)
+
+### 나
+```cpp
+// 93ms, 51.36MB
+class Solution {
+public:
+    vector<int> arrayRankTransform(vector<int>& arr) {
+        set<int> s;
+        for(int a : arr) {
+            s.insert(a);
+        }
+
+        unordered_map<int, int> um;
+        int index = 1;
+        for(int e : s) {
+            um.emplace(e, index++);
+        }
+
+        vector<int> answer;
+        for(int a : arr) {
+            answer.push_back(um[a]);
+        }
+
+        return answer;
+    }
+};
+```
+
