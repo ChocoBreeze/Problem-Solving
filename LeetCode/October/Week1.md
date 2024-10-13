@@ -313,3 +313,71 @@ public:
 };
 ```
 
+## 24.10.06 - 1813. Sentence Similarity III
+[문제 링크](https://leetcode.com/problems/sentence-similarity-iii/description/?envType=daily-question&envId=2024-10-06)
+
+### 나
+아이디어 없음..
+
+### Solution
+#### Approach 1: Deque
+```cpp
+class Solution {
+public:
+    bool areSentencesSimilar(string s1, string s2) {
+        istringstream iss1(s1);
+        deque<string> deque1((istream_iterator<string>(iss1)),
+                             istream_iterator<string>());
+        istringstream iss2(s2);
+        deque<string> deque2((istream_iterator<string>(iss2)),
+                             istream_iterator<string>());
+        // Compare the prefixes or beginning of the strings.
+        while (!deque1.empty() && !deque2.empty() &&
+               deque1.front() == deque2.front()) {
+            deque1.pop_front();
+            deque2.pop_front();
+        }
+        // Compare the suffixes or ending of the strings.
+        while (!deque1.empty() && !deque2.empty() &&
+               deque1.back() == deque2.back()) {
+            deque1.pop_back();
+            deque2.pop_back();
+        }
+        return deque1.empty() || deque2.empty();
+    }
+};
+```
+
+#### Approach 2: Two Pointers
+```cpp
+class Solution {
+public:
+    bool areSentencesSimilar(string s1, string s2) {
+        // Convert sentences to lists of words
+        stringstream ss1(s1), ss2(s2);
+        string word;
+        vector<string> s1Words, s2Words;
+        while (ss1 >> word) s1Words.push_back(word);
+        while (ss2 >> word) s2Words.push_back(word);
+
+        int start = 0, ends1 = s1Words.size() - 1, ends2 = s2Words.size() - 1;
+
+        // If words in s1 are more than s2, swap them and return the answer.
+        if (s1Words.size() > s2Words.size()) return areSentencesSimilar(s2, s1);
+
+        // Find the maximum words matching from the beginning.
+        while (start < s1Words.size() && s1Words[start] == s2Words[start])
+            ++start;
+
+        // Find the maximum words matching in the end.
+        while (ends1 >= 0 && s1Words[ends1] == s2Words[ends2]) {
+            --ends1;
+            --ends2;
+        }
+
+        // If ends1 index is less than start, then sentence is similar.
+        return ends1 < start;
+    }
+};
+```
+
