@@ -35,6 +35,10 @@
       - [Complexity Analysis](#complexity-analysis-5)
       - [Approach 2: Fixed Array with Circular Ordering](#approach-2-fixed-array-with-circular-ordering)
       - [Complexity Analysis](#complexity-analysis-6)
+  - [24.09.29 - 432. All O\`one Data Structure](#240929---432-all-oone-data-structure)
+    - [나](#나-6)
+    - [Solution](#solution-5)
+      - [Complexity Analysis](#complexity-analysis-7)
 
 # September Week 4
 
@@ -1066,4 +1070,179 @@ public:
   O(k)
   $$
   Our fixed-sized array will always have $k$ elements and thus will take $O(k)$ space.
+
+
+## 24.09.29 - 432. All O`one Data Structure
+[문제 링크](https://leetcode.com/problems/all-oone-data-structure/description/?envType=daily-question&envId=2024-09-29)
+
+### 나
+답지 참고..
+
+### Solution
+```markdown
+#### Approach: Using Doubly Linked List
+```cpp
+class Node {
+public:
+    int freq;
+    Node* prev;
+    Node* next;
+    unordered_set<string> keys;
+
+    Node(int freq) : freq(freq), prev(nullptr), next(nullptr) {}
+};
+
+class AllOne {
+private:
+    Node* head;                        // Dummy head
+    Node* tail;                        // Dummy tail
+    unordered_map<string, Node*> map;  // Mapping from key to its node
+
+public:
+    // Initialize your data structure here.
+    AllOne() {
+        head = new Node(0);  // Create dummy head
+        tail = new Node(0);  // Create dummy tail
+        head->next = tail;   // Link dummy head to dummy tail
+        tail->prev = head;   // Link dummy tail to dummy head
+    }
+
+    // Inserts a new key <Key> with value 1. Or increments an existing key by 1.
+    void inc(string key) {
+        if (map.find(key) != map.end()) {
+            Node* node = map[key];
+            int freq = node->freq;
+            node->keys.erase(key);  // Remove key from current node
+
+            Node* nextNode = node->next;
+            if (nextNode == tail || nextNode->freq != freq + 1) {
+                // Create a new node if next node does not exist or freq is not
+                // freq + 1
+                Node* newNode = new Node(freq + 1);
+                newNode->keys.insert(key);
+                newNode->prev = node;
+                newNode->next = nextNode;
+                node->next = newNode;
+                nextNode->prev = newNode;
+                map[key] = newNode;
+            } else {
+                // Increment the existing next node
+                nextNode->keys.insert(key);
+                map[key] = nextNode;
+            }
+
+            // Remove the current node if it has no keys left
+            if (node->keys.empty()) {
+                removeNode(node);
+            }
+        } else {  // Key does not exist
+            Node* firstNode = head->next;
+            if (firstNode == tail || firstNode->freq > 1) {
+                // Create a new node
+                Node* newNode = new Node(1);
+                newNode->keys.insert(key);
+                newNode->prev = head;
+                newNode->next = firstNode;
+                head->next = newNode;
+                firstNode->prev = newNode;
+                map[key] = newNode;
+            } else {
+                firstNode->keys.insert(key);
+                map[key] = firstNode;
+            }
+        }
+    }
+
+    // Decrements an existing key by 1. If Key's value is 1, remove it from the
+    // data structure.
+    void dec(string key) {
+        if (map.find(key) == map.end()) {
+            return;  // Key does not exist
+        }
+
+        Node* node = map[key];
+        node->keys.erase(key);
+        int freq = node->freq;
+
+        if (freq == 1) {
+            // Remove the key from the map if freq is 1
+            map.erase(key);
+        } else {
+            Node* prevNode = node->prev;
+            if (prevNode == head || prevNode->freq != freq - 1) {
+                // Create a new node if the previous node does not exist or freq
+                // is not freq - 1
+                Node* newNode = new Node(freq - 1);
+                newNode->keys.insert(key);
+                newNode->prev = prevNode;
+                newNode->next = node;
+                prevNode->next = newNode;
+                node->prev = newNode;
+                map[key] = newNode;
+            } else {
+                // Decrement the existing previous node
+                prevNode->keys.insert(key);
+                map[key] = prevNode;
+            }
+        }
+
+        // Remove the node if it has no keys left
+        if (node->keys.empty()) {
+            removeNode(node);
+        }
+    }
+
+    // Returns one of the keys with maximal value.
+    string getMaxKey() {
+        if (tail->prev == head) {
+            return "";  // No keys exist
+        }
+        return *(tail->prev->keys.begin());  // Return one of the keys from the
+                                             // tail's previous node
+    }
+
+    // Returns one of the keys with minimal value.
+    string getMinKey() {
+        if (head->next == tail) {
+            return "";  // No keys exist
+        }
+        return *(
+            head->next->keys
+                .begin());  // Return one of the keys from the head's next node
+    }
+
+private:
+    void removeNode(Node* node) {
+        Node* prevNode = node->prev;
+        Node* nextNode = node->next;
+
+        prevNode->next = nextNode;  // Link previous node to next node
+        nextNode->prev = prevNode;  // Link next node to previous node
+
+        delete node;  // Free the memory of the removed node
+    }
+};
+```
+
+#### Complexity Analysis
+
+- **Time complexity**:
+  $$
+  O(1)
+  $$
+  The `inc` and `dec` methods both perform operations that are constant time. In `inc`, whether inserting a new key or updating an existing one, the operations primarily involve updating pointers in the linked list and updating the hash map, which are $O(1)$ operations.
+
+  Similarly, in `dec`, removing a key, updating the hash map, and possibly creating a new node or modifying the previous node also take constant time. Therefore, both operations run in $O(1)$.
+
+  The `getMaxKey` and `getMinKey` methods return a key from the front or back of the linked list, which is also $O(1)$ since it involves accessing the first or last element of the list.
+
+- **Space complexity**:
+  $$
+  O(N)
+  $$
+  The space used by the `AllOne` data structure is primarily due to the hash map and the linked list of `Node`s.
+
+  The hash map stores pointers to nodes for each unique key, requiring $O(N)$ space where $N$ is the number of unique keys.
+
+  Each `Node` contains a set of `keys`, which can also grow with the number of unique keys in the worst case. Hence, the total space consumed by the linked list of nodes will also contribute to $O(N)$.
 
