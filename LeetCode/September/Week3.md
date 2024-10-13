@@ -26,13 +26,20 @@
       - [Approach 3: Tabulation](#approach-3-tabulation)
   - [24.09.20 - 214. Shortest Palindrome](#240920---214-shortest-palindrome)
     - [나](#나-4)
-    - [Solution 추후 갱신](#solution-추후-갱신)
+    - [Solution](#solution-3)
+      - [Approach 1: Brute Force](#approach-1-brute-force)
+      - [Approach 2: Two Pointer](#approach-2-two-pointer)
+      - [Approach 3: KMP (Knuth-Morris-Pratt) Algorithm](#approach-3-kmp-knuth-morris-pratt-algorithm)
+      - [Approach 4: Rolling Hash Based Algorithm](#approach-4-rolling-hash-based-algorithm)
+      - [Approach 5: Manacher's Algorithm](#approach-5-manachers-algorithm)
   - [24.09.21 - 386. Lexicographical Numbers](#240921---386-lexicographical-numbers)
     - [나](#나-5)
-    - [Solution 추후 갱신](#solution-추후-갱신-1)
+    - [Solution](#solution-4)
+      - [Approach 1: DFS Approach](#approach-1-dfs-approach)
+      - [Approach 2: Iterative Approach](#approach-2-iterative-approach)
   - [24.09.22 - 440. K-th Smallest in Lexicographical Order](#240922---440-k-th-smallest-in-lexicographical-order)
     - [나](#나-6)
-    - [Solution](#solution-3)
+    - [Solution 추후 갱신](#solution-추후-갱신)
       - [Approach: Prefix Tree](#approach-prefix-tree)
 
 # September Week 3
@@ -1302,9 +1309,577 @@ Let $n$ be the length of the input string `expression`.
 ### 나
 Solution 참고
 
-### Solution 추후 갱신
-[링크](https://leetcode.com/problems/shortest-palindrome/editorial/?envType=daily-question&envId=2024-09-20)
+### Solution
 
+<h3> Overview </h3>
+
+We are given a string `s`. Our task is to build the smallest palindrome by adding characters to the beginning of `s`.
+
+To solve this, we can reframe the problem as finding the longest palindromic substring that starts from the index `0`. Once we know the length of this substring, we can create the shortest palindrome by appending the reverse of the remaining part of the string to the original string to make `s` a complete palindrome.
+
+For instance, consider the string `s = "aacecaaa"`. Here, the longest palindromic prefix is `"aacecaa"` (starts at index `0`). The remaining part of the string is just the last `"a"`. To create the smallest palindrome, we reverse this remaining part and add it to the front of the original string, resulting in `"aaacecaaa"`, which is a palindrome.
+
+Another example is `s = "abcd"`, where the longest palindromic prefix is just the first character `"a"`. The remaining part, `"bcd"`, is not a palindrome. By reversing `"bcd"` and adding it to the start, we get `"dcbabcd"`, which is the smallest palindrome that can be formed from the original string. This way, we can find the shortest palindrome by adding only the necessary characters to the front of the string.
+
+#### Approach 1: Brute Force
+
+<h3> Intuition </h3>
+
+As we know, a palindrome reads the same forwards and backwards. Therefore, the challenge is to identify the longest prefix of the original string that can be extended to a full palindrome by only adding characters at the start.
+
+First, we need to find out which part of the string is already a palindrome. So, we check the original string and see how much of it matches the end of its reversed version. This helps us figure out the longest palindromic prefix.
+
+To do this, we look at different prefixes of the original string and compare them to suffixes of the reversed string. If a prefix matches a suffix of the reversed string, it’s part of a palindrome.
+
+Once we find the longest palindromic prefix, we need to reverse the rest of the string (the part not included in the prefix) and add this reversed part to the start of the original string. This gives us the shortest possible palindrome.
+
+For example: Let’s take the string `"abcbabcab"`. We reverse the string to get `"bacbabcba"`. By comparing prefixes of `"abcbabcab"` with suffixes of `"bacbabcba"`, we find that the longest prefix `"abcba"` matches with the suffix `"abcba"` in the reversed string. This is a palindrome.
+
+To form the shortest palindrome, we then need to reverse the remaining part of the original string that doesn’t overlap with this prefix. In our example, the remaining part is `"bcab"`. Reversing `"bcab"` gives us `"bacb"`. Adding this to the start of the original string results in `"bacbabcbabcab"`.
+
+<h3> Algorithm </h3>
+
+1. Initialize `length` with the length of the string `s`.
+2. Reverse the string `s` to get `reversedString`.
+3. Iterate through the string from `0` to `length - 1`:
+   - For each index `i`, check if the substring `s.substring(0, length - i)` (i.e., the prefix of `s` up to `length - i`) is equal to the substring `reversedString.substring(i)` (i.e., the suffix of `reversedString` starting from `i`).
+   - If they are equal, it means the prefix of `s` is a palindrome:
+     - Return the concatenation of `reversedString.substring(0, i)` (i.e., the characters in `reversedString` before `i`) and the original string `s`.
+4. If no valid prefix is found that satisfies the condition, return an empty string `""`.
+
+<h3> Implementation </h3>
+
+```cpp
+// 31ms, 10.78MB
+class Solution {
+public:
+    string shortestPalindrome(string s) {
+        string reversedString = s;
+        // Reverse the original string
+        reverse(reversedString.begin(), reversedString.end());
+
+        // Iterate through the string to find the longest palindromic prefix
+        for (int i = 0; i < s.size(); ++i) {
+            // memcmp to avoid creating substrings
+            if (!memcmp(s.c_str(), reversedString.c_str() + i, s.size() - i)) {
+                // Append the necessary part to make the palindrome
+                return reversedString.substr(0, i) + s;
+            }
+        }
+        // Fallback case, append the whole reversed string to the original
+        // string
+        return reversedString + s;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the length of the input string $s$.
+
+- **Time complexity:** $O(n^2)$  
+  The reversal of the string `s` involves traversing the string once, which has a time complexity of $O(n)$.
+
+  In the loop, for each iteration, we check if the substring of length $n - i$ of `s` matches the substring of length $n - i$ of the reversed string. Each check involves string operations that are linear in the length of the substring being compared. Thus, for each iteration $i$, the comparison is $O(n - i)$. Since $i$ ranges from 0 to $n - 1$, the total time complexity of the palindrome check part can be expressed as the sum of comparisons of decreasing lengths. This sum is roughly $O(n^2)$.
+
+- **Space complexity:** $O(n)$  
+  Creating the reversed string involves additional space proportional to the length of the input string, i.e., $O(n)$.
+
+  The substring operations in the `for` loop do not require additional space proportional to the length of the string but do create new string objects temporarily, which is still $O(n)$ space for each substring.
+
+  Therefore, the overall space complexity is $O(n)$.
+
+#### Approach 2: Two Pointer
+
+<h3> Intuition </h3>
+
+In the brute force approach, we observe that we need to identify the longest palindromic prefix of a string. To do this, we can use a method involving two pointers. This method is a bit more efficient compared to checking every possible substring, which would take longer.
+
+Let’s consider an example string: `"abcbabcaba"`. We use two pointers, `left` and `right`. We start by setting `left` to `0`. Then, we move the `right` pointer from the end of the string to the beginning. Each time the characters at `left` and `right` match, we increment `left`.
+
+By following this process, we narrow our search to the substring from the beginning of the string up to `left`. This substring will always include the longest palindromic prefix.
+
+- If the entire string were a perfect palindrome, the `left` pointer would move through the entire length of the string, reaching the end (`n` times).
+- If the string isn’t a perfect palindrome, the `left` pointer will still move forward by the length of the palindromic part at the beginning.
+
+Therefore, while the substring `[0, left)` may not always be the tightest fit, it will always contain the longest palindromic prefix.
+
+The best-case scenario for this algorithm is when the entire string is a palindrome. In this case, the `left` pointer will reach the end of the string quickly. The worst-case scenario is when the string is something like `"aababababababa"`. Here, `left` initially becomes `12`, meaning we need to recheck the substring `[0, 12)`. As we continue, `left` might decrease to `10`, and so on. In this worst-case scenario, the substring is reduced by only a few elements at each step, making the total number of steps proportional to the length of the string, or $O(n)$.
+
+<h3> Algorithm </h3>
+
+- If the string `s` is empty, return `s` immediately.
+- **Find the longest palindromic prefix:**
+  - Initialize `left` to 0.
+  - Iterate `right` from the end of the string (`length - 1`) to the start (0):
+    - If the character at `right` matches the character at `left`:
+      - Increment `left`.
+- If `left` equals the length of the string, `s` is already a palindrome, so return `s`.
+- **Extract the suffix that is not part of the palindromic prefix:**
+  - Create `nonPalindromeSuffix` as the substring from `left` to the end of `s`.
+  - Reverse `nonPalindromeSuffix` to create `reverseSuffix`.
+- **Form the shortest palindrome:**
+  - Recursively call `shortestPalindrome` on the substring from the start to `left` (i.e., `s.substring(0, left)`).
+  - Concatenate `reverseSuffix`, the result of the recursive call, and `nonPalindromeSuffix`.
+- Return the concatenated result as the shortest palindrome.
+
+<h3> Implementation </h3>
+
+```cpp
+// 8ms, 11.20MB
+class Solution {
+public:
+    string shortestPalindrome(string s) {
+        int length = s.length();
+        if (length == 0) {
+            return s;
+        }
+
+        // Find the longest palindromic prefix
+        int left = 0;
+        for (int right = length - 1; right >= 0; right--) {
+            if (s[right] == s[left]) {
+                left++;
+            }
+        }
+
+        // If the whole string is a palindrome, return the original string
+        if (left == length) {
+            return s;
+        }
+
+        // Extract the suffix that is not part of the palindromic prefix
+        string nonPalindromeSuffix = s.substr(left);
+        string reverseSuffix =
+            string(nonPalindromeSuffix.rbegin(), nonPalindromeSuffix.rend());
+
+        // Form the shortest palindrome by prepending the reversed suffix
+        return reverseSuffix + shortestPalindrome(s.substr(0, left)) +
+               nonPalindromeSuffix;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the length of the input string.
+
+- **Time Complexity:** $O(n^2)$  
+  Each iteration of the `shortestPalindrome` function operates on a substring of size `n`. In the worst-case scenario, where the string is not a palindrome and we must continually reduce its size, the function might need to be called up to `n/2` times.
+
+  The time complexity $T(n)$ represents the total time taken by the algorithm. At each step, the algorithm processes a substring and then works with a smaller substring by removing two characters. This can be expressed as:
+
+  $$ T(n) = T(n - 2) + O(n) $$
+
+  Summing up all the steps, we get:
+
+  $$ T(n) = O(n) + O(n - 2) + O(n - 4) + ... + O(1) $$
+
+  This sum of terms approximates to $O(n^2)$ because it is an arithmetic series where the number of terms grows linearly with $n$.
+
+- **Space Complexity:** $O(n)$  
+  The space complexity is linear, $O(n)$, due to the space needed to store the reversed suffix and other temporary variables.
+
+#### Approach 3: KMP (Knuth-Morris-Pratt) Algorithm 
+
+<h3> Intuition </h3>
+
+The KMP algorithm is used for pattern matching within strings. The KMP algorithm computes prefix functions to identify substrings that match specific patterns. In our case, we use this efficiency to compute the longest palindromic prefix. We construct a combined string of the original string, a special delimiter, and the reversed original string. By applying KMP, we can determine the longest prefix of the original string that matches a suffix of the reversed string.
+
+First, we construct a new string by concatenating the original string, a delimiter (such as `"#"`) and the reversed original string. This combined string looks like `"original#reversed"`. The delimiter `"#"` is crucial because it ensures that we are only comparing the original string with its reversed version, and not inadvertently matching parts of the reversed string with itself.
+
+To proceed, we calculate the prefix function for this combined string. The prefix function or partial match table is an array where each element at index $i$ indicates the length of the longest prefix of the substring ending at $i$ which is also a suffix. This helps us identify the longest segment where the prefix of the original string matches a suffix in the reversed string. The purpose is to identify how much of the original string matches a suffix of the reversed string.
+
+For example: We construct a combined string using the original string `s`, a delimiter `"#"`, and the reversed version of `s`. This combined string helps us find the longest palindromic prefix by applying the KMP algorithm. For the string `"aacecaaa"`, the reversed string is `"aaacecaa"`. Thus, the combined string becomes `"aacecaaa#aaacecaa"`.
+
+The prefix function helps us determine the length of the longest prefix of the original string that can be matched by a suffix of the reversed string. For the combined string `"aacecaaa#aaacecaa"`, the prefix function will reveal that the longest palindromic prefix of `"aacecaaa"` is `"aacecaa"`.
+
+To create the shortest palindrome, we need to prepend characters to the original string. Specifically, we reverse the portion of the original string that extends beyond the longest palindromic prefix and prepend it. In this case, the part of the original string that extends beyond `"aacecaa"` is `"a"`. Reversing `"a"` gives `"a"`, so we prepend `"a"` to `"aacecaaa"` and the result is `"aaacecaaa"`.
+
+The algorithm to generate the prefix table is described below:
+
+```java
+prefixTable[0] = 0;
+
+for (int i = 1; i < n; i++) {
+    int length = prefixTable[i - 1];
+
+    while (length > 0 && s.charAt(i) != s.charAt(length)) {
+        length = prefixTable[length - 1];
+    }
+
+    if (s.charAt(i) == s.charAt(length)) {
+        length++;
+    }
+    prefixTable[i] = length;
+}
+```
+
+- Begin by setting `prefixTable[0] = 0` since there is no proper prefix for the first character.
+- Next, iterate over $i$ from 1 to $n - 1$:
+    - Set `length = prefixTable[i - 1]`, which represents the longest prefix length for the substring up to the previous character.
+    - While `length > 0` and the character at position $i$ doesn't match the character at position `length`, set `length = prefixTable[length - 1]`. This step is essential when we encounter a mismatch, and we attempt to match a shorter prefix, which is the value of `prefixTable[length - 1]`, until either we find a match or `length` becomes 0.
+    - If `s.charAt(i) == s.charAt(length)`, we increment `length` by 1 (extend the matching prefix).
+    - Finally, set `prefixTable[i] = length`.
+
+The lookup table generation is as illustrated below:  
+![alt text](image-5.png)
+
+<h3> Algorithm </h3>
+
+- `shortestPalindrome` function:
+    - Create `reversedString` by reversing the input string `s`.
+    - Concatenate `s`, a separator `"#"`, and `reversedString` to form `combinedString`.
+    - Call `buildPrefixTable(combinedString)` to compute the prefix table for `combinedString`.
+    - Extract the length of the longest palindromic prefix from the last value in the prefix table (`prefixTable[combinedString.length() - 1]`).
+    - Compute `suffix` by taking the substring of `s` starting from the length of the longest palindromic prefix.
+    - Reverse `suffix` and prepend it to `s` to form and return the shortest palindrome.
+
+- `buildPrefixTable` function:
+    - Initialize `prefixTable` with the same length as the input string `s` and set `length` to 0.
+    - Iterate over `s` from index 1 to the end:
+        - While `length` is greater than 0 and the current character does not match the character at the current length, update `length` to the value at `prefixTable[length - 1]`.
+        - If the current character matches the character at `length`, increment `length`.
+        - Set `prefixTable[i]` to the current `length`.
+    - Return the `prefixTable`.
+
+The result is the shortest palindrome string formed by appending the reversed suffix of `s` to `s`.
+
+<h3> Implementation </h3>
+
+```cpp
+// 16ms, 14.07MB
+class Solution {
+public:
+    string shortestPalindrome(string s) {
+        // Reverse the original string
+        string reversedString = string(s.rbegin(), s.rend());
+
+        // Combine the original and reversed strings with a separator
+        string combinedString = s + "#" + reversedString;
+
+        // Build the prefix table for the combined string
+        vector<int> prefixTable = buildPrefixTable(combinedString);
+
+        // Get the length of the longest palindromic prefix
+        int palindromeLength = prefixTable[combinedString.length() - 1];
+
+        // Construct the shortest palindrome by appending the reverse of the
+        // suffix
+        string suffix = reversedString.substr(0, s.length() - palindromeLength);
+        return suffix + s;
+    }
+
+private:
+    // Helper function to build the KMP prefix table
+    vector<int> buildPrefixTable(const string& s) {
+        vector<int> prefixTable(s.length(), 0);
+        int length = 0;
+
+        // Build the table by comparing characters
+        for (int i = 1; i < s.length(); i++) {
+            while (length > 0 && s[i] != s[length]) {
+                length = prefixTable[length - 1];
+            }
+            if (s[i] == s[length]) {
+                length++;
+            }
+            prefixTable[i] = length;
+        }
+        return prefixTable;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the length of the input string.
+
+- **Time complexity: $O(n)$**
+    - Creating the reversed string requires a pass through the original string, which takes $O(n)$ time.
+    - Concatenating `s`, `"#"`, and `reversedString` takes $O(n)$ time, as concatenating strings of length $n$ is linear in the length of the strings.
+    - Constructing the prefix table involves iterating over the combined string of length $2n + 1$. The `buildPrefixTable` method runs in $O(m)$ time, where $m$ is the length of the combined string. In this case, $m = 2n + 1$, so the time complexity is $O(n)$.
+    - Extracting the suffix and reversing it are both $O(n)$ operations.
+    - Combining these, the overall time complexity is $O(n)$.
+
+- **Space complexity: $O(n)$**
+    - The `reversedString` and `combinedString` each use $O(n)$ space.
+    - The `prefixTable` array has a size of $2n + 1$, which is $O(n)$. Other variables used (such as `length` and indices) use $O(1)$ space.
+    - Combining these, the overall space complexity is $O(n)$.
+
+#### Approach 4: Rolling Hash Based Algorithm
+
+<h3> Intuition </h3>
+
+The rolling hash approach uses hash functions to efficiently compare different substrings of the original string with those of the reversed string. Hashing helps determine if a substring matches another by comparing hash values rather than individual characters.
+
+Rolling hashes are designed to handle substring matching and comparison problems by allowing incremental updates to hash values as we slide through the string. This reduces the number of comparisons needed by comparing hash values instead of actual substrings.
+
+To start, we compute hash values for all prefixes of the original string and all suffixes of the reversed string using a rolling hash function. The rolling hash function allows us to update the hash values incrementally, which speeds up the computation compared to recalculating hashes from scratch.
+
+Next, we compare the hash values of the prefixes from the original string with the hash values of the suffixes from the reversed string. When the hash values match, it indicates that the corresponding substrings are identical. This helps us find the longest palindromic prefix.
+
+For example: Suppose our string is `"aacecaaa"`. We calculate hash values for the prefixes of `"aacecaaa"` and the suffixes of its reverse, `"aaacecaa"`. The hash comparisons reveal that the longest palindromic prefix is `"aacecaaa"`. We then reverse the remaining part of the string (`"a"`), yielding `"a"`. Prepending this reversed part to the original string gives `"aaacecaaa"`.
+
+<h3> Hash Calculation Details: </h3>
+
+To give you a clearer idea of how the hashing is calculated, let's see this:
+
+We initialize two hash values: one for the original string and one for its reversed version. Let’s use base `29` and a large prime modulus $10^9 + 7$ for hashing. We also initialize a variable to keep track of powers of the base.
+
+We iterate through each character of the original string and compute its hash. Suppose we start with the hash value `0` and process characters one by one:
+
+**Character `'a'`:**
+- Update hash:
+  - $ \text{hash} = (\text{hash} \times \text{base} + \text{character\_value}) \% \text{mod} $
+  - Suppose the character value for `'a'` is `1`.
+  - $ \text{hash} = (0 \times 29 + 1) \% 1000000007 = 1 $
+
+**Character `'a'`:**
+- Update hash:
+  - $ \text{hash} = (\text{hash} \times 29 + 1) \% 1000000007 = 30 $
+
+Continue this for all characters. After processing `"aacecaaa"`, let’s assume the final hash is `23456789` for this substring.
+
+We do a similar hash calculation for the reversed string `"aaacecaa"`. We compute the hash values for each prefix of the reversed string. Let’s assume the final hash of the reversed string is `34567890`.
+
+To compare substrings, we use a rolling hash. As we move the window of comparison along the combined string, we update the hash values based on the new and old characters entering and exiting the window. If the hash of a prefix of the original string matches the hash of a suffix of the reversed string, that prefix is palindromic. Now the comparison shows that the longest prefix of `"aacecaaa"` that matches a suffix of `"aaacecaa"` is `"aacecaa"`. This tells us that `"aacecaa"` is a palindromic segment. Now we identify the remaining part of the original string that extends beyond the palindromic prefix. For `"aacecaaa"`, the remaining part is `"a"`.
+
+So we reverse the remaining part (`"a"`) to get `"a"`, and prepend this reversed part to the original string.
+
+Thus the shortest palindrome is `"aaacecaaa"`.
+
+<h3> Algorithm </h3>
+
+- Initialize hash parameters:
+  - Set `hashBase` to 29 and `modValue` to $10^9 + 7$.
+  - Initialize `forwardHash` and `reverseHash` to 0.
+  - Initialize `powerValue` to 1.
+  - Initialize `palindromeEndIndex` to -1.
+
+- Iterate over each character `currentChar` in the string `s`:
+  - Update `forwardHash` to include the current character:
+    - Compute `forwardHash` as $ (\text{forwardHash} \times \text{hashBase} + (\text{currentChar} - 'a' + 1)) \% \text{modValue} $
+  - Update `reverseHash` to include the current character:
+    - Compute `reverseHash` as $ (\text{reverseHash} + (\text{currentChar} - 'a' + 1) \times \text{powerValue}) \% \text{modValue} $
+  - Update `powerValue` for the next character:
+    - Compute `powerValue` as $ (\text{powerValue} \times \text{hashBase}) \% \text{modValue} $
+  - If `forwardHash` matches `reverseHash`, update `palindromeEndIndex` to the current index `i`.
+
+- After the loop, find the suffix that follows the longest palindromic prefix:
+  - Extract the suffix from the string `s` starting from `palindromeEndIndex + 1` to the end.
+  - Reverse the suffix to prepare for prepending.
+
+- Concatenate the reversed suffix to the original string `s` and return the result:
+  - Return `reversedSuffix + s`.
+
+<h3> Implementation </h3>
+
+```cpp
+// 3ms, 10.75MB
+class Solution {
+public:
+    string shortestPalindrome(string s) {
+        long long hashBase = 29;
+        long long modValue = 1e9 + 7;
+        long long forwardHash = 0, reverseHash = 0, powerValue = 1;
+        int palindromeEndIndex = -1;
+
+        // Calculate rolling hashes and find the longest palindromic prefix
+        for (int i = 0; i < s.length(); ++i) {
+            char currentChar = s[i];
+
+            // Update forward hash
+            forwardHash =
+                (forwardHash * hashBase + (currentChar - 'a' + 1)) % modValue;
+
+            // Update reverse hash
+            reverseHash =
+                (reverseHash + (currentChar - 'a' + 1) * powerValue) % modValue;
+            powerValue = (powerValue * hashBase) % modValue;
+
+            // If forward and reverse hashes match, update palindrome end index
+            if (forwardHash == reverseHash) {
+                palindromeEndIndex = i;
+            }
+        }
+
+        // Find the remaining suffix after the longest palindromic prefix
+        string suffix = s.substr(palindromeEndIndex + 1);
+        // Reverse the remaining suffix
+        string reversedSuffix(suffix.rbegin(), suffix.rend());
+
+        // Prepend the reversed suffix to the original string and return the
+        // result
+        return reversedSuffix + s;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the length of the input string.
+
+- **Time complexity: $O(n)$**
+  - The algorithm performs a single pass over the input string to compute rolling hashes and determine the longest palindromic prefix, resulting in $O(n)$ time complexity. This pass involves constant-time operations for each character, including hash updates and power calculations. After this, we perform an additional pass to reverse the suffix, which is also $O(n)$. The total time complexity remains $O(n)$.
+
+- **Space complexity: $O(n)$**
+  - The space complexity is determined by the space used for the reversed suffix and the additional string manipulations. The space required for the forward and reverse hash values, power value, and palindrome end index is constant and does not scale with input size. However, storing the reversed suffix and the final result string both require $O(n)$ space. Thus, the space complexity is $O(n)$.
+
+#### Approach 5: Manacher's Algorithm
+
+<h3> Intuition </h3>
+
+> [!NOTE] 
+> This algorithm goes beyond what's typically expected in coding interviews. It's more for those who are curious and eager to explore advanced algorithms, simply out of personal interest or a desire to deepen their understanding of data structures and algorithms. If you're someone who loves learning new concepts beyond interview prep, this approach might be for you! Sometimes this is the only algorithm that can give you an $O(n)$ runtime.
+
+Developed to address the problem of finding palindromic substrings efficiently, Manacher’s algorithm preprocesses the string to handle both even and odd-length palindromes uniformly. By inserting special characters between each character of the original string, it computes the radius of the longest palindromic substring centered at each position.
+
+To handle palindromes of both even and odd lengths uniformly, the algorithm transforms the original string by inserting special characters (e.g., `"#"`) between every character and at the boundaries. This way, every palindrome can be treated as if it’s surrounded by characters, making it easier to apply the same expansion logic for all cases.
+
+For example, the string `"aacecaaa"` is transformed into `"^#a#a#c#e#c#a#a#a#$"`. Here, `^` and `$` are boundary markers that help avoid out-of-bound errors. `#` helps to treat the string uniformly, making every palindrome appear with a single center.
+
+Manacher’s algorithm maintains an array `P` where `P[i]` denotes the radius of the longest palindromic substring centered at the position `i` in the transformed string.
+
+We divide Manacher's algorithm into three steps to achieve linear time complexity:
+
+1. **Center and Right Boundary**: We track the center `C` and right boundary `R` of the rightmost palindrome found so far. For each position `i`, we check if it falls within the current right boundary. If it does, we use previously computed information to estimate the length of the palindrome centered at `i`.
+
+2. **Mirror Property**: If a position `i` is within the right boundary of a known palindrome, we can infer the length of the palindrome centered at `i` from its mirrored position relative to the current center `C`. This way we reduce the need for direct expansion by leveraging previously computed palindromes to quickly estimate lengths.
+
+3. **Expand Around Center**: For positions where the estimated palindrome length based on the mirror property is not accurate, we perform direct expansion to find the exact length of the palindrome centered at `i`. We update the center and right boundary if the newly found palindrome extends beyond the current right boundary.
+
+After computing the array `P`, we can determine the longest palindromic prefix of the original string. The longest palindromic substring in the transformed string that corresponds to a prefix of the original string gives us the longest palindromic prefix.
+
+To form the shortest palindrome, identify the part of the original string that does not contribute to this longest palindromic prefix. Reverse this non-matching segment and prepend it to the original string.
+
+With the string `"aacecaaa"`, after preprocessing to `"#a#a#c#e#c#a#a#a#"`, Manacher’s algorithm identifies `"aacecaaa"` as the longest palindromic prefix. Reversing the remaining part (`"a"`) and prepending it results in `"aaacecaaa"`.
+
+We highly recommend solving the [longest palindromic substring problem using Manacher’s algorithm](https://leetcode.com/problems/longest-palindromic-substring/editorial/). It is extremely efficient and ideal for solving palindrome-related problems.
+
+This algorithm is complex, so review various sources to gain a better understanding. It's normal if you don’t grasp it right away, so give yourself time.
+
+<h3> Algorithm </h3>
+
+- **`shortestPalindrome` function:**
+  - If the input string `s` is null or empty, return `s` immediately.
+  - Preprocess the string `s` by calling `preprocessString(s)` to handle edge cases and simplify palindrome detection.
+    - **`preprocessString` function:**
+      - Initialize a string with a starting character `^`.
+      - Append a `#` followed by each character in `s` to string.
+      - Append a trailing `#` and a dollar sign to complete the modified string.
+      - Return the modified string which includes special boundary characters.
+
+  - Initialize an integer array `palindromeRadiusArray` to store the radius of the palindrome centered at each character in the modified string.
+
+  - Initialize `center` and `rightBoundary` to track the center and right boundary of the current longest palindrome found.
+
+  - Initialize `maxPalindromeLength` to track the length of the longest palindrome that touches the start of the string.
+
+  - Iterate through each character `i` in the modified string (excluding the boundary characters):
+    - Calculate the `mirrorIndex` as `2 * center - i` to utilize previously computed palindromes.
+    - If `rightBoundary` is greater than `i`, update `palindromeRadiusArray[i]` to the minimum of the remaining length to the `rightBoundary` or the radius of the palindrome at `mirrorIndex`.
+    - Expand around the center `i` while the characters match and update `palindromeRadiusArray[i]` accordingly.
+    - If the expanded palindrome extends beyond `rightBoundary`, update `center` and `rightBoundary` to the new values.
+    - If the palindrome touches the start of the string (`i - palindromeRadiusArray[i] == 1`), update `maxPalindromeLength` with the maximum length found.
+
+  - Extract the suffix of the original string starting from `maxPalindromeLength` and reverse it.
+
+  - Concatenate the reversed suffix with the original string and return the result.
+
+<h3> Implementation </h3>
+
+```cpp
+// 27ms, 14.23MB
+class Solution {
+public:
+    string shortestPalindrome(string s) {
+        // Return early if the string is null or empty
+        if (s.empty()) {
+            return s;
+        }
+
+        // Preprocess the string to handle palindromes uniformly
+        string modifiedString = preprocessString(s);
+        int n = modifiedString.size();
+        vector<int> palindromeRadiusArray(n, 0);
+        int center = 0, rightBoundary = 0;
+        int maxPalindromeLength = 0;
+
+        // Iterate through each character in the modified string
+        for (int i = 1; i < n - 1; ++i) {
+            int mirrorIndex = 2 * center - i;
+
+            // Use previously computed values to avoid redundant calculations
+            if (rightBoundary > i) {
+                palindromeRadiusArray[i] =
+                    min(rightBoundary - i, palindromeRadiusArray[mirrorIndex]);
+            }
+
+            // Expand around the current center while characters match
+            while (modifiedString[i + 1 + palindromeRadiusArray[i]] ==
+                   modifiedString[i - 1 - palindromeRadiusArray[i]]) {
+                ++palindromeRadiusArray[i];
+            }
+
+            // Update the center and right boundary if the palindrome extends
+            // beyond the current boundary
+            if (i + palindromeRadiusArray[i] > rightBoundary) {
+                center = i;
+                rightBoundary = i + palindromeRadiusArray[i];
+            }
+
+            // Update the maximum length of palindrome starting at the
+            // beginning
+            if (i - palindromeRadiusArray[i] == 1) {
+                maxPalindromeLength =
+                    max(maxPalindromeLength, palindromeRadiusArray[i]);
+            }
+        }
+
+        // Construct the shortest palindrome by reversing the suffix and
+        // prepending it to the original string
+        string suffix = s.substr(maxPalindromeLength);
+        reverse(suffix.begin(), suffix.end());
+        return suffix + s;
+    }
+
+private:
+    string preprocessString(const string& s) {
+        // Add boundaries and separators to handle palindromes uniformly
+        string result = "^";
+        for (char c : s) {
+            result += "#" + string(1, c);
+        }
+        result += "#$";
+        return result;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+Let $n$ be the length of the input string.
+
+- **Time complexity: $O(n)$**  
+  The `preprocessString` method adds boundaries and separators to the input string. This takes linear time, $O(n)$, where $n$ is the length of the input string.
+
+  The core algorithm iterates through the characters of the modified string once. The expansion step and the updates of the center and right boundary each take constant time in the average case for each character. Thus, this step has a time complexity of $O(m)$, where $m$ is the length of the modified string.
+
+  Since the length of the modified string is $2n + 3$ (for separators and boundaries), the time complexity of Manacher's algorithm is $O(n)$.
+
+  Constructing the result involves reversing the suffix of the original string and concatenating it with the original string, both of which take linear time, $O(n)$.  
+
+  Combining these steps, the total time complexity is $O(n)$.
+
+- **Space complexity: $O(n)$**  
+  The space used to store the modified string is proportional to its length, which is $2n + 3$. Therefore, the space complexity for storing this string is $O(n)$.
+
+  The `palindromeRadiusArray` is used to store the radius of palindromes for each character in the modified string, which is $O(m)$. Since $m$ is $2n + 3$, the space complexity for this array is $O(n)$.
+
+  The additional space used for temporary variables and other operations is constant, $O(1)$.
+
+  Combining these factors, the total space complexity is $O(n)$.
 
 ## 24.09.21 - 386. Lexicographical Numbers
 [문제 링크](https://leetcode.com/problems/lexicographical-numbers/description/?envType=daily-question&envId=2024-09-21)
@@ -1341,8 +1916,160 @@ public:
 
 Solution 1과 비슷해 보이는데 왜 시간이 더 걸렸지..?
 
-### Solution 추후 갱신
-[링크](https://leetcode.com/problems/lexicographical-numbers/editorial)
+### Solution
+<h3> Overview </h3>
+
+We need to create a list of integers from 1 to $n$ and sort them in lexicographical order. Lexicographical order is similar to dictionary order, where the sequence is based on how words are arranged alphabetically. For numbers, this means sorting them as if they were strings. For example, `'10'` comes before `'2'` because `'1'` is less than `'2'`.
+
+The solution must be efficient, with a time complexity of $O(n)$. This means the algorithm should handle the input size directly without any nested loops that could slow it down. Additionally, the solution should use constant extra space, $O(1)$, which means it should not require extra memory beyond the output list itself.
+
+#### Approach 1: DFS Approach
+
+<h3> Intuition </h3>
+
+We can think of generating numbers in lexicographical order by imagining how they would appear in a dictionary. The first number is `1`, followed by `10`, `11`, `12`, and so on, before moving to `2`, then `20`, `21`, and so forth. The key is that smaller numbers starting with a particular digit should be fully explored before moving to the next starting digit.
+
+Now, to translate this thinking into an algorithm, consider each number as part of a tree. For instance, `1` has children like `10`, `11`, `12`, and so on, while `2` has children `20`, `21`, and so forth. This naturally suggests a depth-first search (DFS) approach: we explore each number and its children before moving to the next digit.
+
+We start with the numbers `1` through `9` as the roots of the tree. For each of these, we generate their children by appending digits from `0` to `9`, as long as the resulting number remains within the range $[1, n]$. Once we exhaust one branch (e.g., numbers starting with `1` that exceed $n$), we move to the next root (i.e., `2`) and repeat the process. In this way, we progressively build the lexicographical order.
+
+![alt text](image-6.png)
+
+<h3> Algorithm </h3>
+
+- Initialize an empty array `lexicographicalNumbers` to store the result.
+- Iterate over each starting number from 1 to 9:
+  - For each `start`, call `generateLexicalNumbers` with the current `start`, limit $n$, and `lexicographicalNumbers` array.
+  
+- **`generateLexicalNumbers` function:**
+  - If `currentNumber` exceeds the `limit`, return from the function to stop recursion.
+  - Add the `currentNumber` to the `result` array.
+  - Iterate over digits from 0 to 9 to try appending them to `currentNumber`:
+    - Calculate `nextNumber` by appending the digit to `currentNumber`.
+    - If `nextNumber` is within the `limit`, recursively call `generateLexicalNumbers` with `nextNumber`, `limit`, and `result`.
+    - If `nextNumber` exceeds the `limit`, break the loop to avoid unnecessary further recursion.
+
+- Return the `lexicographicalNumbers` array containing numbers in lexicographical order.
+
+<h3> Implementation </h3>
+
+```cpp
+// 0ms, 13.80MB
+class Solution {
+public:
+    vector<int> lexicalOrder(int n) {
+        vector<int> lexicographicalNumbers;
+        // Start generating numbers from 1 to 9
+        for (int start = 1; start <= 9; ++start) {
+            generateLexicalNumbers(start, n, lexicographicalNumbers);
+        }
+        return lexicographicalNumbers;
+    }
+
+private:
+    void generateLexicalNumbers(int currentNumber, int limit,
+                                vector<int>& result) {
+        // If the current number exceeds the limit, stop recursion
+        if (currentNumber > limit) return;
+
+        // Add the current number to the result
+        result.push_back(currentNumber);
+
+        // Try to append digits from 0 to 9 to the current number
+        for (int nextDigit = 0; nextDigit <= 9; ++nextDigit) {
+            int nextNumber = currentNumber * 10 + nextDigit;
+            // If the next number is within the limit, continue recursion
+            if (nextNumber <= limit) {
+                generateLexicalNumbers(nextNumber, limit, result);
+            } else {
+                break;  // No need to continue if nextNumber exceeds limit
+            }
+        }
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+- **Time Complexity: $O(n)$**  
+  The algorithm generates all numbers from 1 to $n$ in lexicographical order. Each number is visited exactly once and added to the result list. The total number of operations is proportional to the number of elements generated, which is $n$.
+
+- **Space Complexity: $O(\log_{10}(n))$**  
+  We only consider the recursion stack depth. The depth of recursion is proportional to the number of digits $d$ in $n$. Given that the maximum value for $n$ is 50,000, the maximum number of digits $d$ is 5. Thus, the recursion stack depth and corresponding space complexity is $O(d)$, which simplifies to $O(\log_{10}(n))$, but with a maximum constant value of 5 for practical constraints. It can also be argued as $O(1)$. This is because, when substituting $n$ as 50,000, the result is approximately 5 (specifically $4.698970004336$), which is extremely small and does not significantly affect the overall complexity in this range.
+
+> The space complexity analysis does not account for the result list itself, as the problem requires returning a list with $n$ elements. Since we are only storing the elements in the list without performing additional operations on it, the space used by the list is not considered in the complexity analysis.
+
+#### Approach 2: Iterative Approach
+
+<h3> Intuition </h3>
+
+We can do the same thing iteratively; the overall concept remains the same as the DFS approach. The difference will be how we organize and implement it.
+
+We initialize the current number as `1`, which is the first number in lexicographical order, and set up a loop that runs $n$ times because we want to generate exactly $n$ numbers.
+
+In each iteration, we add the current number to the result list. After that, we check if we can go deeper by multiplying the current number by 10, appending a zero to the current number, giving us the lexicographically smallest possible next number. If the result is still less than or equal to $n$, we update the current number to this new value and continue.
+
+If multiplying by 10 would exceed $n$, we increment the current number. However, this increment can’t always happen directly. If the current number ends in 9 or goes beyond the next "root" (like moving from `19` to `2`), we divide by 10 to move up a level and strip off the last digit. This way, we make sure we don’t skip any numbers.
+
+After incrementing, if the new current number ends in a zero (like `20`), we continue removing zeroes, dividing by 10, until we get a valid number. This ensures we stay in lexicographical order as we move forward.
+
+This way, we mimic the way we would manually write numbers in lexicographical order. We move from one number to the next by considering when to go deeper (appending digits) and when to backtrack (moving to the next root). Unlike the recursive method, which builds numbers by diving into each tree branch, this approach keeps track of the current number and adjusts it directly, making it more space efficient with no space overhead and in $O(n)$ time.
+
+<h3> Algorithm </h3>
+
+1. Initialize an empty array `lexicographicalNumbers` to store the results.
+2. Start with `currentNumber` set to 1.
+3. Generate numbers from 1 to $n$:
+   - Add `currentNumber` to the `lexicographicalNumbers` array.
+   - If multiplying `currentNumber` by 10 is less than or equal to $n$ (i.e., `currentNumber * 10 \leq n`), multiply `currentNumber` by 10 to move to the next lexicographical number (i.e., go deeper into the tree of numbers).
+   - Otherwise:
+     - Adjust `currentNumber` to move to the next valid lexicographical number:
+       - While `currentNumber` ends with a 9 or is greater than or equal to $n$:
+         - Divide `currentNumber` by 10 to remove the last digit.
+       - Increment `currentNumber` by 1 to move to the next number in the sequence.
+4. Return the `lexicographicalNumbers` array containing the numbers in lexicographical order from 1 to $n$.
+
+<h3> Implementation </h3>
+
+```cpp
+// 4ms, 12.48MB
+class Solution {
+public:
+    vector<int> lexicalOrder(int n) {
+        vector<int> lexicographicalNumbers;
+        int currentNumber = 1;
+
+        // Generate numbers from 1 to n
+        for (int i = 0; i < n; ++i) {
+            lexicographicalNumbers.push_back(currentNumber);
+
+            // If multiplying the current number by 10 is within the limit, do
+            // it
+            if (currentNumber * 10 <= n) {
+                currentNumber *= 10;
+            } else {
+                // Adjust the current number by moving up one digit
+                while (currentNumber % 10 == 9 || currentNumber >= n) {
+                    currentNumber /= 10;  // Remove the last digit
+                }
+                currentNumber += 1;  // Increment the number
+            }
+        }
+
+        return lexicographicalNumbers;
+    }
+};
+```
+
+<h3> Complexity Analysis </h3>
+
+- **Time Complexity: $O(n)$**  
+  The algorithm generates numbers in lexicographical order and iterates up to $n$ times to populate the `lexicographicalNumbers` array. Each iteration involves constant-time operations (checking conditions and updating `currentNumber`). Thus, the time complexity is linear in terms of $n$.
+
+- **Space Complexity: $O(1)$**  
+  The algorithm uses a constant amount of additional space for variables like `currentNumber` and loop counters. Therefore, the space complexity is $O(1)$.
+
+> The space complexity analysis does not account for the result list itself, as the problem requires returning a list with $n$ elements. Since we are only storing the elements in the list without performing additional operations on it, the space used by the list is not considered in the complexity analysis.
 
 
 ## 24.09.22 - 440. K-th Smallest in Lexicographical Order
@@ -1393,55 +2120,57 @@ private:
 };
 ```
 
-### Solution
-
+### Solution 추후 갱신
 <h3> Overview </h3>
 
-We need to find the `K`-th smallest number in lexicographical order within the range `[1, n]`. At first, this might seem like a simple sorting problem. We could list all the numbers, sort them in lexicographical order, and pick the `K`-th number. However, for large values of `n`, this becomes impractical due to the sheer size of the list we'd need to create.
+We need to find the $K$-th smallest number in lexicographical order within the range $[1, n]$. At first, this might seem like a simple sorting problem. We could list all the numbers, sort them in lexicographical order, and pick the $K$-th number. However, for large values of $n$, this becomes impractical due to the sheer size of the list we'd need to create.
 
-Instead of generating and sorting all the numbers, we can treat numbers as trees, where each node represents a number and its children represent numbers with the same prefix. Structuring numbers this way allows us to find the `K`-th smallest more efficiently.
+Instead of generating and sorting all the numbers, we can treat numbers as trees, where each node represents a number and its children represent numbers with the same prefix. Structuring numbers this way allows us to find the $K$-th smallest more efficiently.
 
 For example, the number `1` has children `10`, `11`, `12`, ..., up to `19`. Similarly, `2` has children `20`, `21`, ..., up to `29` and so on for other numbers. This gives us a prefix tree-like structure where each node corresponds to a number and branches out to other numbers by appending digits. If we traverse this tree in lexicographical order, it’s as if we’re listing all numbers in their proper order.
-
-![alt text](image-5.png)
 
 #### Approach: Prefix Tree
 
 <h3> Intuition </h3>
 
-We begin by selecting the smallest lexicographical number, which is `1`. Since we've already counted `1` as the first number, we subtract `1` from `k` to account for that.
+We begin by selecting the smallest lexicographical number, which is `1`. Since we've already counted `1` as the first number, we subtract `1` from $k$ to account for that.
 
-Next, we calculate how many numbers exist in the subtree rooted at `curr` by defining a helper function `countSteps`, which counts the numbers between two prefixes [`curr` and `curr + 1`). It calculates numbers at each level, expanding the prefix as we go deeper.
+Next, we calculate how many numbers exist in the subtree rooted at `curr` by defining a helper function `countSteps`, which counts the numbers between two prefixes [$\text{curr}$ and $\text{curr} + 1$). It calculates numbers at each level, expanding the prefix as we go deeper.
 
-We know the `k`-th number is not in this subtree if the number of steps (or numbers) under `curr` is smaller than or equal to `k`. Under these circumstances, we skip to the next sibling (`curr++`) and subtract the number of steps from `k` because we've skipped those numbers.
+We know the $k$-th number is not in this subtree if the number of steps (or numbers) under `curr` is smaller than or equal to $k$. Under these circumstances, we skip to the next sibling (`curr++`) and subtract the number of steps from $k$ because we've skipped those numbers.
 
-On the other hand, if the number of steps is larger than `k`, we know the `k`-th number is in the subtree rooted at `curr`. In that case, we move down one level by multiplying `curr` by 10, effectively moving to the next digit in the lexicographical tree. We also decrease `k` by 1 because we've taken one step deeper into the tree.
+On the other hand, if the number of steps is larger than $k$, we know the $k$-th number is in the subtree rooted at `curr`. In that case, we move down one level by multiplying `curr` by 10, effectively moving to the next digit in the lexicographical tree. We also decrease $k$ by 1 because we've taken one step deeper into the tree.
 
-We repeat this process until `k` becomes zero, at which point we've found the `k`-th number, and we return `curr`.
+We repeat this process until $k$ becomes zero, at which point we've found the $k$-th number, and we return `curr`.
 
 <h3> Algorithm </h3>
 
-- Initialize `curr` to 1 (current prefix) and decrement `k` by 1.
-- While `k` is greater than 0:
-  - Calculate the number of steps in the subtree rooted at `curr` using `countSteps(n, curr, curr + 1)`.
-  - If the number of steps is less than or equal to `k`:
-    - Increment `curr` by 1 to move to the next prefix.
-    - Decrement `k` by the number of skipped steps (i.e., `k -= step`).
-  - Otherwise:
-    - Multiply `curr` by 10 to move to the next level in the tree (i.e., `curr *= 10`).
-    - Decrement `k` by 1 to account for the current level.
-- Return the value of `curr` as the `k`-th smallest number in lexicographical order.
+1. Initialize `curr` to 1 (current prefix) and decrement $k$ by 1.
+2. While $k$ is greater than 0:
+   - Calculate the number of steps in the subtree rooted at `curr` using `countSteps(n, curr, curr + 1)`.
+   - If the number of steps is less than or equal to $k$:
+     - Increment `curr` by 1 to move to the next prefix.
+     - Decrement $k$ by the number of skipped steps (i.e., $k -= \text{step}$).
+   - Otherwise:
+     - Multiply `curr` by 10 to move to the next level in the tree (i.e., `curr *= 10`).
+     - Decrement $k$ by 1 to account for the current level.
+3. Return the value of `curr` as the $k$-th smallest number in lexicographical order.
 
 - `countSteps` function:
   - Initialize `steps` to 0 to keep track of the count of numbers in the range.
-  - While `prefix1` is less than or equal to `n`:
-    - Add the number of integers between `prefix1` and `prefix2` to `steps` using `steps += Math.min(n + 1, prefix2) - prefix1`. This ensures the count does not exceed `n` by capping `prefix2` at `n + 1` if `prefix2` is larger than `n`.
-    - Multiply `prefix1` and `prefix2` by 10 to move to the next level in the tree.
+  - While `prefix1` is less than or equal to $n$:
+     - Add the number of integers between `prefix1` and `prefix2` to `steps` using:
+       \[
+       \text{steps} += \min(n + 1, \text{prefix2}) - \text{prefix1}
+       \]
+       This ensures the count does not exceed $n$ by capping `prefix2` at $n + 1$ if `prefix2` is larger than $n$.
+     - Multiply `prefix1` and `prefix2` by 10 to move to the next level in the tree.
   - Return the total number of steps counted.
 
 <h3> Implementation </h3>
 
 ```cpp
+// 0ms, 7.48MB
 class Solution {
 public:
     int findKthNumber(int n, int k) {
@@ -1479,16 +2208,12 @@ private:
 
 Let $n$ be the input number.
 
-- **Time complexity**: $O(\log(n)^2)$
+- **Time complexity: $O(\log(n)^2)$**  
+  The outer `while` loop runs as long as $k > 0$. In the worst case, it runs $O(\log n)$ times because at each step, we either move to the next prefix or move deeper into the tree (multiplying the current prefix by 10).
 
-  The outer `while` loop runs as long as `k > 0`. In the worst case, it runs $O(\log(n))$ times, because at each step, we either move to the next prefix or move deeper into the tree (multiplying the current prefix by 10).
+  The `countSteps` function, which calculates the number of steps between two prefixes, runs in $O(\log n)$ time, as it traverses deeper levels of the number range by multiplying the prefixes by 10 in each iteration.
 
-  The `countSteps` function, which calculates the number of steps between two prefixes, runs in $O(\log(n))$ time, as it traverses deeper levels of the number range by multiplying the prefixes by 10 in each iteration.
+  Since the `countSteps` function is called inside the `while` loop, which also runs $O(\log n)$ times, the overall time complexity is $O(\log (n) \times \log (n)) \ = \ O(\log (n)^2)$.
 
-  Since the `countSteps` function is called inside the `while` loop, which also runs $O(\log(n))$ times, the overall time complexity is $O(\log(n)^2)$.
-
-- **Space complexity**: $O(1)$
-
+- **Space complexity: $O(1)$**  
   The space complexity is $O(1)$ because we're only using a constant amount of additional space for variables like `curr`, `k`, `step`, `prefix1`, `prefix2`, etc. We're not using any data structures that grow with the input size.
-
-
