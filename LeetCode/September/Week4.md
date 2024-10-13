@@ -28,6 +28,13 @@
       - [Complexity Analysis](#complexity-analysis-3)
       - [Approach 2: Line Sweep](#approach-2-line-sweep)
       - [Complexity Analysis](#complexity-analysis-4)
+  - [24.09.28 - 641. Design Circular Deque](#240928---641-design-circular-deque)
+    - [나](#나-5)
+    - [Solution](#solution-4)
+      - [Approach 1: Linked List](#approach-1-linked-list)
+      - [Complexity Analysis](#complexity-analysis-5)
+      - [Approach 2: Fixed Array with Circular Ordering](#approach-2-fixed-array-with-circular-ordering)
+      - [Complexity Analysis](#complexity-analysis-6)
 
 # September Week 4
 
@@ -866,4 +873,197 @@ Here, $N$ is the size of the list of `bookings`.
   O(N)
   $$
   The space complexity is $O(N)$ because we store the start and end points of each booking in the map. Each booking requires two entries in the map, so for $N$ bookings, we store $2N$ entries. Therefore, the space complexity is proportional to $N$.
+
+
+## 24.09.28 - 641. Design Circular Deque
+[문제 링크](https://leetcode.com/problems/design-circular-deque/description/?envType=daily-question&envId=2024-09-28)
+
+### 나
+자료 구조 문제..
+
+### Solution
+#### Approach 1: Linked List
+```cpp
+struct Node {
+    int val;
+    Node* next;
+    Node* prev;
+    Node(int val, Node* next = NULL, Node* prev = NULL)
+        : val(val), next(next), prev(prev) {}
+};
+
+class MyCircularDeque {
+private:
+    Node* head;
+    Node* rear;
+    int size;
+    int capacity;
+
+public:
+    MyCircularDeque(int k) {
+        head = NULL;
+        rear = NULL;
+        size = 0;
+        capacity = k;
+    }
+
+    bool insertFront(int value) {
+        if (isFull()) return false;
+        if (head == NULL) {
+            head = new Node(value);
+            rear = head;
+        } else {
+            Node* newHead = new Node(value);
+            newHead->next = head;
+            head->prev = newHead;
+            head = newHead;
+        }
+        size++;
+        return true;
+    }
+
+    bool insertLast(int value) {
+        if (isFull()) return false;
+        if (head == NULL) {
+            head = new Node(value);
+            rear = head;
+        } else {
+            Node* newNode = new Node(value, NULL, rear);
+            rear->next = newNode;
+            rear = newNode;
+        }
+        size++;
+        return true;
+    }
+
+    bool deleteFront() {
+        if (isEmpty()) return false;
+        if (size == 1) {
+            head = NULL;
+            rear = NULL;
+        } else {
+            Node* nextNode = head->next;
+            delete head;
+            head = nextNode;
+        }
+        size--;
+        return true;
+    }
+
+    bool deleteLast() {
+        if (isEmpty()) return false;
+        if (size == 1) {
+            head = NULL;
+            rear = NULL;
+        } else {
+            Node* prevNode = rear->prev;
+            delete rear;
+            rear = prevNode;
+        }
+        size--;
+        return true;
+    }
+
+    int getFront() { return (isEmpty()) ? -1 : head->val; }
+
+    int getRear() { return (isEmpty()) ? -1 : rear->val; }
+
+    bool isEmpty() { return size == 0; }
+
+    bool isFull() { return size == capacity; }
+};
+```
+
+#### Complexity Analysis
+
+- **Time Complexity**: 
+  $$
+  O(1)
+  $$
+  Because we maintain access to the front and rear elements at all times, all operations simply involve pointer manipulations that take $O(1)$ time.
+
+- **Space Complexity**: 
+  $$
+  O(k)
+  $$
+  In the worst case, there will be maximum $k$ nodes in our doubly linked list, which will involve instantiating $k$ node objects and thus take $O(k)$ space.
+
+#### Approach 2: Fixed Array with Circular Ordering
+```cpp
+class MyCircularDeque {
+private:
+    vector<int> queue;
+    int front;
+    int rear;
+    int size;
+    int capacity;
+
+public:
+    MyCircularDeque(int k) {
+        queue = vector<int>(k);
+        size = 0;
+        capacity = k;
+        front = 0;
+        rear = k - 1;
+    }
+
+    bool insertFront(int value) {
+        if (isFull()) return false;
+        front = (front - 1 + capacity) % capacity;
+        queue[front] = value;
+        size++;
+        return true;
+    }
+
+    bool insertLast(int value) {
+        if (isFull()) return false;
+        rear = (rear + 1) % capacity;
+        queue[rear] = value;
+        size++;
+        return true;
+    }
+
+    bool deleteFront() {
+        if (isEmpty()) return false;
+        front = (front + 1) % capacity;
+        size--;
+        return true;
+    }
+
+    bool deleteLast() {
+        if (isEmpty()) return false;
+        rear = (rear - 1 + capacity) % capacity;
+        size--;
+        return true;
+    }
+
+    int getFront() {
+        if (isEmpty()) return -1;
+        return queue[front];
+    }
+
+    int getRear() {
+        if (isEmpty()) return -1;
+        return queue[rear];
+    }
+
+    bool isEmpty() { return size == 0; }
+
+    bool isFull() { return size == capacity; }
+};
+```
+
+#### Complexity Analysis
+
+- **Time Complexity**: 
+  $$
+  O(1)
+  $$
+  Similar to Approach 1, we maintain the references for the front and rear elements at all times, where all operations are simply arithmetic operations that take $O(1)$ time.
+
+- **Space Complexity**: 
+  $$
+  O(k)
+  $$
+  Our fixed-sized array will always have $k$ elements and thus will take $O(k)$ space.
 
