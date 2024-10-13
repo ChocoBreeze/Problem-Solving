@@ -14,6 +14,8 @@
       - [Complexity Analysis](#complexity-analysis)
       - [Approach 2: Trie](#approach-2-trie)
       - [Complexity Analysis](#complexity-analysis-1)
+  - [24.09.25 - 2416. Sum of Prefix Scores of Strings](#240925---2416-sum-of-prefix-scores-of-strings)
+    - [나](#나-2)
 
 # September Week 4
 
@@ -552,4 +554,96 @@ Let $m$ be the length of `arr1`, $n$ be the length of `arr2`.
   $$
   Each node in the Trie represents a digit (0-9), and each number from `arr1` can contribute up to $d$ nodes. Thus, the total space used by the Trie for storing all prefixes is $O(m \cdot d)$. The algorithm uses constant space for variables like `longestPrefix` and loop variables, which is negligible compared to the space used by the Trie. Thus, the total space complexity is $O(m \cdot d) = O(m)$.
 
+
+## 24.09.25 - 2416. Sum of Prefix Scores of Strings
+[문제 링크](https://leetcode.com/problems/sum-of-prefix-scores-of-strings/description/?envType=daily-question&envId=2024-09-25)
+
+### 나
+Trie
+
+```cpp
+// 1082ms, 703.54MB
+struct Trie {
+    int cnt{}; 
+    unordered_map<char, Trie*> um;
+    Trie() = default;
+};
+
+class Solution {
+public:
+    vector<int> sumPrefixScores(vector<string>& words) {
+        Trie * root = new Trie{};
+
+        for(string& word : words) {
+            Trie * now = root;
+            for(char c : word) {
+                if(now->um.count(c) == 0) { // 새로 만들기
+                    Trie * newNode = new Trie{}; 
+                    now->um.emplace(c, newNode);
+                }
+                now = now->um[c]; // 이동
+                now->cnt++;
+            }
+        }
+
+        vector<int> answer;
+        for(string& word : words) {
+            int sum{};
+            Trie * now = root;
+            for(char c : word) {
+                now = now->um[c];
+                sum += now->cnt;
+            }
+            answer.push_back(sum);
+        }
+        
+        delete root;
+        return answer;
+    }
+};
+```
+
+`vector`말고 그냥 배열
+
+```cpp
+// 541ms, 704.04MB
+struct Trie {
+    int cnt{}; 
+    Trie* next[26]{};
+    Trie() = default;
+};
+
+class Solution {
+public:
+    vector<int> sumPrefixScores(vector<string>& words) {
+        Trie* root = new Trie{};
+
+        for(string& word : words) {
+            Trie* now = root;
+            for(char c : word) {
+                if(!now->next[c - 'a']) {
+                    Trie * newNode = new Trie{}; 
+                    now->next[c-'a'] = newNode;
+                }
+                now = now->next[c - 'a']; // 이동
+                now->cnt++;
+            }
+        }
+
+        vector<int> answer;
+        for(string& word : words) {
+            int sum{};
+            Trie * now = root;
+            for(char c : word) {
+                now = now->next[c - 'a']; // 이동
+                sum += now->cnt;
+            }
+            answer.push_back(sum);
+        }
+        
+        delete root;
+        return answer;
+    }
+};
+```
 
