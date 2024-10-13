@@ -7,6 +7,13 @@
       - [Approach 2: Bottom Up Dynamic Programming with Substring Method](#approach-2-bottom-up-dynamic-programming-with-substring-method)
       - [Approach 3: Top Down Dynamic Programming with Trie](#approach-3-top-down-dynamic-programming-with-trie)
       - [Approach 4: Bottom Up Dynamic Programming with Trie](#approach-4-bottom-up-dynamic-programming-with-trie)
+  - [24.09.24 - 3043. Find the Length of the Longest Common Prefix](#240924---3043-find-the-length-of-the-longest-common-prefix)
+    - [나](#나-1)
+    - [Solution](#solution-1)
+      - [Approach 1: Using Hash Table](#approach-1-using-hash-table)
+      - [Complexity Analysis](#complexity-analysis)
+      - [Approach 2: Trie](#approach-2-trie)
+      - [Complexity Analysis](#complexity-analysis-1)
 
 # September Week 4
 
@@ -357,4 +364,192 @@ Let $K$ be the length of the `dictionary`.
 
 - **Space complexity**: $O(N + M \cdot K)`  
   The Trie used to store the strings in `dictionary` will incur a cost of $O(M \cdot K)`. The `dp` array will incur a cost of $O(N)`.
+
+
+## 24.09.24 - 3043. Find the Length of the Longest Common Prefix
+[문제 링크](https://leetcode.com/problems/find-the-length-of-the-longest-common-prefix/description/?envType=daily-question&envId=2024-09-24)
+
+### 나
+파멸적인 시간.
+```cpp
+// 1502ms, 156.44MB
+class Solution {
+public:
+    int longestCommonPrefix(vector<int>& arr1, vector<int>& arr2) {
+        // Put all the possible prefixes of each element in arr1 into a HashSet.
+        set<string> S;
+        for(int n : arr1) {
+            string str = to_string(n);
+            for(int s{}, e = str.length();s<e;++s) {
+                string tmp = str.substr(0, s + 1);
+                if(S.count(tmp)) continue;
+                S.insert(tmp);
+            }
+        }
+
+        int answer{};
+        for(int n : arr2) {
+            string str = to_string(n);
+            for(int s{}, e = str.length();s<e;++s) {
+                string tmp = str.substr(0, s + 1);
+                if(S.count(tmp)) {
+                    answer = max(answer, static_cast<int>(tmp.length()));
+                }
+            }
+        }
+
+        return answer;
+    }
+};
+```
+
+### Solution
+가져오기 귀찮음.
+
+#### Approach 1: Using Hash Table
+```cpp
+class Solution {
+public:
+    int longestCommonPrefix(vector<int>& arr1, vector<int>& arr2) {
+        unordered_set<int> arr1Prefixes;  // Set to store all prefixes from arr1
+
+        // Step 1: Build all possible prefixes from arr1
+        for (int val : arr1) {
+            while (!arr1Prefixes.count(val) && val > 0) {
+                // Insert current value as a prefix
+                arr1Prefixes.insert(val);
+                // Generate the next shorter prefix by removing the last digit
+                val /= 10;
+            }
+        }
+
+        int longestPrefix = 0;
+
+        // Step 2: Check each number in arr2 for the longest matching prefix
+        for (int val : arr2) {
+            while (!arr1Prefixes.count(val) && val > 0) {
+                // Reduce val by removing the last digit if not found in the
+                // prefix set
+                val /= 10;
+            }
+            if (val > 0) {
+                // Length of the matched prefix using log10 to determine the
+                // number of digits
+                longestPrefix =
+                    max(longestPrefix, static_cast<int>(log10(val) + 1));
+            }
+        }
+
+        return longestPrefix;
+    }
+};
+```
+#### Complexity Analysis
+
+Let $m$ be the length of `arr1`, $n$ be the length of `arr2`, $M$ be the maximum value in `arr1`, and $N$ be the maximum value in `arr2`.
+
+- **Time Complexity**: 
+  $$
+  O(m \cdot \log_{10}(M) + n \cdot \log_{10}(N))
+  $$
+  For each number in `arr1`, we repeatedly divide the number by 10 to generate its prefixes. Since dividing a number by 10 reduces the number of digits logarithmically, this process takes $O(\log_{10}(M))$ for each number in `arr1`. Hence, for $m$ numbers, the total time complexity is $O(m \cdot \log_{10}(M))$. Similarly, for each number in `arr2`, we reduce it by repeatedly dividing it by 10 to check if it matches any prefix in the set. This also takes $O(\log_{10}(N))$ for each number in `arr2$. Hence, for $n$ numbers, the total time complexity is $O(n \cdot \log_{10}(N))$. The overall time complexity is $O(m \cdot \log_{10}(M) + n \cdot \log_{10}(N))$.
+
+- **Space Complexity**: 
+  $$
+  O(m \cdot \log_{10}(M))
+  $$
+  Each number in `arr1` contributes $O(\log_{10}(M))$ space to the set, as it generates prefixes proportional to the number of digits (logarithmic in the value of the number with base 10). With $m$ numbers in `arr1`, the total space complexity for the set is $O(m \cdot \log_{10}(M))$. The algorithm uses constant space for variables like `longestPrefix` and loop variables, so this doesn’t contribute significantly to the space complexity. Thus, the total space complexity is $O(m \cdot \log_{10}(M))$.
+
+#### Approach 2: Trie
+```cpp
+class TrieNode {
+public:
+    // Each node has up to 10 possible children (digits 0-9)
+    TrieNode* children[10];
+    TrieNode() {
+        for (int i = 0; i < 10; ++i) {
+            children[i] = nullptr;
+        }
+    }
+};
+
+class Trie {
+public:
+    TrieNode* root;
+
+    Trie() { root = new TrieNode(); }
+
+    // Insert a number into the Trie by treating it as a string of digits
+    void insert(int num) {
+        TrieNode* node = root;
+        string numStr = to_string(num);
+        for (char digit : numStr) {
+            int idx = digit - '0';
+            if (!node->children[idx]) {
+                node->children[idx] = new TrieNode();
+            }
+            node = node->children[idx];
+        }
+    }
+
+    // Find the longest common prefix for a number in arr2 with the Trie
+    int findLongestPrefix(int num) {
+        TrieNode* node = root;
+        string numStr = to_string(num);
+        int len = 0;
+
+        for (char digit : numStr) {
+            int idx = digit - '0';
+            if (node->children[idx]) {
+                // Increase length if the current digit matches
+                len++;
+                node = node->children[idx];
+            } else {
+                // Stop if no match for the current digit
+                break;
+            }
+        }
+        return len;
+    }
+};
+
+class Solution {
+public:
+    int longestCommonPrefix(vector<int>& arr1, vector<int>& arr2) {
+        Trie trie;
+
+        // Step 1: Insert all numbers from arr1 into the Trie
+        for (int num : arr1) {
+            trie.insert(num);
+        }
+
+        int longestPrefix = 0;
+
+        // Step 2: Find the longest prefix match for each number in arr2
+        for (int num : arr2) {
+            int len = trie.findLongestPrefix(num);
+            longestPrefix = max(longestPrefix, len);
+        }
+
+        return longestPrefix;
+    }
+};
+```
+
+#### Complexity Analysis
+
+Let $m$ be the length of `arr1`, $n$ be the length of `arr2`.
+
+- **Time Complexity**: 
+  $$
+  O(m \cdot d + n \cdot d) = O(m + n)
+  $$
+  For each number in `arr1`, we insert it into the Trie by processing each digit. Since each number has up to $d$ digits, inserting a single number takes $O(d)$ time. Therefore, inserting all $m$ numbers from `arr1` into the Trie takes $O(m \cdot d)$ time. For each number in `arr2`, we check how long its prefix matches with any prefix in the Trie. This involves traversing up to $d$ digits of the number, which takes $O(d)$ time per number. For all $n$ numbers in `arr2$, the time complexity for this step is $O(n \cdot d)$. Overall, the total time complexity is $O(m \cdot d + n \cdot d) = O(m + n)$.
+
+- **Space Complexity**: 
+  $$
+  O(m \cdot d) = O(m)
+  $$
+  Each node in the Trie represents a digit (0-9), and each number from `arr1` can contribute up to $d$ nodes. Thus, the total space used by the Trie for storing all prefixes is $O(m \cdot d)$. The algorithm uses constant space for variables like `longestPrefix` and loop variables, which is negligible compared to the space used by the Trie. Thus, the total space complexity is $O(m \cdot d) = O(m)$.
+
 
